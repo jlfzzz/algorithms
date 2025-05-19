@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "dawdwadwa",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "C:\\Users\\123\\Downloads\\winlibs-x86_64-posix-seh-gcc-14.2.0-llvm-19.1.7-mingw-w64ucrt-12.0.0-r3\\mingw64\\bin\\gcc.exe",
+            "cStandard": "c23",
+            "cppStandard": "gnu++23",
+            "intelliSenseMode": "windows-gcc-x64"
+        }
+    ],
+    "version": 4
+}
