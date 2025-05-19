@@ -576,4 +576,5 @@ add_executable(leetcode
         "others/分类/链表/LCR 029. 循环有序列表的插入.cpp"
         1.cpp
         "1669. 合并两个链表.cpp"
-        "others/3000-3100/3024. 三角形类型.cpp")
+        "others/3000-3100/3024. 三角形类型.cpp"
+        "others/2700-2800/2730. 找到最长的半重复子字符串.cpp")
