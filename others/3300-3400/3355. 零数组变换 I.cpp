@@ -7,22 +7,23 @@ using namespace std;
 
 class Solution {
 public:
-  bool isZeroArray(vector<int>& nums, vector<vector<int>>& queries) {
+  bool isZeroArray(vector<int> &nums, vector<vector<int>> &queries) {
     int n = nums.size();
-    int m = queries.size();
-    for (int i = 0; i < n; i++) {
-      int x = nums[i];
-      vector<int> dp(x + 1, false);
-      dp[0] = true;
-      for (int j = 0; j < m; j++) {
-        int l = queries[j][0];
-        int r = queries[j][1];
-        if (i >= l && i <= r) {
-          for (int k = 1; k <= x; k++) {
+    vector<int> diff(n + 1);
+    for (auto &q: queries) {
+      // 区间 [l,r] 中的数都加一
+      diff[q[0]]++;
+      diff[q[1] + 1]--;
+    }
 
-          }
-        }
+    int sum_d = 0;
+    for (int i = 0; i < n; i++) {
+      sum_d += diff[i];
+      // 此时 sum_d 表示 nums[i] 要减掉多少
+      if (nums[i] > sum_d) { // nums[i] 无法变成 0
+        return false;
       }
     }
+    return true;
   }
 };
