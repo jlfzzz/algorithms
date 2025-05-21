@@ -29,39 +29,31 @@ public:
   int maxUncrossedLines(vector<int>& nums1, vector<int>& nums2) {
     int n = nums1.size();
     int m = nums2.size();
-
-    // 建立nums2中每个值的位置映射
-    unordered_map<int, vector<int>> pos;
+    int ans = 0;
+    unordered_map<int, vector<int>> mp;
     for (int i = 0; i < m; i++) {
-      pos[nums2[i]].push_back(i);
+      mp[nums2[i]].emplace_back(i);
     }
 
-    // dp[i]表示当形成i条线时，在nums2中的最小右边界
-    // 初始化为-1，表示可以选择任意位置
-    vector<int> dp(n + 1, -1);
-    dp[0] = -1; // 0条线时，右边界为-1
-
-    int result = 0;
+    vector<int> dp(n + 1, INT_MAX / 2);
+    dp[0] = -1;
     for (int i = 0; i < n; i++) {
-      int x = nums1[i];
-      // 从大到小遍历，避免重复计算
-      for (int j = result; j >= 0; j--) {
-        // 在nums2中找到大于dp[j]的x的最小位置
-        int next_pos = INT_MAX;
-        for (int pos_idx : pos[x]) {
-          if (pos_idx > dp[j] && pos_idx < next_pos) {
-            next_pos = pos_idx;
+      auto& v = mp[nums1[i]];
+      for (int j = i; j >= 0; j--) {
+        int target = INT_MAX / 2;
+        for (const int k : v) {
+          if (k > dp[j] && k < target) {
+            target = k;
           }
         }
-
-        if (next_pos != INT_MAX) {
-          // 可以形成j+1条线，更新dp[j+1]
-          dp[j + 1] = min(dp[j + 1] == -1 ? INT_MAX : dp[j + 1], next_pos);
-          result = max(result, j + 1);
+        if (target != INT_MAX / 2) {
+          dp[j + 1] = min(dp[j + 1], target);
+          if (dp[j + 1] != INT_MAX / 2) {
+            ans = max(ans, j + 1);
+          }
         }
       }
     }
-
-    return result;
+    return ans;
   }
 };

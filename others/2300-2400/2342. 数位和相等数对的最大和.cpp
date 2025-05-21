@@ -6,18 +6,20 @@ using namespace std;
 
 class Solution {
 public:
-  int maximumSum(vector<int> &nums) {
+  int maximumSum(vector<int>& nums) {
+    vector<int> v(100, -1);
     int ans = -1;
-    int mx[82]{}; // 至多 9 个 9 相加
-    for (int num : nums) {
-      int s = 0; // num 的数位和
-      for (int x = num; x; x /= 10) { // 枚举 num 的每个数位
-        s += x % 10;
+    for (int i = 0; i < nums.size(); i++) {
+      int x = nums[i];
+      int sum = 0;
+      while (x > 0) {
+        sum += x % 10;
+        x /= 10;
       }
-      if (mx[s]) { // 说明左边也有数位和等于 s 的元素
-        ans = max(ans, mx[s] + num); // 更新答案的最大值
-      }
-      mx[s] = max(mx[s], num); // 维护数位和等于 s 的最大元素
+      x = nums[i];
+      if (v[sum] != -1)
+        ans = max(ans, x + v[sum]);
+      v[sum] = max(v[sum], x);
     }
     return ans;
   }
