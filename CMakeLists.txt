@@ -582,4 +582,5 @@ add_executable(leetcode
         "others/2300-2400/2342. 数位和相等数对的最大和.cpp"
         "others/2800-2900/2861. 最大合金数.cpp"
         "others/2700-2800/2779. 数组的最大美丽值.cpp"
-        "others/400-500/404. 左叶子之和.cpp")
+        "others/400-500/404. 左叶子之和.cpp"
+        "others/600-700/671. 二叉树中第二小的节点.cpp")

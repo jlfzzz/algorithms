@@ -10,10 +10,14 @@
 #include <cmath>   
 #include <memory> 
 #include <map>
+#include "bits/stdc++.h"
+using namespace std;
+using ll = long long;
+constexpr int MOD = 1'000'000'007;
 
 using namespace std;
 
-class Solution {
+class Solution2 {
 public:
     int maxVowels(string s, int k) {
         int n = s.size();
