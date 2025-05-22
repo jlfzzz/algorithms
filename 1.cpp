@@ -5,18 +5,17 @@ constexpr int MOD = 1'000'000'007;
 
 class Solution {
 public:
-  int maximumSum(vector<int>& nums) {
-    vector<int> v(100, 0);
+  int maximumBeauty(vector<int>& nums, int k) {
+    int n = nums.size();
+    vector<int> diff(100002, 0);
+    for (int x : nums) {
+      diff[max(x - k, 0)]++;
+      diff[min(x + k), 100001]--;
+    }
+
     int ans = 0;
-    for (int i = 0; i < nums.size(); i++) {
-      int x = nums[i];
-      int sum = 0;
-      while (x > 0) {
-        sum += x % 10;
-        x /= 10;
-      }
-      ans = max(ans, x + v[sum]);
-      v[sum] = max(v[sum], x);
+    for (int x : diff) {
+      ans = max(ans, x);
     }
     return ans;
   }
