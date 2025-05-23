@@ -588,4 +588,5 @@ add_executable(leetcode
         "others/1800-1900/1838. 最高频元素的频数.cpp"
         "others/3300-3400/3362. 零数组变换 III.cpp"
         "others/2100-2200/2141. 同时运行 N 台电脑的最长时间.cpp"
-        "others/2500-2600/2516. 每种字符至少取 K 个.cpp")
+        "others/2500-2600/2516. 每种字符至少取 K 个.cpp"
+        "others/3000-3100/3068. 最大节点价值之和.cpp")
