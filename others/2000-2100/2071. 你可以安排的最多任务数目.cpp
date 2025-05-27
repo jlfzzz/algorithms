@@ -19,6 +19,60 @@ using namespace std;
 
 class Solution {
 public:
+  int maxTaskAssign(vector<int>& tasks, vector<int>& workers, int pills,
+                    int strength) {
+    int m = workers.size();
+    ranges::sort(tasks);
+    ranges::sort(workers);
+
+    auto check = [&](int target) -> bool {
+      deque<int> dq;
+      int j = 0;
+      int used = 0;
+      for (int i = m - target; i < m; i++) {
+        int worker = workers[i];
+        while (j < tasks.size() && j < target &&
+               tasks[j] <= worker + strength) {
+          dq.emplace_back(tasks[j++]);
+               }
+
+        if (dq.empty()) {
+          return false;
+        }
+
+        if (worker >= dq.front()) {
+          dq.pop_front();
+          continue;
+        }
+
+        if (used == pills) {
+          return false;
+        }
+
+        used++;
+        dq.pop_back();
+      }
+      return true;
+    };
+
+    int ans = 0;
+    int lo = 0;
+    int hi = m + 1;
+    while (lo < hi) {
+      if (const int mid = lo + (hi - lo) / 2; check(mid)) {
+        ans = mid;
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    return ans;
+  }
+};
+
+
+class Solution2 {
+public:
     int maxTaskAssign(vector<int> &tasks, vector<int> &workers, int pills, int strength) {
         ranges::sort(tasks);
         ranges::sort(workers);
