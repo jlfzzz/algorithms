@@ -9,7 +9,39 @@ constexpr int DIR[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
 class Solution {
 public:
-  long long countPalindromePaths(vector<int>& parent, string s) {
+  long long countPalindromePaths(vector<int> &parent, string s) {
+    int n = parent.size();
+    vector<vector<int>> graph(n, vector<int>());
+
+    for (int i = 1; i < n; i++) {
+      graph[parent[i]].push_back(i);
+    }
+
+    unordered_map<int, int> map;
+    map[0] = 1;
+    ll ans = 0;
+    auto dfs = [&](this auto &&dfs, int curr, int curr_xor) -> void {
+      curr_xor = curr_xor ^ (1 << (s[curr] - 'a'));
+      ans += map[curr_xor];
+      for (int i = 0; i < 26; i++) {
+        ans += map[curr_xor ^ (1 << i)];
+      }
+      map[curr_xor]++;
+      for (int child: graph[curr]) {
+        dfs(child, curr_xor);
+      }
+    };
+    for (int child: graph[0]) {
+      dfs(child, 0);
+    }
+    return ans;
+  }
+};
+
+
+class Solution {
+public:
+  long long countPalindromePaths(vector<int> &parent, string s) {
     int n = parent.size();
     vector<vector<int>> graph(n, vector<int>());
     for (int i = 1; i < n; i++) {
@@ -19,9 +51,9 @@ public:
     unordered_map<int, int> mp;
     mp[0] = 1;
     ll ans = 0;
-    auto dfs = [&](this auto&& dfs, int fa, int curr_xor) -> void {
+    auto dfs = [&](this auto &&dfs, int fa, int curr_xor) -> void {
       ans += mp[curr_xor];
-      for (int child : graph[fa]) {
+      for (int child: graph[fa]) {
         int new_xor = curr_xor ^ (1 << (s[child] - 'a'));
         for (int i = 0; i < 26; i++) {
           ans += mp[new_xor ^ (1 << i)];
@@ -31,7 +63,7 @@ public:
       }
     };
     dfs(0, 0);
-    return ans -1 ;
+    return ans - 1;
   }
 };
 
@@ -48,8 +80,8 @@ public:
     long long ans = 0;
     unordered_map<int, int> cnt;
     cnt[0] = 1;
-    auto dfs = [&](this auto&&dfs, int fa, int curr_xor) -> void {
-      for (int child : g[fa]) {
+    auto dfs = [&](this auto &&dfs, int fa, int curr_xor) -> void {
+      for (int child: g[fa]) {
         int x = curr_xor ^ (1 << (s[child] - 'a'));
         ans += cnt.contains(x) ? cnt[x] : 0;
         for (int i = 0; i < 26; i++) {
