@@ -19,21 +19,21 @@ public:
 		int ans = 0;
 		auto dfs = [&](this auto&& dfs, TreeNode* node) -> pair<int, int> {
 			if (!node) {
-				return {INT_MAX, INT_MIN};
+				return {INT_MIN, INT_MAX};
 			}
 			auto [left_max, left_min] = dfs(node->left);
 			auto [right_max, right_min] = dfs(node->right);
 			int curr = node->val;
-			if (left_max != INT_MAX) {
+			if (left_max != INT_MIN) {
 				ans = max(ans, abs(curr - left_max));
 			}
-			if (left_min != INT_MIN) {
+			if (left_min != INT_MAX) {
 				ans = max(ans, abs(curr - left_min));
 			}
-			if (right_max != INT_MAX) {
+			if (right_max != INT_MIN) {
 				ans = max(ans, abs(curr - right_max));
 			}
-			if (right_min != INT_MIN) {
+			if (right_min != INT_MAX) {
 				ans = max(ans, abs(curr - right_min));
 			}
 			return {max({left_max, right_max, curr}), min({left_min, right_min, curr})};
