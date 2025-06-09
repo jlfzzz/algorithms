@@ -16,6 +16,52 @@ using namespace std;
 
 class Solution {
 public:
+    int bestTeamScore(vector<int>& scores, vector<int>& ages) {
+        int n = ages.size();
+        vector<pair<int, int>> v(n);
+        for (int i = 0; i < n; i++) {
+            v[i] = {ages[i], scores[i]};
+        }
+
+        ranges::sort(v);
+        vector<int> dp(n);
+        for (int i = 0; i < n; i++) {
+            for (int j = i; j >= 0; j--) {
+                if (v[j].second <= v[i].second) {
+                    dp[i] = max(dp[i], dp[j] + v[i].second);
+                }
+            }
+        }
+        return ranges::max(dp);
+    }
+};
+
+class Solution {
+public:
+    int bestTeamScore(vector<int>& scores, vector<int>& ages) {
+        int n = scores.size();
+        vector<pair<int,int>> v(n);
+        for (int i = 0; i < n; i++) {
+            v[i].second = scores[i];
+            v[i].first = ages[i];
+        }
+        ranges::sort(v);
+        vector<int> dp(n);
+        for (int i = 0; i < n; i++) {
+            for (int j = i; j >= 0; j--) {
+                if (v[j].second <= v[i].second) {
+                    dp[i] = max(dp[j], dp[i]);
+                }
+            }
+            dp[i] += v[i].second;
+        }
+        return ranges::max(dp);
+    }
+};
+
+
+class Solution {
+public:
     int bestTeamScore(vector<int> &scores, vector<int> &ages) {
         int n = scores.size();
         pair<int, int> a[n];

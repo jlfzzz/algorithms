@@ -13,29 +13,29 @@
 
 using namespace std;
 
-// 方法2超时了
 class Solution {
 public:
-    vector<int> longestObstacleCourseAtEachPosition(vector<int> &obstacles) {
+    vector<int> longestObstacleCourseAtEachPosition(vector<int>& obstacles) {
         int n = obstacles.size();
-        vector<int> f;
         vector<int> ans;
-
+        vector<int> dp;
         for (int i = 0; i < n; i++) {
-            int x = obstacles[i];
-            auto it = ranges::upper_bound(f, x);
-            if (it == f.end()) {
-                f.emplace_back(x);
-                ans.emplace_back(f.size());
+            auto it = ranges::upper_bound(dp, obstacles[i]);
+            if (it == dp.end()) {
+                dp.push_back(obstacles[i]);
+                ans.push_back(dp.size());
             } else {
-                *it = x;
-                ans.emplace_back(it - f.begin() + 1);
+                *it = obstacles[i];
+                ans.push_back(it - dp.begin() + 1);
             }
         }
         return ans;
-
     }
 };
+
+
+
+// 方法2超时了
 
 class Solution {
 public:

@@ -1,21 +1,58 @@
-#include <iostream>
-#include <unordered_map>
-#include <vector>
-#include <string>
-#include <functional>
-#include <algorithm>
-#include <ranges>
-#include <numeric>
-#include <unordered_set>
-#include <cmath>   
-#include <memory> 
-#include <map>
-#include <queue>
-#include <cstring>
-#include <array> 
-#include <bitset>
-
+#include "bits/stdc++.h"
 using namespace std;
+using ll = long long;
+constexpr int MOD = 1'000'000'007;
+constexpr int DIR[4][2] =  {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+
+
+class Solution {
+public:
+    vector<int> findSubstring(string s, vector<string>& words) {
+        int n = s.size(), m = words.size();
+        if (m == 0) return {};
+        int len = words[0].size();
+        int totalLen = m * len;
+        if (n < totalLen) return {};
+
+        unordered_map<string, int> wordCount;
+        for (const auto& word : words) {
+            wordCount[word]++;
+        }
+
+        vector<int> result;
+        for (int i = 0; i < len; ++i) {
+            unordered_map<string, int> window;
+            int left = i, count = 0;
+
+            for (int right = i; right + len <= n; right += len) {
+                string word = s.substr(right, len);
+                if (wordCount.count(word)) {
+                    window[word]++;
+                    count++;
+
+                    while (window[word] > wordCount[word]) {
+                        string leftWord = s.substr(left, len);
+                        window[leftWord]--;
+                        left += len;
+                        count--;
+                    }
+
+                    if (count == m) {
+                        result.push_back(left);
+                    }
+                } else {
+                    window.clear();
+                    count = 0;
+                    left = right + len;
+                }
+            }
+        }
+
+        return result;
+    }
+};
+
+
 
 class Solution {
 public:

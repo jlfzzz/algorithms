@@ -15,6 +15,51 @@ using namespace std;
 
 class Solution {
 public:
+    int minimumMountainRemovals(vector<int>& nums) {
+        int n = nums.size();
+        vector<int> left(n, 1);  // 以nums[i]结尾的最长递增子序列长度
+        vector<int> right(n, 1); // 以nums[i]开始的最长递减子序列长度
+
+        // 计算从左到右的LIS长度
+        vector<int> dp;
+        for (int i = 0; i < n; i++) {
+            auto it = ranges::lower_bound(dp, nums[i]);
+            if (it == dp.end()) {
+                dp.push_back(nums[i]);
+            } else {
+                *it = nums[i];
+            }
+            left[i] = dp.size();  // 修正：记录LIS长度
+        }
+
+        // 计算从右到左的LIS长度（相当于从左到右的最长递减子序列）
+        dp.clear();
+        for (int i = n - 1; i >= 0; i--) {
+            auto it = ranges::lower_bound(dp, nums[i]);
+            if (it == dp.end()) {
+                dp.push_back(nums[i]);
+            } else {
+                *it = nums[i];
+            }
+            right[i] = dp.size();  // 修正：记录LDS长度
+        }
+
+        // 找最长的山脉
+        int maxMountain = 0;
+        for (int i = 1; i < n - 1; i++) {  // 山峰不能在两端
+            if (left[i] >= 2 && right[i] >= 2) {  // 确保左右都有元素
+                maxMountain = max(maxMountain, left[i] + right[i] - 1);
+            }
+        }
+
+        return n - maxMountain;
+    }
+};
+
+
+
+class Solution {
+public:
     int minimumMountainRemovals(vector<int> &nums) {
         int n = nums.size();
         vector<int> left2Right(n, 1), right2Left(n, 1), temp;
