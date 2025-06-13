@@ -1,22 +1,43 @@
-#include <iostream>
-#include <unordered_map>
-#include <vector>
-#include <string>
-#include <functional>
-#include <algorithm>
-#include <ranges>
-#include <numeric>
-#include <unordered_set>
-#include <cmath>   
-#include <memory> 
-#include <map>
-#include <queue>
-#include <cstring>
-#include <array> 
-#include <bitset>
-#include <stack>
+#include "bits/stdc++.h"
+using namespace std;
+using ll = long long;
+constexpr int MOD = 1'000'000'007;
+constexpr int DIR[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
 using namespace std;
+
+class Solution {
+public:
+    bool canPartitionGrid(vector<vector<int>>& grid) {
+        int n = grid.size();
+        int m = grid[0].size();
+
+        ll total_sum = 0LL;
+        for (auto& v : grid) {
+            total_sum += accumulate(v.begin(), v.end(), 0LL);
+        }
+
+        if (total_sum & 1) return false;
+
+        ll target_sum = total_sum >> 1;
+        ll current_sum = 0LL;
+        for (auto& v : grid) {
+            current_sum += accumulate(v.begin(), v.end(), 0LL);
+            if (current_sum == target_sum) return true;
+            if (current_sum > target_sum) break;
+        }
+
+        current_sum = 0LL;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                current_sum += grid[j][i];
+                if (current_sum == target_sum) return true;
+                if (current_sum > target_sum) break;
+            }
+        }
+        return false;
+    }
+};
 
 class Solution {
     public:

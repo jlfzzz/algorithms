@@ -10,6 +10,38 @@ constexpr int DIR[4][2] =  {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 class Solution {
 public:
 	int findKthNumber(int n, int k) {
+		auto helper = [&](int node) -> int {
+			int size = 0;
+			long long left = node, right = node + 1;
+			while (left <= n) {
+				size += min(right, n + 1LL) - left;
+				left *= 10; // 继续，计算下一层
+				right *= 10;
+			}
+			return size;
+		};
+
+		k--;
+		int node = 1;
+		while (k > 0) {
+			int size = helper(node);
+			if (size <= k) {
+				k -= size;
+				node++;
+			} else {
+				node *= 10;
+				k--;
+			}
+		}
+		return node;
+ 	}
+};
+
+
+
+class Solution {
+public:
+	int findKthNumber(int n, int k) {
 		// 逐层统计 node 子树大小
 		auto count_subtree_size = [&](int node) -> int {
 			// 子树大小不会超过 n，所以 size 用 int 类型
