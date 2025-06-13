@@ -1,13 +1,11 @@
-import all_algos
 from typing import List
-
 
 class Solution:
     def minimizeMax(self, nums: List[int], p: int) -> int:
         nums.sort()
         ans = 100000000
 
-        lo = 1
+        lo = 0
         hi = nums[-1] - nums[0] + 1
         n = len(nums)
 
