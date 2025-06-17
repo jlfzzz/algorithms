@@ -15,7 +15,7 @@ public:
     string s = to_string(n);
     vector dp(len, vector<ll>(len, -1));
 
-    auto dfs = [&](this auto&&dfs, int idx, int is_limit, int is_num, ll count) -> ll {
+    auto dfs = [&](this auto &&dfs, int idx, int is_limit, int is_num, ll count) -> ll {
       if (idx == len) {
         if (is_num) {
           return count;
@@ -39,7 +39,7 @@ public:
         dp[idx][count] = sum;
       }
       return sum;
-    };
-    return dfs(0, 1, 0,0);
+      };
+    return dfs(0, 1, 0, 0);
   }
 };

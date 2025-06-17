@@ -22,6 +22,41 @@ using namespace std;
 
 class TreeAncestor {
 public:
+    vector<vector<int>> pa;
+    
+    TreeAncestor(int n, vector<int> &parent) {
+        int m = bit_width((unsigned)n);
+        pa = vector<vector<int>>(n, vector<int>(m + 1, -1));
+        for (int i = 0; i < parent.size(); ++i) {
+            pa[i][0] = parent[i];
+        }
+
+        for (int i = 0; i < m; i++) {
+            for (int x = 0; x < n; x++) {
+                int p = pa[x][i];
+                if (p != -1) {
+                    pa[x][i + 1] = pa[p][i];
+                }
+            }
+        }
+    }
+
+    int getKthAncestor(int node, int k) {
+        int i = bit_width((unsigned)k);
+        for (int j = 0; j < i; j++) {
+            if (k >> j & 1) {
+                node = pa[node][j];
+            }
+            if (node == -1) {
+                return -1;
+            }
+        }
+        return node;
+    }
+};
+
+class TreeAncestor {
+public:
     vector<vector<int>> sons;
     vector<int> fa;
     vector<int> depth;

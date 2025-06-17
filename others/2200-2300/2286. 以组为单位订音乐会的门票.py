@@ -85,3 +85,75 @@ class BookMyShow:
 # obj = BookMyShow(n, m)
 # param_1 = obj.gather(k, maxRow)
 # param_2 = obj.scatter(k, maxRow)
+
+
+class BookMyShow:
+    def update(self, o: int, l: int, r: int, target: int, val: int) -> None:
+        if l == r:
+            self.tree_sum[o] += val
+            self.mn[o] = self.tree_sum[o]
+            self.row_[l] = self.tree_sum[o]
+            return
+
+        mid = (l + r) // 2
+        if target <= mid:
+            self.update(o * 2, l, mid, target, val)
+        else:
+            self.update(o * 2 + 1, mid + 1, r, target, val)
+        self.mn[o] = min(self.mn[o * 2], self.mn[o * 2 + 1])
+        self.tree_sum[o] = self.tree_sum[o * 2] + self.tree_sum[o * 2 + 1]
+
+    def query_sum(self, o: int, l: int, r: int, L: int, R: int) -> int:
+        if L <= l and R >= r:
+            return self.tree_sum[o]
+
+        mid = (l + r) // 2
+        res = 0
+        if L <= mid:
+            res += self.query_sum(o * 2, l, mid, L, R)
+        if R > mid:
+            res += self.query_sum(o * 2 + 1, mid + 1, r, L, R)
+        return res
+
+    def find_first(self, o: int, l: int, r: int, R: int, min_taken: int) -> int:
+        if self.mn[o] > min_taken:
+            return -1
+
+        if l == r:
+            return l
+
+        mid = (l + r) // 2
+        if self.mn[o * 2] <= min_taken:
+            return self.find_first(o * 2, l, mid, R, min_taken)
+        if R > mid:
+            return self.find_first(o * 2 + 1, mid + 1, r, R, min_taken)
+        return -1
+
+    def __init__(self, n: int, m: int):
+        self.n = n
+        self.m = m
+        self.tree_sum = [0] * 4 * n
+        self.mn = [0] * 4 * n
+        self.row_ = [0] * n
+
+    def gather(self, k: int, maxRow: int) -> List[int]:
+        res = self.find_first(1, 0, self.n - 1, maxRow, self.m - k)
+        if res < 0:
+            return []
+        temp = self.row_[res]
+        self.update(1, 0, self.n - 1, res, k)
+        return [res, temp]
+
+    def scatter(self, k: int, maxRow: int) -> bool:
+        total = self.query_sum(1, 0, self.n - 1, 0, maxRow)
+        if (maxRow + 1) * self.m - total < k:
+            return False
+
+        first_row = self.find_first(1, 0, self.n - 1, maxRow, self.m - 1)
+        # k -= self.m - self.row_[first_row]
+        while k > 0:
+            temp = self.row_[first_row]
+            self.update(1, 0, self.n - 1, first_row, min(k, self.m - temp))
+            k -= self.m - temp
+            first_row += 1
+        return True

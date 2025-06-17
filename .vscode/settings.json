@@ -62,5 +62,6 @@
         "forward_list": "cpp",
         "list": "cpp",
         "valarray": "cpp"
-    }
+    },
+    "python.REPL.enableREPLSmartSend": false
 }
