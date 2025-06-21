@@ -4,3 +4,7 @@ def f(size:int, alignment:int)->int:
 
 print(f(309939,8192))
 print(f(309939, 8192) // 8192)
+
+s1="123"
+s1 = "0" * 2 + s1
+print(s1)
