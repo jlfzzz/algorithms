@@ -6,7 +6,7 @@ from functools import cache
 
 class Solution:
     def tallestBillboard(self, rods):
-        @cache(None)
+        @cache
         def dp(i, s):
             if i == len(rods):
                 return 0 if s == 0 else float("-inf")
