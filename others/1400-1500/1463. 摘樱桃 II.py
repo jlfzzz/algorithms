@@ -1,5 +1,36 @@
 from cmath import inf
 from typing import List
+from functools import cache
+
+
+class Solution:
+    def cherryPickup(self, grid: List[List[int]]) -> int:
+        m = len(grid)
+        n = len(grid[0])
+
+        @cache
+        def dfs(i: int, j: int, k: int) -> int:
+            if j < 0 or k >= n or j >= k:
+                return -inf
+            if i == m:
+                return 0
+            return (
+                max(
+                    dfs(i + 1, j - 1, k - 1),
+                    dfs(i + 1, j, k - 1),
+                    dfs(i + 1, j + 1, k - 1),
+                    dfs(i + 1, j - 1, k),
+                    dfs(i + 1, j, k),
+                    dfs(i + 1, j + 1, k),
+                    dfs(i + 1, j - 1, k + 1),
+                    dfs(i + 1, j, k + 1),
+                    dfs(i + 1, j + 1, k + 1),
+                )
+                + grid[i][j]
+                + grid[i][k]
+            )
+
+        return dfs(0, 0, n - 1)
 
 
 class Solution:

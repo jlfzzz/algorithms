@@ -15,7 +15,7 @@ using namespace std;
 
 class Solution {
 public:
-  int maxProfit(vector<int>& prices) {
+  int maxProfit(vector<int> &prices) {
     int n = prices.size();
     int ans = 0;
     int mn = prices[0];
@@ -32,40 +32,40 @@ public:
 
 class Solution1 {
 public:
-    int maxProfit(vector<int> &prices) {
-        int n = prices.size();
-        int mn = prices[0];
+  int maxProfit(vector<int> &prices) {
+    int n = prices.size();
+    int mn = prices[0];
 
-        int ans = 0;
-        for (int i = 1; i < n; i++) {
-            if (prices[i] >= mn) {
-                ans = max(ans, prices[i] - mn);
-            } else {
-                mn = prices[i];
-            }
-        }
-        return ans;
+    int ans = 0;
+    for (int i = 1; i < n; i++) {
+      if (prices[i] >= mn) {
+        ans = max(ans, prices[i] - mn);
+      } else {
+        mn = prices[i];
+      }
     }
+    return ans;
+  }
 };
 
 
 class Solution2 {
 public:
-    int maxProfit(vector<int> &prices) {
-        int n = prices.size();
-        vector<int> dp(n);
+  int maxProfit(vector<int> &prices) {
+    int n = prices.size();
+    vector<int> dp(n);
 
-        dp[0] = prices[0];
-        if (n == 0) return dp[0];
+    dp[0] = prices[0];
+    if (n == 0) return dp[0];
 
-        int ans = 0;
-        for (int i = 1; i < n; i++) {
-            if (prices[i] >= dp[i - 1]) {
-                ans = max(ans, prices[i] - dp[i - 1]);
-            } else {
-                dp[i] = prices[i];
-            }
-        }
-        return ans;
+    int ans = 0;
+    for (int i = 1; i < n; i++) {
+      if (prices[i] >= dp[i - 1]) {
+        ans = max(ans, prices[i] - dp[i - 1]);
+      } else {
+        dp[i] = prices[i];
+      }
     }
+    return ans;
+  }
 };
