@@ -12,3 +12,11 @@ s1="123"
 s1 = "0" * 2 + s1
 print(s1)
 
+arr1 = [31311, 121]
+print(arr1)
+arr2 = arr1
+print(arr2)
+
+arr2.append(3)
+print(arr1)
+print(arr2)
