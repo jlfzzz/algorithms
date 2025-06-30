@@ -12,6 +12,8 @@ DIRS = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
 INF = int(1e9)
 
 
+
+
 class Solution:
     def minXor(self, nums: List[int], K: int) -> int:
         n = len(nums)

@@ -7,32 +7,16 @@ using ll = long long;
 constexpr int MOD = 1'000'000'007;
 constexpr int DIR[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
-class Solution {
-public:
-	int minimumTimeToInitialState(string word, int k) {
-        int n = word.size();
-		vector<int> z(n, 0);
-		int left = 0;
-		int right = 0;
-		for (int i = 1; i < n; i++) {
-			if (i <= right) {
-				z[i] = min(right - i + 1, z[i - left]);
-			}
-			while (i + z[i] < n && word[i + z[i]] == word[z[i]]) {
-				left = i;
-				right = i + z[i];
-				z[i] += 1;
-			}
 
-			if (i % k == 0 && z[i] == n - i) {
-				return i / k;
-			}
-		}
-		return (n + k - 1) / k;
-	}
-};
-
-
+/*
+下面的模板大概就是先取随机数MOD和BASE
+创建n+1的数组
+H里面的转移每个乘前一个和你的字符串的每个char
+query传入r,l参数
+H[r] - H[l - 1] * P[r - l + 1]
+如果一样，两个H肯定一样，r-l+1也一样
+*/
+// 3031题目
 class Solution {
 public:
 	int minimumTimeToInitialState(string word, int K) {
