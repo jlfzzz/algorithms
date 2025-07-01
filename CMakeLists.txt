@@ -617,4 +617,5 @@ add_executable(leetcode
         "others/1600-1700/1648. 销售价值减少的颜色球.cpp"
         "others/2100-2200/2106. 摘水果.cpp"
         "others/100-200/111. 二叉树的最小深度.cpp"
-        "others/2800-2900/2874. 有序三元组中的最大值 II.cpp")
+        "others/2800-2900/2874. 有序三元组中的最大值 II.cpp"
+        "others/1300-1400/1392. 最长快乐前缀.cpp")

@@ -3,6 +3,30 @@ from functools import cache
 
 MOD = int(1e9 + 7)
 
+# dp[i][j][l]表示前i个数选j个的和为l的方案数
+# 因为选了l个，对结果的贡献就是2 ^ (n - l) * dp[i][j][l]
+class Solution:
+    def sumOfPower(self, nums: List[int], k: int) -> int:
+        n = len(nums)
+        dp = [[[0] * (k + 1) for _ in range(n + 1)] for _ in range(n + 1)]
+        for i in range(n + 1):
+            dp[i][0][0] = 1
+        for i in range(1, n + 1):
+            x = nums[i - 1]
+            for j in range(i, 0, -1):
+                for l in range(k, 0, -1):
+                    dp[i][j][l] += dp[i - 1][j][l]
+                    if l - x >= 0:
+                        dp[i][j][l] += dp[i - 1][j - 1][l - x]
+
+        pow2 = 1
+        ans = 0
+        for i in range(n, 0, -1):
+            ans = (ans + pow2 * dp[n][i][k]) % MOD
+            pow2 = (pow2 * 2) % MOD
+        return ans
+
+
 class Solution:
     def sumOfPower(self, nums: List[int], k: int) -> int:
         n = len(nums)
