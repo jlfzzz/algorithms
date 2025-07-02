@@ -10,7 +10,6 @@ from queue import *
 MOD = int(1e9 + 7)
 DIRS = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
 
-
 class Solution:
     def profitableSchemes(
         self, n: int, minProfit: int, group: List[int], profit: List[int]
