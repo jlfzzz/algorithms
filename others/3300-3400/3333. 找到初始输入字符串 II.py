@@ -7,6 +7,47 @@ from bisect import *
 from typing import *
 from queue import *
 
+MOD = int(1e9 + 7)
+
+
+class Solution:
+    def possibleStringCount(self, word: str, k: int) -> int:
+        total = 1
+        cnt = []
+        n = len(word)
+        if k == n:
+            return 1
+        if k > n:
+            return 0
+        i = 0
+        parts = 0
+        while i < n:
+            j = i + 1
+            while j < n and word[i] == word[j]:
+                j += 1
+            parts += 1
+            if j - i > 1:
+                cnt.append(j - i - 1)
+                total = (total * (j - i)) % MOD
+            i = j
+
+        if parts >= k:
+            return total
+
+        m = k - parts
+        dp = [0] * (m + 1)
+        dp[0] = 1
+        for x in cnt:
+            s = [0] * (m + 2)
+            for i in range(m + 1):
+                s[i + 1] = s[i] + dp[i]
+            for i in range(m, -1, -1):
+                dp[i] = s[i + 1]
+                if i - x >= 0:
+                    dp[i] -= s[i - x]
+
+        return (total - sum(x for i, x in enumerate(dp) if i != m) + MOD) % MOD
+
 
 class Solution:
     def possibleStringCount(self, word: str, k: int) -> int:

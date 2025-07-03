@@ -38,6 +38,26 @@ public:
         return next;
     }
 
+    // lc28 string.find()
+    int strStr(string haystack, string needle) {
+        auto nxt = buildLPS(needle);
+        int j = 0;
+        int n = haystack.size();
+        int m = needle.size();
+        for (int i = 0; i < n; i++) {
+            while (j > 0 && needle[j] != haystack[i]) {
+                j = nxt[j - 1];
+            }
+            if (needle[j] == haystack[i]) {
+                j++;
+            }
+            if (j == m) {
+                return i - m + 1;
+            }
+        }
+        return -1;
+    }
+
     // KMP搜索函数 - 返回所有匹配位置
     static vector<int> search(const string& text, const string& pattern) {
         vector<int> result;
