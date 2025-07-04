@@ -12,6 +12,17 @@ MOD = int(1e9 + 7)
 DIRS = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
 
 
+class Solution:
+    def kthCharacter(self, k: int, operations: List[int]) -> str:
+        cnt = 0
+        n = k.bit_length()
+
+        for i in range(n - 1, -1, -1):
+            m = 1 << i
+            if k > m:
+                cnt += operations[i]
+                k -= m
+        return ascii_lowercase[cnt % 26]
 
 
 class Solution:
