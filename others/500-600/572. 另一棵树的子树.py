@@ -18,6 +18,67 @@ class TreeNode:
         self.left = left
         self.right = right
 
+#树哈希
+class Solution:
+    def isSubtree(self, root: Optional[TreeNode], subRoot: Optional[TreeNode]) -> bool:
+        # 匹配遍历结果
+        # 不过要为遍历结果加上一些标识 以保证是树和树之间匹配，而不是节点间匹配
+        # 一棵树的遍历结果为 (root.val(root.left)(root.right))
+        # 其中空节点应当返回 ()，以标识树的结束
+        # 这样的话，任何一种遍历结果都是可行的
+
+        def dfs(node: Optional[TreeNode]) -> str:
+            if node is None:
+                return "()"
+
+            return f"({node.val}({dfs(node.left)})({dfs(node.right)}))"
+
+        return dfs(subRoot) in dfs(root)
+
+
+class Solution:
+    def isSubtree(self, root: Optional[TreeNode], subRoot: Optional[TreeNode]) -> bool:
+        path1 = []
+        path2 = []
+        # 确保两个树完全一样
+        lNull, rNull = -1000000, -1000001
+
+        def dfs(node, path):
+            path.append(node.val)
+            if node.left:
+                dfs(node.left, path)
+            else:
+                path.append(lNull)
+            if node.right:
+                dfs(node.right, path)
+            else:
+                path.append(rNull)
+
+        dfs(root, path1)
+        dfs(subRoot, path2)
+        n = len(path1)
+        m = len(path2)
+        nxt = [0] * m
+        i = 1
+        length = 0
+        while i < m:
+            while length > 0 and path2[length] != path2[i]:
+                length = nxt[length - 1]
+            if path2[length] == path2[i]:
+                length += 1
+            nxt[i] = length
+            i += 1
+        i, j = 0, 0
+        while i < n:
+            while j > 0 and path1[i] != path2[j]:
+                j = nxt[j - 1]
+            if path1[i] == path2[j]:
+                j += 1
+            if j == m:
+                return True
+            i += 1
+        return False
+
 
 class Solution:
     # 代码逻辑同 104. 二叉树的最大深度

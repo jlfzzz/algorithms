@@ -20,3 +20,6 @@ print(arr2)
 arr2.append(3)
 print(arr1)
 print(arr2)
+
+s1 = "abcde"
+print(s1.find("f", 0))
