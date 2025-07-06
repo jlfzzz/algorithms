@@ -1,3 +1,6 @@
+//
+// Created by 123 on 25-7-6.
+//
 #include "bits/stdc++.h"
 using namespace std;
 using ll = long long;
@@ -42,5 +45,40 @@ public:
 		}
 		count--;
 		return true;
+	}
+};
+
+class Solution {
+public:
+	int minTime(int n, vector<vector<int>>& edges, int k) {
+		int lo = 0;
+		int hi = 1e9 + 10000;
+		int ans = hi - 1;
+
+
+		auto check = [&](int t)->bool {
+			UnionFind uf(n);
+			for (auto& v : edges) {
+				int a = v[0];
+				int b = v[1];
+				int time = v[2];
+				if (time > t) {
+					uf.unite(a, b);
+				}
+			}
+			return uf.count >= k;
+		};
+
+
+		while (lo < hi) {
+			int mid = (lo + hi) / 2;
+			if (check(mid)) {
+				ans = mid;
+				hi = mid;
+			} else {
+				lo = mid + 1;
+			}
+		}
+		return ans;
 	}
 };
