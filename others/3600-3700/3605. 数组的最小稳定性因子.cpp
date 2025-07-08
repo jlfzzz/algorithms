@@ -4,30 +4,49 @@ using namespace std;
 
 class Solution {
 public:
-    vector<int> smallestSubarrays(vector<int> &nums) {
-        int n = nums.size();
-        vector<int> ans(n);
-        vector<pair<int, int>> ors; // 按位或的值 + 对应子数组的右端点的最小值
-        for (int i = n - 1; i >= 0; --i) {
-            ors.emplace_back(0, i);
-            ors[0].first = gcd(nums[i], ors[0].first);
-            int k = 0;
-            for (int j = 1; j < ors.size(); ++j) {
-                ors[j].first = gcd(nums[i], ors[j].first);
-                if (ors[k].first == ors[j].first)
-                    ors[k].second = ors[j].second; // 合并相同值，下标取最小的
-                else ors[++k] = ors[j];
-            }
-            ors.resize(k + 1);
-            // 本题只用到了 ors[0]，如果题目改成任意给定数字，可以在 ors 中查找
-            ans[i] = ors[0].second - i + 1;
-        }
-        return ans;
-    }
-
     int minStable(vector<int> &nums, int maxC) {
-        auto v = smallestSubarrays(nums);
-
-        
+        int n = nums.size();
+        vector<pair<int, int>> g;
+        vector f(n, 0);
+        for (int i = 0; i < n; ++i) {
+            g.emplace_back(nums[i], i);
+            int j = 0;
+            for (auto &p : g) {
+                p.first = gcd(p.first, nums[i]);
+                if (g[j].first == p.first) {
+                    g[j].second = p.second;
+                } else {
+                    g[++j] = move(p);
+                }
+            }
+            g.resize(j + 1);
+            if (g[0].first == 1) {
+                f[i] = i - g[0].second;
+            } else {
+                f[i] = i + 1;
+            }
+        }
+        auto check = [&](int target) {
+            int cnt = 0;
+            for (int i = n - 1; i >= 0; ) {
+                if (f[i] > target) {
+                    ++cnt;
+                    i -= target + 1;
+                } else {
+                    --i;
+                }
+            }
+            return cnt <= maxC;
+            };
+        int l = 0, r = n; // 实际上上限最多是 n / (maxC + 1)
+        while (l <= r) {
+            int m = (l + r) / 2;
+            if (check(m)) {
+                r = m - 1;
+            } else {
+                l = m + 1;
+            }
+        }
+        return l;
     }
 };

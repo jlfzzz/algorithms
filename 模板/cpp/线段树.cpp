@@ -321,7 +321,8 @@ private:
     }
 
 public:
-    SegmentTree(const vector<int> &nums) {
+	// 都是闭区间的query [l, r]
+	SegmentTree(const vector<int> &nums) {
         n = nums.size();
         tree.resize(4 * n);
         build(nums, 1, 0, n - 1);
