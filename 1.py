@@ -23,3 +23,5 @@ print(arr2)
 
 s1 = "abcde"
 print(s1.find("f", 0))
+s1[2] = "#"
+print(s1)

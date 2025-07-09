@@ -221,6 +221,23 @@ public:
 class Solution {
 public:
 	int lengthOfLIS(vector<int> &nums, int k) {
+		int mx = ranges::max(nums);
+		SegmentTree st(mx);
+		int ans = 0;
+		for (int x : nums) {
+			int temp = st.rangeMax(max(0, x - k), x - 1);
+			st.update(x, temp + 1);
+			ans = max(ans, temp + 1);
+		}
+		return ans;
+	}
+};
+
+
+
+class Solution {
+public:
+	int lengthOfLIS(vector<int> &nums, int k) {
 		int n = nums.size();
 		int m = ranges::max(nums);
 		SegmentTree st(m + 1);
