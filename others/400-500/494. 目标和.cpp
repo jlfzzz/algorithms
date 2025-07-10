@@ -1,15 +1,7 @@
-#include <iostream>
-#include <unordered_map>
-#include <vector>
-#include <string>
-#include <functional>
-#include <algorithm>
-#include <ranges>
-#include <numeric>
-#include <unordered_set>
-#include <cmath>   
-#include <memory> 
-#include <map>
+#include <bits/stdc++.h>
+using namespace std;
+vector<vector<int>> DIRS = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
+constexpr int MOD = int(1e9 + 7);
 
 using namespace std;
 
@@ -19,6 +11,50 @@ using namespace std;
 #include <numeric> // 包含 numeric 头文件以防需要计算总和等操作
 
 using namespace std;
+
+class Solution {
+public:
+    int findTargetSumWays(vector<int> &nums, int target) {
+        int n = nums.size();
+        int total = reduce(nums.begin(), nums.end(), 0);
+        int m = total + target;
+        if (m % 2 || m < 0) {
+            return 0;
+        }
+
+        m /= 2;
+
+        auto count = [&](const vector<int> &nums)->unordered_map<int, int> {
+            unordered_map<int, int> ret;
+            int l = 1 << nums.size();
+            for (int i = 0; i < l; ++i) {
+                int s = 0;
+                for (int j = 0; j < nums.size(); ++j) {
+                    if (i >> j & 1) {
+                        s += nums[j];
+                    }
+                }
+                ret[s] += 1;
+            }
+            return ret;
+            };
+
+        auto left = count({ nums.begin(), nums.begin() + n / 2 });
+        auto right = count({ nums.begin() + n / 2, nums.end() });
+        int ans = 0;
+        for (auto &[k, v] : left) {
+            ans += v * right[m - k];
+        }
+        return ans;
+    }
+};
+
+
+
+
+
+
+
 
 class Solution {
 public:
