@@ -19,6 +19,36 @@ class Solution:
         n = len(nums)
 
         def f(nums: List[int]):
+            dp = [[[False] * (1 << m) for _ in range(k + 1)] for _ in range(n + 1)]
+            dp[0][0][0] = True
+            for i in range(n):
+                for j in range(k, -1, -1):
+                    for l in range(1 << m):
+                        if dp[i][j][l]:
+                            dp[i + 1][j][l] = True
+                            if j + 1 <= k:
+                                dp[i + 1][j + 1][l | nums[i]] = True
+            return dp
+
+        dp1 = f(nums)
+        dp2 = f(nums[::-1])
+        ans = 0
+        for i in range(k, n - k + 1):
+            for j, x in enumerate(dp1[i][k]):
+                if x:
+                    for l, y in enumerate(dp2[n - i][k]):
+                        if y and j ^ l > ans:
+                            ans = j ^ l
+        return ans
+
+
+class Solution:
+    def maxValue(self, nums: List[int], k: int) -> int:
+        mx = max(nums)
+        m = mx.bit_length()
+        n = len(nums)
+
+        def f(nums: List[int]):
             dp1 = [[[False] * (1 << m) for _ in range(k + 1)] for _ in range(n + 1)]
             dp1[0][0][0] = True
             for i in range(n):
