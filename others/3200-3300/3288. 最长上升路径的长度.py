@@ -1,5 +1,31 @@
-from typing import List
+from collections import *
+from functools import *
+from math import *
+from itertools import *
+from heapq import *
 from bisect import *
+from typing import *
+from queue import *
+from string import *
+
+DIRS = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
+MOD = int(1e9 + 7)
+
+
+class Solution:
+    def maxPathLength(self, coordinates: List[List[int]], k: int) -> int:
+        kx, ky = coordinates[k]
+        coordinates.sort(key=lambda p: (p[0], -p[1]))
+
+        g = []
+        for x, y in coordinates:
+            if (x < kx and y < ky) or (x > kx and y > ky):
+                j = bisect_left(g, y)
+                if j < len(g):
+                    g[j] = y
+                else:
+                    g.append(y)
+        return len(g) + 1
 
 
 class Solution:
