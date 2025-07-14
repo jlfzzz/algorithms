@@ -15,6 +15,12 @@ INF = float("inf")
 MOD = int(1e9 + 7)
 
 
+Max = lambda a, b: b if b > a else a
+Min = lambda a, b: b if b < a else a
+INF = float("inf")
+MOD = int(1e9 + 7)
+
+
 class Solution:
     def maxLen(self, n: int, edges: List[List[int]], label: str) -> int:
         ans = 0
@@ -32,9 +38,14 @@ class Solution:
                     continue
                 for w in g[right]:
                     if vis >> w & 1 == 0 and v != w and label[w] == label[v]:
-                        if v > w:
-                            v, w = w, v
-                        res = Max(res, dfs(v, w, vis | 1 << v | 1 << w) + 2)
+                        tv, tw = (
+                            v,
+                            w,
+                        )  # 注意不能直接交换 v 和 w，否则下个循环的 v 就不是原来的 v 了
+                        if tv > tw:  # 保证 tv < tw，减少状态个数和计算量
+                            tv, tw = tw, tv
+                        res = max(res, dfs(tv, tw, vis | 1 << v | 1 << w) + 2)
+            return res
 
         for i in range(n):
             ans = Max(ans, dfs(i, i, 1 << i) + 1)

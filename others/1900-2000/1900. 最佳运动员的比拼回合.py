@@ -9,7 +9,41 @@ from queue import *
 from string import *
 
 DIRS = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
+Max = lambda a, b: b if b > a else a
+Min = lambda a, b: b if b < a else a
+INF = float("inf")
 MOD = int(1e9 + 7)
+
+
+class Solution:
+    def earliestAndLatest(
+        self, n: int, firstPlayer: int, secondPlayer: int
+    ) -> List[int]:
+
+        @cache
+        def dfs(x: int, y: int, curr: int) -> Tuple[int, int]:
+            if x + y + 1 == curr:
+                return (1, 1)
+
+            m = curr // 2
+            if x >= m:
+                x, y = curr - 1 - x, curr - 1 - y
+
+            mn = x
+            mx = y
+            if y >= m:
+                mx = curr - 1 - y
+            res1, res2 = INF, -INF
+            # 左边删除i个
+            for i in range(x + 1):
+                # 中间删除j个
+                for j in range(mx - mn):
+                    t1, t2 = dfs(x - i, y - j - i, (curr + 1) // 2)
+                    res1, res2 = Min(res1, t1 + 1), Max(res2, t2 + 1)
+            return (res1, res2)
+
+        result = dfs(firstPlayer - 1, secondPlayer - 1, n)
+        return [result[0], result[1]]
 
 
 class Solution:
