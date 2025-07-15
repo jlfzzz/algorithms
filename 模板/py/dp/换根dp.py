@@ -14,9 +14,51 @@ Min = lambda a, b: b if b < a else a
 INF = float("inf")
 MOD = int(1e9 + 7)
 
+"""
+lc q834 树中距离之和，边权都是1
+先求根0到所有点的距离之和，并维护途中路径上所有节点的到它们的所有儿子的距离之和
+再维护一个数组记录每个点包含的所有节点数（路径的所有儿子）
+从0开始，dp[next] = dp[i] - cnt_node[next] + (n - cnt_node[next])
+从上一个节点转移，先减去自己的所有儿子的数目再加上一个节点所有数目
+"""
 
-from typing import List, Tuple
-from math import inf
+
+class Solution:
+    def sumOfDistancesInTree(self, n: int, edges: List[List[int]]) -> List[int]:
+        g = [[] for _ in range(n)]  # g[x] 表示 x 的所有邻居
+        for x, y in edges:
+            g[x].append(y)
+            g[y].append(x)
+
+        ans = [0] * n
+        size = [1] * n  # 注意这里初始化成 1 了，下面只需要累加儿子的子树大小
+
+        def dfs(x: int, fa: int, depth: int) -> None:
+            ans[0] += depth  # depth 为 0 到 x 的距离
+            for y in g[x]:  # 遍历 x 的邻居 y
+                if y != fa:  # 避免访问父节点
+                    dfs(y, x, depth + 1)  # x 是 y 的父节点
+                    size[x] += size[y]  # 累加 x 的儿子 y 的子树大小
+
+        dfs(0, -1, 0)  # 0 没有父节点
+
+        def reroot(x: int, fa: int) -> None:
+            for y in g[x]:  # 遍历 x 的邻居 y
+                if y != fa:  # 避免访问父节点
+                    ans[y] = ans[x] + n - 2 * size[y]
+                    reroot(y, x)  # x 是 y 的父节点
+
+        reroot(0, -1)  # 0 没有父节点
+        return ans
+
+
+"""
+lc q310 树中最小高度
+第一个dfs从根节点0开始，存储每个节点的第一，二深的节点信息
+第二个dfs进行转移，判断儿子是不是来自这个第一深的节点
+是的话，就用第二深的加1去更新，否则都用第一深的加1去更新
+（此题用拓扑更简单）
+"""
 
 
 class Solution:
@@ -89,64 +131,3 @@ class Solution:
 
         dfs2(0, -1)
         return ans
-
-
-class Solution:
-    def findMinHeightTrees(self, n: int, edges: List[List[int]]) -> List[int]:
-        if n == 1:
-            return [0]
-        g = [[] for _ in range(n)]
-        degree = [0] * n
-        for a, b in edges:
-            g[a].append(b)
-            g[b].append(a)
-            degree[a] += 1
-            degree[b] += 1
-        q = deque(i for i in range(n) if degree[i] == 1)
-        ans = []
-        while q:
-            ans.clear()
-            for _ in range(len(q)):
-                a = q.popleft()
-                ans.append(a)
-                for b in g[a]:
-                    degree[b] -= 1
-                    if degree[b] == 1:
-                        q.append(b)
-        return ans
-
-
-class Solution:
-    def findMinHeightTrees(self, n: int, edges: List[List[int]]) -> List[int]:
-        if n == 1:
-            return [0]
-
-        g = [[] for _ in range(n)]
-        for x, y in edges:
-            g[x].append(y)
-            g[y].append(x)
-        parents = [0] * n
-
-        def bfs(start: int):
-            vis = [False] * n
-            vis[start] = True
-            q = deque([start])
-            while q:
-                x = q.popleft()
-                for y in g[x]:
-                    if not vis[y]:
-                        vis[y] = True
-                        parents[y] = x
-                        q.append(y)
-            return x
-
-        x = bfs(0)  # 找到与节点 0 最远的节点 x
-        y = bfs(x)  # 找到与节点 x 最远的节点 y
-
-        path = []
-        parents[x] = -1
-        while y != -1:
-            path.append(y)
-            y = parents[y]
-        m = len(path)
-        return [path[m // 2]] if m % 2 else [path[m // 2 - 1], path[m // 2]]

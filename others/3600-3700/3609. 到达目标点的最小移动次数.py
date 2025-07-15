@@ -15,6 +15,40 @@ DIRS = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
 class Solution:
     def minMoves(self, sx: int, sy: int, tx: int, ty: int) -> int:
         ans = 0
+        while tx > sx or ty > sy:
+            if tx < sx or ty < sy:
+                return -1
+
+            if tx == ty:
+                if sx == 0:
+                    tx = 0
+                elif sy == 0:
+                    ty = 0
+                else:
+                    return -1
+                ans += 1
+                continue
+
+            if tx > ty:
+                tx, ty = ty, tx
+                sx, sy = sy, sx
+
+            if ty > 2 * tx:
+                if ty % 2:
+                    return -1
+
+                ty //= 2
+            else:
+                ty -= tx
+            ans += 1
+        if tx == sx and ty == sy:
+            return ans
+        return -1
+
+
+class Solution:
+    def minMoves(self, sx: int, sy: int, tx: int, ty: int) -> int:
+        ans = 0
         while sx != tx or sy != ty:
             if tx < sx or ty < sy:
                 return -1
