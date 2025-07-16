@@ -15,6 +15,50 @@ INF = float("inf")
 MOD = int(1e9 + 7)
 
 """
+lc 3241
+"""
+class Solution:
+    def timeTaken(self, edges: List[List[int]]) -> List[int]:
+        g = [[] for _ in range(len(edges) + 1)]
+        for x, y in edges:
+            g[x].append(y)
+            g[y].append(x)
+
+        # nodes[x] 保存子树 x 的最大深度 max_d，次大深度 max_d2，以及最大深度要往儿子 my 走
+        nodes = [None] * len(g)
+
+        def dfs(x: int, fa: int) -> int:
+            max_d = max_d2 = my = 0
+            for y in g[x]:
+                if y == fa:
+                    continue
+                depth = dfs(y, x) + 2 - y % 2  # 从 x 出发，往 my 方向的最大深度
+                if depth > max_d:
+                    max_d2 = max_d
+                    max_d = depth
+                    my = y
+                elif depth > max_d2:
+                    max_d2 = depth
+            nodes[x] = (max_d, max_d2, my)
+            return max_d
+
+        dfs(0, -1)
+
+        ans = [0] * len(g)
+
+        def reroot(x: int, fa: int, from_up: int) -> None:
+            max_d, max_d2, my = nodes[x]
+            ans[x] = max(from_up, max_d)
+            w = 2 - x % 2  # 从 y 到 x 的边权
+            for y in g[x]:
+                if y != fa:
+                    reroot(y, x, max(from_up, max_d2 if y == my else max_d) + w)
+
+        reroot(0, -1, 0)
+        return ans
+
+
+"""
 lc q834 树中距离之和，边权都是1
 先求根0到所有点的距离之和，并维护途中路径上所有节点的到它们的所有儿子的距离之和
 再维护一个数组记录每个点包含的所有节点数（路径的所有儿子）
