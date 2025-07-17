@@ -10,6 +10,8 @@ from queue import *
 
 MOD = int(1e9 + 7)
 DIRS = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
+
+
 class Solution:
     def maximumTotalCost(self, a: List[int]) -> int:
         n = len(a)

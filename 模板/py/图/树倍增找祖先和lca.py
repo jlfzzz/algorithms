@@ -2,7 +2,6 @@ from typing import List
 
 
 class TreeAncestor:
-
     def __init__(self, n: int, parent: List[int]):
         m = n.bit_length() - 1
         pa = [[p] + [-1] * m for p in parent]

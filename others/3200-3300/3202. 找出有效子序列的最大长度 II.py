@@ -11,8 +11,9 @@ from string import *
 DIRS = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
 Max = lambda a, b: b if b > a else a
 Min = lambda a, b: b if b < a else a
-INF = float('inf')
+INF = float("inf")
 MOD = int(1e9 + 7)
+
 
 
 class Solution:
