@@ -13,8 +13,13 @@ int main() {
 	int t;
 	cin >> t;
 	while (t--) {
+		solve();
 	}
 }
+
+
+// g++ x.cpp -o x
+//
 
 constexpr int MOD = 1'000'000'007;
 constexpr int DIR[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
