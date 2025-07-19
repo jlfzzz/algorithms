@@ -1,0 +1,9 @@
+*.exe
+*.out
+*.obj
+*.o
+*.dll
+*.log
+/build/
+/bin/
+/dist/

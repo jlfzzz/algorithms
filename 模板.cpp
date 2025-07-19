@@ -18,7 +18,23 @@ int main() {
 }
 
 
-// g++ x.cpp -o x
+// g++ a.cpp -o a
+// g++ b.cpp -o b
+// g++ c.cpp -o c
+// g++ d.cpp -o d
+// g++ e.cpp -o e
+// g++ f.cpp -o f
+// g++ g.cpp -o g
+
+// ./a < input.txt
+// ./b < input.txt
+// ./c < input.txt
+// ./d < input.txt
+// ./e < input.txt
+// ./f < input.txt
+// ./g < input.txt
+// ./h < input.txt
+
 //
 
 constexpr int MOD = 1'000'000'007;

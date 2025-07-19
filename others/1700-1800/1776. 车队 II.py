@@ -17,6 +17,40 @@ MOD = int(1e9 + 7)
 
 class Solution:
     def getCollisionTimes(self, cars: List[List[int]]) -> List[float]:
+        n = len(cars)
+
+        st = []
+        ans = [-1.0] * n
+        for i in range(n - 1, -1, -1):
+            pos, speed = cars[i][0], cars[i][1]
+
+            # 如果最后一个的速度更大，直接删除
+            # 因为只看最后一个，我们永远追不上
+            # 把它删了，就能继续去看栈里面的速度更小的
+            # 对于栈里面的速度更小的，如果当前能追上，那么这个已经删除的更快的肯定也能追上
+            # 所以这个更快的对当前来说，没用处了
+            while st and speed <= cars[st[-1]][1]:
+                st.pop()
+
+            while st:
+                j = st[-1]
+                pos2, speed2 = cars[j][0], cars[j][1]
+                # 追上栈最后一个的所需时间
+                t = (pos2 - pos) / (speed - speed2)
+
+                if ans[j] == -1.0 or t <= ans[j]: # 如果追上栈最后一个的时间小于ans[j]，能在最后一个追上它的下一个之前追上，更新答案
+                    ans[i] = t
+                    break
+                
+                # 连最后一个都追不上了，删除。去看倒数第二个（如果有），这个倒数第二个会被刚刚的这个最后一个追上，去查看倒数第二个的状态
+                st.pop()
+
+            st.append(i)
+        return ans
+
+
+class Solution:
+    def getCollisionTimes(self, cars: List[List[int]]) -> List[float]:
 
         n = len(cars)
         ans = [-1.0] * n
