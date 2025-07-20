@@ -18,13 +18,13 @@ int main() {
 }
 
 
-// g++ a.cpp -o a
-// g++ b.cpp -o b
-// g++ c.cpp -o c
-// g++ d.cpp -o d
-// g++ e.cpp -o e
-// g++ f.cpp -o f
-// g++ g.cpp -o g
+// g++ -std=c++23 a.cpp -o a
+// g++ -std=c++23 b.cpp -o b
+// g++ -std=c++23 c.cpp -o c
+// g++ -std=c++23 d.cpp -o d
+// g++ -std=c++23 e.cpp -o e
+// g++ -std=c++23 f.cpp -o f
+// g++ -std=c++23 g.cpp -o g
 
 // ./a < input.txt
 // ./b < input.txt

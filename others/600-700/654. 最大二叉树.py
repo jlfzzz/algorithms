@@ -24,6 +24,20 @@ class TreeNode:
 
 class Solution:
     def constructMaximumBinaryTree(self, nums: List[int]) -> Optional[TreeNode]:
+        st = []
+
+        for i, x in enumerate(nums):
+            t = TreeNode(x)
+            while st and x > st[-1].val:
+                t.left = st.pop()
+            if st:
+                st[-1].right = t
+            st.append(t)
+        return st[0]
+
+
+class Solution:
+    def constructMaximumBinaryTree(self, nums: List[int]) -> Optional[TreeNode]:
         n = len(nums)
         stk = list()
         tree = [None] * n
