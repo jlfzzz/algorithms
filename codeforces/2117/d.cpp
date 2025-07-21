@@ -5,6 +5,54 @@
 using namespace std;
 using ll = long long;
 
+/**
+ *
+* D. Retaliation
+time limit per test2 seconds
+memory limit per test256 megabytes
+Yousef wants to explode an array a1,a2,…,an
+. An array gets exploded when all of its elements become equal to zero.
+
+In one operation, Yousef can do exactly one of the following:
+
+For every index i
+ in a
+, decrease ai
+ by i
+.
+For every index i
+ in a
+, decrease ai
+ by n−i+1
+.
+Your task is to help Yousef determine if it is possible to explode the array using any number of operations.
+
+Input
+The first line of the input contains an integer t
+ (1≤t≤104
+) — the number of test cases.
+
+The first line of each test case contains an integer n
+ (2≤n≤2⋅105
+) — the size of the array.
+
+The second line of each test case contains n
+ integers a1,a2,…,an
+ (1≤ai≤109
+) — the elements of the array.
+
+It is guaranteed that the sum of n
+ over all test cases doesn't exceed 2⋅105
+.
+
+Output
+For each test case, print "YES" if Yousef can explode the array, otherwise output "NO".
+
+You can output the answer in any case (upper or lower). For example, the strings "yEs", "yes", "Yes", and "YES" will be recognized as positive responses.
+ */
+
+//  等差数列，a[i] = x * i + y * (n - i + 1) i 从1开始
+// 放在一起就变成了 a[i] = (x - y) * i + y * (n + 1)
 void solve() {
 	int n;
 	cin >> n;
@@ -14,54 +62,28 @@ void solve() {
 		cin >> a[i];
 	}
 
-	// 检查相邻元素差值是否形成等差数列
-	// 操作1使差值减1，操作2使差值加1
-	// 所以最终所有相邻差值应该相等
-
-	// 计算目标差值（最终状态下相邻元素应该都是0，所以差值应该是0）
-	// 但我们需要检查当前差值是否能通过操作调整到0
-
-	bool possible = true;
-
-	// 检查是否存在解
-	// 设进行x次操作1，y次操作2
-	// 对于位置i: a[i] - x*i - y*(n-i+1) = 0
-	// 即: a[i] = x*i + y*(n-i+1)
-
-	// 对于位置0: a[0] = x*1 + y*n
-	// 对于位置1: a[1] = x*2 + y*(n-1)
-	// 解这个方程组得到x和y
-
-	// a[0] = x + y*n
-	// a[1] = 2*x + y*(n-1)
-	// 从第二个方程减去第一个方程: a[1] - a[0] = x - y
-	// 所以: x = a[1] - a[0] + y
-	// 代入第一个方程: a[0] = (a[1] - a[0] + y) + y*n = a[1] - a[0] + y*(n+1)
-	// 所以: y = (a[0] - a[1] + a[0])/(n+1) = (2*a[0] - a[1])/(n+1)
-
-	if ((2*a[0] - a[1]) % (n + 1) != 0) {
-		cout << "NO\n";
+	int d = a[1] - a[0];
+	int b = a[0] - d;
+	if (b % (n + 1) != 0) {
+		cout << "No\n";
 		return;
 	}
 
-	long long y = (2*a[0] - a[1]) / (n + 1);
-	long long x = a[1] - a[0] + y;
+	int y = b / (n + 1);
+	int x = a[1] - a[0] + (2 * a[0] - a[1]) / (n + 1);
 
-	// 检查x和y是否为非负整数
-	if (x < 0 || y < 0) {
-		cout << "NO\n";
+	if (x < 0 or y < 0) {
+		cout << "No\n";
 		return;
 	}
 
-	// 验证这个解是否对所有元素都成立
 	for (int i = 0; i < n; i++) {
-		if (a[i] != x * (i + 1) + y * (n - i)) {
-			possible = false;
-			break;
+		if (a[i] != (x - y) * (i + 1) + y * (n + 1)) {
+			cout << "No\n";
+			return;
 		}
 	}
-
-	cout << (possible ? "YES" : "NO") << "\n";
+	cout << "Yes\n";
 }
 
 int main() {
