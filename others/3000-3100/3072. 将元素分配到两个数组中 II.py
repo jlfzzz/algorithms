@@ -46,4 +46,13 @@ class Solution:
             p = bisect_left(temp, x)
 
             d1 = len(arr1) - ft1.query(p)
-            d2 = len(arr2) -
+            d2 = len(arr2) - ft2.query(p)
+
+            if d1 < d2 or (d1 == d2 and len(arr2) < len(arr1)):
+                arr2.append(x)
+                ft2.update(p, 1)
+            else:
+                arr1.append(x)
+                ft1.update(p, 1)
+        return arr1 + arr2
+

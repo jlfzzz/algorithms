@@ -23,6 +23,7 @@ public:
 				double k = dx ? 1.0 * dy / dx : DBL_MAX;
 				double b = dx ? 1.0 * (y * dx - x * dy) / dx : x;
 				cnt[k][b]++; // 按照斜率和截距分组
+				// +2000避免负数，负数前面全是1
 				int mid = (x + x2 + 2000) << 16 | (y + y2 + 2000); // 把二维坐标压缩成一个 int
 				cnt2[mid][k]++; // 按照中点和斜率分组
 			}
