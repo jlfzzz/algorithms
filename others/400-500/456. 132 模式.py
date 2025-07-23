@@ -31,6 +31,8 @@ class Solution:
         for i in range(len(nums) - 1, -1, -1):
             if nums[i] < third:
                 return True  # 找到 nums[i] < nums[k] < nums[j]
+            # 栈里面的是j，都比当前的third大
+            # 同时栈里面的都在nums[i]右边，所以更新的third就是k肯定在j右边
             while stack and nums[i] > stack[-1]:
                 third = stack.pop()
             stack.append(nums[i])
