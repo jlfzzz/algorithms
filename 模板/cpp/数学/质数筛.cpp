@@ -29,6 +29,7 @@ void linear_sieve(int n) {
 		for (int p: primes) {
 			if (p * i > n) break;
 			is_prime[p * i] = false;
+			// 还可以加一个prime_factor[p * i] = p,最小质因数
 			if (i % p == 0) break; // 保证每个数只被最小质因子筛掉
 		}
 	}
