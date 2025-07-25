@@ -1,198 +1,78 @@
-#include "bits/stdc++.h"
+#include <bits/stdc++.h>
+#define int long long
 using namespace std;
-using ll = long long;
 
-constexpr int N = 2e5 + 50;
-bool is_prime[N];
-bool is_semiprime[N];
-int prime_factor[N];
-vector<int> primes;
+const int MAXN = 200005;
 
-void init() {
-	memset(is_prime, true, sizeof(is_prime));
-	memset(prime_factor, 0, sizeof(prime_factor));
-	memset(is_semiprime, false, sizeof(is_semiprime));
-	is_prime[0] = is_prime[1] = false;
+int factor_count[MAXN];            // 每个数的不同质因子数量（最多记录到 2）
+vector<int> prime_factors[MAXN];   // prime_factors[x] 存储 x 的质因子（最多 2 个）
 
-	// 线性筛生成质数
-	for (int i = 2; i < N; i++) {
-		if (is_prime[i]) {
-			primes.push_back(i);
-			prime_factor[i] = i;
-		}
-		for (int p: primes) {
-			if (p * i >= N) {
-				break;
+// 筛选出每个数的质因子数量（只处理质因子个数 ≤ 2 的数）
+void preprocess(int n) {
+	for (int i = 2; i <= n; i++) {
+		if (!factor_count[i]) { // i 是质数
+			for (long long j = 1; j * i <= n; j++) {
+				int x = i * j;
+				while (x % i == 0 && factor_count[i * j] != 3) {
+					factor_count[i * j]++;
+					x /= i;
+				}
+				prime_factors[i * j].push_back(i);
 			}
-			is_prime[p * i] = false;
-			prime_factor[p * i] = p;
-			if (i % p == 0) {
-				break;
-			}
-		}
-	}
-
-	// 标记半质数
-	int n = primes.size();
-	for (int i = 0; i < n; i++) {
-		for (int j = i; j < n; j++) {
-			long long prod = 1LL * primes[i] * primes[j];
-			if (prod >= N) break;
-			is_semiprime[prod] = true;
 		}
 	}
 }
+
+int a[MAXN];       // 输入数组
+int freq[MAXN];    // freq[x] 表示 x 的出现次数
 
 void solve() {
+	memset(freq, 0, sizeof(freq));
+
 	int n;
 	cin >> n;
-	vector<int> nums(n);
-	for (int i = 0; i < n; i++) {
-		cin >> nums[i];
-	}
 
-	unordered_map<int, int> semiprime_cnt;
-	unordered_map<int, int> prime_cnt;
-	int total_primes = 0;
-	int ans = 0;
-
-	for (int i = 0; i < n; i++) {
-		if (is_semiprime[nums[i]]) {
-			ans++;
+	for (int i = 1; i <= n; i++) {
+		cin >> a[i];
+		freq[a[i]]++;
+		if (factor_count[a[i]] == 1) {
+			freq[0]++; // freq[0] 用来存所有质数的出现总次数
 		}
 	}
 
-	// 情况1：两个不同质数的组合
-	// 情况2：质数与半质数的组合
-	// 情况3：两个相同半质数的组合
-	for (int i = 0; i < n; i++) {
-		int x = nums[i];
-		if (is_prime[x]) {
-			// 情况1：与前面不同质数的组合
-			ans += total_primes - prime_cnt[x];
+	int total = 0;
+	int cross_prime = 0;
 
-			// 情况2：与前面半质数的组合（如果当前质数是半质数的因子）
-			for (auto &[semi, cnt]: semiprime_cnt) {
-				if (semi % x == 0) {
-					ans += cnt;
-				}
+	for (int i = 1; i <= n; i++) {
+		if (factor_count[i] == 2) {
+			// 情况3：两个相同半质数的组合 + 单个半质数算一个
+			total += freq[i] * (freq[i] - 1) / 2;  // (i, i)
+			// 因为题目说索引对i和j可以相等，所以加上单个的
+			total += freq[i];                     // 单个半质数
+			total += freq[i] * freq[prime_factors[i][0]];  // 半质数和它的质因子之一
+			if (prime_factors[i].size() > 1) {
+				total += freq[i] * freq[prime_factors[i][1]];
 			}
-
-			prime_cnt[x] += 1;
-			total_primes += 1;
-		} else if (is_semiprime[x]) {
-			// 情况3：与前面相同半质数的组合
-			ans += semiprime_cnt[x];
-
-			for (auto &[p, cnt]: prime_cnt) {
-				if (x % p == 0) {
-					ans += cnt;
-				}
-			}
-
-			semiprime_cnt[x] += 1;
+		} else if (factor_count[i] == 1) {
+			// 情况1：两个不同质数的组合
+			cross_prime += freq[i] * (freq[0] - freq[i]);
 		}
 	}
 
-	cout << ans << "\n";
+	cout << total + cross_prime / 2 << "\n";
 }
 
-int main() {
+signed main() {
 	ios::sync_with_stdio(false);
 	cin.tie(nullptr);
-	cout.tie(nullptr);
+
+	preprocess(200000);
 
 	int t;
 	cin >> t;
-
-	init();
-
 	while (t--) {
 		solve();
 	}
 
 	return 0;
 }
-
-
-// long long T, n;
-// long long nums[200005];
-// long long prefixPrimeCount[200005];    // sum[]
-// long long primeFreq[200005];           // ji[]
-// long long semiprimeFreq[200005];       // jib[]
-// bool isPrime[200005];                  // ck[]
-// long long isSemiprime[200005];         // ck2[]
-// long long semiprimeFactor[200005];     // ck3[]
-//
-// inline bool checkPrime(long long x) {
-//     for (long long i = 2; i * i <= x; i++) {
-//         if (x % i == 0) return false;
-//     }
-//     return true;
-// }
-//
-// inline long long checkSemiprime(long long x) {
-//     for (long long i = 2; i * i <= x; i++) {
-//         if (x % i == 0 && (!isPrime[i] || !isPrime[x / i])) return -1;
-//     }
-//     return 1;
-// }
-//
-// inline long long getSmallestPrimeFactor(long long x) {
-//     for (long long i = 2; i * i <= x; i++) {
-//         if (x % i == 0) return i;
-//     }
-//     return 0;
-// }
-//
-// int main() {
-//     // 初始化质数与半质数信息
-//     for (long long i = 1; i <= 200000; i++) {
-//         isPrime[i] = checkPrime(i);
-//     }
-//     for (long long i = 1; i <= 200000; i++) {
-//         if (!isPrime[i]) {
-//             isSemiprime[i] = checkSemiprime(i);
-//             semiprimeFactor[i] = getSmallestPrimeFactor(i);
-//         }
-//     }
-//
-//     scanf("%lld", &T);
-//     while (T--) {
-//         long long answer = 0;
-//         scanf("%lld", &n);
-//
-//         for (long long i = 1; i <= n; i++) {
-//             prefixPrimeCount[i] = 0;
-//             primeFreq[i] = 0;
-//             semiprimeFreq[i] = 0;
-//             scanf("%lld", &nums[i]);
-//         }
-//
-//         for (long long i = 1; i <= n; i++) {
-//             // 当前是prime。加前面[i-1]里面的prime数量减去当前的出现次数
-//             if (isPrime[nums[i]]) {
-//                 answer += (prefixPrimeCount[i - 1] - primeFreq[nums[i]]);
-//                 primeFreq[nums[i]]++;
-//             }
-//             prefixPrimeCount[i] = prefixPrimeCount[i - 1] + isPrime[nums[i]];
-//
-//             // 当前是半质数，两个半质数相组合
-//             // 半质数与自身组合
-//             if (isSemiprime[nums[i]] == 1) {
-//                 semiprimeFreq[nums[i]]++;
-//                 answer += semiprimeFreq[nums[i]];
-//             }
-//         }
-//
-//         for (long long i = 1; i <= n; i++) {
-//             if (isSemiprime[nums[i]] == 1) {
-//                 long long p = semiprimeFactor[nums[i]];
-//                 answer += primeFreq[p] + primeFreq[nums[i] / p];
-//                 if (p * p == nums[i]) answer -= primeFreq[p];
-//             }
-//         }
-//
-//         printf("%lld\n", answer);
-//     }
-// }

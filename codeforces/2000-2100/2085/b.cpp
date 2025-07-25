@@ -1,53 +1,48 @@
-//
-// Created by 123 on 25-7-25.
-//
-#include "bits/stdc++.h"
+#include<bits/stdc++.h>
+#pragma GCC optimize(2)
 using namespace std;
-using ll = long long;
-
-void solve() {
-	int n;
-	cin >> n;
-	vector<int> a(n);
-	for (int i = 0; i < n; i++) {
-		cin >> a[i];
-	}
-	bool flag = false;
-	vector<pair<int, int> > v;
-	for (int i = 0; i < n / 2; i++) {
-		if (a[i] == 0) {
-			flag = true;
+int t , n , a[5005];
+inline bool zero(int l , int r)
+{
+	for(int i = l ; i <= r ; i++)
+	{
+		if(a[i] == 0)
+		{
+			return 1;
 		}
 	}
-
-	if (flag) {
-		v.emplace_back(1, n / 2);
-	}
-
-	flag = false;
-	for (int i = n / 2; i < n; i++) {
-		if (a[i] == 0) {
-			flag = true;
-		}
-	}
-	if (flag) {
-		v.emplace_back(n / 2 + 1, n);
-	}
-	v.emplace_back(1, n);
-	cout << v.size() << '\n';
-	for (auto it = v.begin(); it != v.end(); it++) {
-		cout << it->first << " " << it->second << '\n';
-	}
+	return 0;
 }
-
-
-int main() {
-	ios::sync_with_stdio(false);
-	cin.tie(nullptr);
-	cout.tie(nullptr);
-	int t;
+int main()
+{
+	ios::sync_with_stdio(0);
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+	cout.tie(0);
 	cin >> t;
-	while (t--) {
-		solve();
+	while(t--)
+	{
+		cin >> n;
+		for(int i = 1 ; i <= n ; i++)
+		{
+			cin >> a[i];
+		}
+		if(zero(n - 1 , n) && zero(1 , n - 2))
+		{
+			cout << "3\n" << n - 1 << ' ' << n << "\n1 " << n - 2 << "\n1 2\n";
+		}
+		else if(zero(n - 1 , n) && !zero(1 , n - 2))
+		{
+			cout << "2\n" << n - 1 << ' ' << n << "\n1 " << n - 1 << '\n';
+		}
+		else if(!zero(n - 1 , n) && zero(1 , n - 2))
+		{
+			cout << "2\n1 " << n - 2 << "\n1 3\n";
+		}
+		else
+		{
+			cout << "1\n1 " << n << '\n';
+		}
 	}
+	return 0;
 }

@@ -3,36 +3,60 @@ using namespace std;
 using ll = long long;
 
 class Solution {
-    public:
+    vector<int> A;
+    vector<vector<int>> e;
+    // sm：整棵树的异或和
+    // sm2：连通块 B 的异或和
+    int ans = 2e9, sm = 0, sm2;
+
+    // 计算以 sn 为根，且不含 ban 的子树的异或和
+    int dfs(int sn, int fa, int ban) {
+        int ret = A[sn];
+        for (int fn : e[sn])
+            if (fn != fa && fn != ban)
+                ret ^= dfs(fn, sn, ban);
+        return ret;
+    }
+
+    // 在以 sn 为根，且不含 ban 的子树中枚举第二条被删除的边
+    int dfs2(int sn, int fa, int ban) {
+        int ret = A[sn];
+        // 枚举连通块 D 的根 fn
+        for (int fn : e[sn])
+            if (fn != fa && fn != ban) {
+                // 连通块 D 的异或和
+                int x = dfs2(fn, sn, ban);
+                ret ^= x;
+                // 连通块 C 的异或和
+                int y = sm2 ^ x;
+                // 连通块 A 的异或和
+                int z = sm ^ sm2;
+                if (x > y) swap(x, y);
+                if (x > z) swap(x, z);
+                if (y > z) swap(y, z);
+                ans = min(ans, z - x);
+            }
+        return ret;
+    }
+
+public:
     int minimumScore(vector<int> &nums, vector<vector<int>> &edges) {
         int n = nums.size();
-        vector<vector<int>> g(n, vector<int>());
-        for (auto &e: edges) {
-            g[e[0]].push_back(e[1]);
-            g[e[1]].push_back(e[0]);
-        }
+        A = nums;
+        e.resize(n, vector<int>());
+        for (auto &edge : edges) e[edge[0]].push_back(edge[1]), e[edge[1]].push_back(edge[0]);
 
-        vector<int> xors(n);
-
-        auto dfs1 = [&](this auto &&dfs1, int i, int fa) -> int {
-            int res = nums[i];
-            for (int v: g[i]) {
-                if (v == fa) {
-                    continue;
-                }
-
-                res ^= dfs1(v, i);
+        // 计算整棵树的异或和
+        for (int x : nums) sm ^= x;
+        // 枚举树根以及第一条被删除的边
+        for (int i = 0; i < n; i++)
+            for (int j : e[i]) {
+                // 计算连通块 B 的异或和，也就是计算以 i 为根，且不含 j 的子树的异或和
+                sm2 = dfs(i, -1, j);
+                // 枚举第二条被删除的边
+                dfs2(i, -1, j);
             }
-            xors[i] = res;
-            return res;
-        };
-                
-        int ans = INT_MAX;
-        for (int i = 0; i < n; i++) {
-            dfs1(i, -1);
 
-            
-        }
         return ans;
     }
 };
@@ -40,11 +64,11 @@ class Solution {
 
 
 class Solution {
-    public:
+public:
     int minimumScore(vector<int> &nums, vector<vector<int>> &edges) {
         int n = nums.size();
         vector<vector<int>> g(n, vector<int>());
-        for (auto &e: edges) {
+        for (auto &e : edges) {
             g[e[0]].push_back(e[1]);
             g[e[1]].push_back(e[0]);
         }
@@ -57,7 +81,7 @@ class Solution {
         auto dfs1 = [&](this auto &&dfs1, int i, int fa) -> int {
             int res = nums[i];
             in[i] = time++;
-            for (int v: g[i]) {
+            for (int v : g[i]) {
                 if (v == fa) {
                     continue;
                 }
@@ -67,7 +91,7 @@ class Solution {
             xors[i] = res;
             out[i] = time;
             return res;
-        };
+            };
 
         auto is_ancestor = [&](int x, int y) -> bool { return in[x] > in[y] and out[x] <= out[y]; };
 
@@ -87,7 +111,7 @@ class Solution {
                 // if (ans == 6) {
                 //     cout << i << endl << j << endl;
                 // }
-                ans = min(ans, max({a, b, c}) - min({a, b, c}));
+                ans = min(ans, max({ a, b, c }) - min({ a, b, c }));
             }
         }
         return ans;
