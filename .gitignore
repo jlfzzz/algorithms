@@ -8,3 +8,8 @@
 /bin/
 /dist/
 *.txt
+*.ninja
+*.cmake
+*.json
+/CMakeFiles/
+/cmake-build-debug/

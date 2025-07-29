@@ -31,7 +31,7 @@ public:
 
 // 可以换成 and
 // 这是简化版本，上面的模板更通用
-class Solution {
+class Solution2 {
 public:
     int minimumDifference(vector<int> &nums, int k) {
         int ans = INT_MAX;
