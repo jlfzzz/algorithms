@@ -9,6 +9,108 @@ import threading
 from typing import List
 
 
+class Node:
+    def __init__(self) -> None:
+        self.mx = 0
+        self.seats = 0
+
+
+class SegmentTree:
+    def __init__(self, n: int, m: int) -> None:
+        self.tree = [Node() for _ in range(2 << (n - 1).bit_length())]
+        self.m = m
+        self.build(1, 0, n - 1)
+
+    def maintain(self, o: int):
+        self.tree[o].mx = max(self.tree[o * 2].mx, self.tree[o * 2 + 1].mx)
+        self.tree[o].seats = self.tree[o * 2].seats + self.tree[o * 2 + 1].seats
+
+    def build(self, o: int, l: int, r: int) -> None:
+        if l == r:
+            self.tree[o].mx = self.m
+            self.tree[o].seats = self.m
+            return
+        m = (l + r) // 2
+        self.build(o * 2, l, m)
+        self.build(o * 2 + 1, m + 1, r)
+        self.maintain(o)
+
+    def update(self, o: int, l: int, r: int, index: int, taken: int):
+        if l == r:
+            self.tree[o].mx -= taken
+            self.tree[o].seats -= taken
+            return
+        m = (l + r) // 2
+        if index <= m:
+            self.update(o * 2, l, m, index, taken)
+        else:
+            self.update(o * 2 + 1, m + 1, r, index, taken)
+        self.maintain(o)
+
+    def find_first(self, o: int, l: int, r: int, L: int, R: int, need: int):
+        if self.tree[o].mx < need:
+            return [-1, -1]
+
+        if l == r:
+            return [l, self.tree[o].seats]
+
+        m = (l + r) // 2
+
+        lst = [-1, -1]
+        if L <= m:
+            lst = self.find_first(o * 2, l, m, L, R, need)
+        if lst[0] < 0 and R > m:
+            lst = self.find_first(o * 2 + 1, m + 1, r, L, R, need)
+        return lst
+
+    def query(self, o: int, l: int, r: int, L: int, R: int):
+        if l >= L and r <= R:
+            return self.tree[o].seats
+
+        if l == r:
+            return self.tree[o].seats
+        m = (l + r) // 2
+        res = 0
+        if m >= L:
+            res += self.query(o * 2, l, m, L, R)
+        if R > m:
+            res += self.query(o * 2 + 1, m + 1, r, L, R)
+        return res
+
+
+class BookMyShow:
+    def __init__(self, n: int, m: int):
+        self.st = SegmentTree(n, m)
+        self.n = n
+        self.m = m
+
+    def gather(self, k: int, maxRow: int) -> List[int]:
+        lst = self.st.find_first(1, 0, self.n - 1, 0, maxRow, k)
+        if lst[0] < 0:
+            return []
+        self.st.update(1, 0, self.n - 1, lst[0], k)
+        return [lst[0], self.m - lst[1]]
+
+    def scatter(self, k: int, maxRow: int) -> bool:
+        total = self.st.query(1, 0, self.n - 1, 0, maxRow)
+        if total < k:
+            return False
+
+        i = 0
+        while k > 0 and i <= maxRow:
+            # 用 find_first 跳过没有空座的行
+            lst = self.st.find_first(1, 0, self.n - 1, i, maxRow, 1)
+            row = lst[0]
+            if row == -1:
+                break  # 没有更多座位了
+            seats = lst[1]
+            taken = min(k, seats)
+            self.st.update(1, 0, self.n - 1, row, taken)
+            k -= taken
+            i = row + 1  # 继续处理下一行
+        return True
+
+
 class BookMyShow:
 
     def __init__(self, n: int, m: int):
