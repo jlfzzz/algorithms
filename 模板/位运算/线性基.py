@@ -4,12 +4,13 @@ from math import *
 from itertools import *
 from heapq import *
 from bisect import *
+from operator import *
 from typing import *
 from queue import *
 from string import *
 from random import *
 
-DIRS = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
+DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 Max = lambda a, b: b if b > a else a
 Min = lambda a, b: b if b < a else a
 INF = float('inf')
