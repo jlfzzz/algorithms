@@ -72,23 +72,37 @@ public:
         int i = 0;  // text的索引
         int j = 0;  // pattern的索引
 
+        // 这两个一样的，我喜欢下面的无注释的
+        // while (i < n) {
+        //     if (text[i] == pattern[j]) {
+        //         i++;
+        //         j++;
+        //     }
+
+        //     if (j == m) {
+        //         // 找到匹配
+        //         result.push_back(i - j);
+        //         j = lps[j - 1];  // 继续寻找下一个匹配
+        //     } else if (i < n && text[i] != pattern[j]) {
+        //         if (j != 0) {
+        //             j = lps[j - 1];  // 利用LPS数组跳过字符
+        //         } else {
+        //             i++;
+        //         }
+        //     }
+        // }
         while (i < n) {
+            while (j > 0 && text[i] != pattern[j]) {
+                j = lps[j - 1];
+            }
             if (text[i] == pattern[j]) {
-                i++;
                 j++;
             }
-
             if (j == m) {
-                // 找到匹配
-                result.push_back(i - j);
-                j = lps[j - 1];  // 继续寻找下一个匹配
-            } else if (i < n && text[i] != pattern[j]) {
-                if (j != 0) {
-                    j = lps[j - 1];  // 利用LPS数组跳过字符
-                } else {
-                    i++;
-                }
+                result.push_back(i - m + 1);
+                j = lps[j - 1];
             }
+            i++;
         }
 
         return result;

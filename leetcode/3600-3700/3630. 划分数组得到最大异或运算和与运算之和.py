@@ -65,6 +65,8 @@ class Solution:
             for i, x in enumerate(nums):
                 if sub >> i & 1:
                     # 只考虑有偶数个 1 的比特位（xor 在这些比特位上是 0）
+                    # 一堆数异或起来，如果某些位是0，代表总共有奇数个1异或了
+                    # 取反一下，原本奇数这些1变成0，别的偶数的0变成1，再and一下
                     b.insert(x & ~xor)
             return xor + b.max_xor() * 2
 

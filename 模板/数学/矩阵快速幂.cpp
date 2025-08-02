@@ -4,54 +4,75 @@ vector<vector<int>> DIRS = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
 using ll = long long;
 constexpr int MOD = int(1e9 + 7);
 
-using matrix = vector<vector<long long>>;
+using Matrix = vector<vector<ll>>;
 
-// 返回矩阵 a 和矩阵 b 相乘的结果
-matrix mul(matrix &a, matrix &b) {
-    int n = a.size(), m = b[0].size();
-    matrix c = matrix(n, vector<long long>(m));
-    for (int i = 0; i < n; i++) {
-        for (int k = 0; k < a[i].size(); k++) {
-            if (a[i][k] == 0) {
+// 矩阵乘法，缓存友好版本。先算一整行的
+Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
+    int n = m1.size();
+    int p = m1[0].size();
+    int m = m2[0].size();
+
+    Matrix ret(n, vector<ll>(m, 0));
+    for (int i = 0; i < n; ++i) {
+        for (int k = 0; k < p; ++k) {
+            if (m1[i][k] == 0) {
                 continue;
             }
-            for (int j = 0; j < m; j++) {
-                c[i][j] = (c[i][j] + a[i][k] * b[k][j]) % MOD;
+            for (int j = 0; j < m; ++j) {
+                ret[i][j] = (ret[i][j] + m1[i][k] * m2[k][j]) % MOD;
             }
         }
     }
-    return c;
+    return ret;
 }
 
-// a^n * f0
-matrix pow_mul(matrix a, int n, matrix &f0) {
-    matrix res = f0;
+// 矩阵快速幂
+Matrix quick_mul(Matrix mat, int n) {
+    int m = mat.size();
+    Matrix unit(m, vector<ll>(m, 0));
+    for (int i = 0; i < m; ++i) {
+        unit[i][i] = 1;
+    }
+
     while (n) {
         if (n & 1) {
-            res = mul(a, res);
+            unit = mat_mul(mat, unit);
         }
-        a = mul(a, a);
+        mat = mat_mul(mat, mat);
         n >>= 1;
     }
-    return res;
+    return unit;
 }
 
 
-// 下面是调用，lc935
+
+// lc3337 调用示例
 class Solution {
 public:
-    int knightDialer(int n) {
-        if (n == 1) {
-            return 10;
+    int lengthAfterTransformations(string s, int t, vector<int> &nums) {
+        int SIZE = 26;
+        Matrix mat(SIZE, vector<ll>(SIZE, 0));
+        int n = nums.size();
+        for (int i = 0; i < n; ++i) {
+            int m = nums[i];
+            for (int j = 0; j < m; ++j) {
+                mat[(i + j + 1) % SIZE][i] += 1;
+            }
         }
-        matrix f0 = {{1}, {1}, {1}, {1}};
-        matrix m = {
-            {0, 1, 1, 0},
-            {2, 0, 0, 0},
-            {2, 0, 0, 1},
-            {0, 0, 2, 0},
-        };
-        m = pow_mul(m, n - 1, f0);
-        return (m[0][0] * 4 + m[1][0] * 2 + m[2][0] * 2 + m[3][0]) % MOD;
+
+        mat = quick_mul(mat, t);
+
+        Matrix mat2(SIZE, vector<ll>(1, 0));
+        for (char c: s) {
+            mat2[c - 'a'][0] += 1;
+        }
+
+        mat = mat_mul(mat, mat2);
+
+        ll total = 0;
+        for (int i = 0; i < SIZE; ++i) {
+            total += mat[i][0];
+        }
+        return total % MOD;
     }
 };

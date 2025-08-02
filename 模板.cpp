@@ -26,14 +26,14 @@ int main() {
 // g++ -std=c++23 f.cpp -o f
 // g++ -std=c++23 g.cpp -o g
 
-// ./a < ../input.txt
-// ./b < ../input.txt
-// ./c < ../input.txt
-// ./d < ../input.txt
-// ./e < ../input.txt
-// ./f < ../input.txt
-// ./g < ../input.txt
-// ./h < ../input.txt
+// ./a < ../../input.txt
+// ./b < ../../input.txt
+// ./c < ../../input.txt
+// ./d < ../../input.txt
+// ./e < ../../input.txt
+// ./f < ../../input.txt
+// ./g < ../../input.txt
+// ./h < ../../input.txt
 
 //
 

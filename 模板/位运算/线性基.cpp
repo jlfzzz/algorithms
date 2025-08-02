@@ -5,7 +5,7 @@ using ll = long long;
 constexpr int MOD = int(1e9 + 7);
 
 
-// lc3630
+
 // 线性基模板
 class XorBasis {
     vector<uint32_t> b;
@@ -36,6 +36,7 @@ public:
     }
 };
 
+// lc3630
 class Solution {
 public:
     long long maximizeXorAndXor(vector<int> &nums) {
