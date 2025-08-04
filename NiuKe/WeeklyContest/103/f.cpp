@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#include <vector>
 using namespace std;
 using i64 = long long;
 
@@ -6,6 +7,8 @@ const int MAXN = 1e5 + 10;
 const int ALPHABET_SIZE = 26;
 const int P = 13331;
 const i64 MOD = 4611686018427387847;
+using ll = long long;
+#define i128 __int128_t
 
 i64 powerP[MAXN]; // P 的幂
 

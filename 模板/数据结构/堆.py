@@ -14,13 +14,13 @@ from sortedcontainers import *
 DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 Max = lambda a, b: b if b > a else a
 Min = lambda a, b: b if b < a else a
-INF = float("inf")
+INF = float('inf')
 MOD = int(1e9 + 7)
 
-from heapq import heappush, heappop
-from typing import List
 
-
+# 懒删除堆，lc3607 并查集+懒删除堆
+# 额外一个 数组 维护堆中的每个元素的状态
+# pop的时候如果状态不符合要求就继续pop
 class UnionFind:
     def __init__(self, n):
         self.fa = list(range(n))
@@ -81,45 +81,26 @@ class Solution:
         return ans
 
 
+# 反悔堆
+# lc lcp30 
+# 贪心，先把之前的所有特殊元素加入堆
+# 超过边界了再去堆顶pop最优解
 class Solution:
-    def processQueries(
-        self, c: int, connections: List[List[int]], queries: List[List[int]]
-    ) -> List[int]:
-        g = [[] for _ in range(c + 1)]
-        for x, y in connections:
-            g[x].append(y)
-            g[y].append(x)
+    def magicTower(self, nums: List[int]) -> int:
+        if sum(nums) + 1 <= 0:
+            return -1
 
-        belong = [-1] * (c + 1)
-        heaps = []
+        curr = 1
+        ans = 0
+        h = []  # 小根堆存负数（最大负数在堆顶）
 
-        def dfs(x: int) -> None:
-            belong[x] = len(heaps)  # 记录节点 x 在哪个堆
-            h.append(x)
-            for y in g[x]:
-                if belong[y] < 0:
-                    dfs(y)
-
-        for i in range(1, c + 1):
-            if belong[i] >= 0:
-                continue
-            h = []
-            dfs(i)
-            heapify(h)
-            heaps.append(h)
-
-        ans = []
-        offline = [False] * (c + 1)
-        for op, x in queries:
-            if op == 2:
-                offline[x] = True
-                continue
-            if not offline[x]:
-                ans.append(x)
-                continue
-            h = heaps[belong[x]]
-            # 懒删除：取堆顶的时候，如果离线，才删除
-            while h and offline[h[0]]:
-                heappop(h)
-            ans.append(h[0] if h else -1)
+        for x in nums:
+            curr += x
+            if x < 0:
+                heappush(h, x)
+            if curr <= 0:
+                # 当前血量已经不能活了，需要反悔之前最大的负数
+                t = heappop(h)
+                curr -= t  # 把它推迟（现在不吃了）
+                ans += 1
         return ans
