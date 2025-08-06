@@ -20,20 +20,45 @@ void solve() {
         return;
     }
 
-    for (int i = 1; i <= n; i++) {
+    vector<ll> fa(n + 1);
+    for (ll i = 1; i <= n; i++) {
         ll mx = (n - i + 1) * i + (1 + i - 1) * (i - 1) / 2;
         ll mn = i + n - 1;
 
         if (m >= mn and m <= mx) {
             ll curr = mx;
-            vector<pll> ans;
-
-            while (curr > m) {
-
+            for (ll j = 1; j <= n; j++) {
+                fa[j] = i;
             }
-            break;
+
+            for (ll j = n; j >= 1; j--) {
+                if (curr == m) {
+                    break;
+                }
+                assert(m < curr);
+                if (j != i and m < curr) {
+                    if (curr - m >= i - 1) {
+                        fa[j] = 1;
+                        curr -= i - 1;
+                    } else {
+                        ll x = m - curr + i;
+                        fa[j] = x;
+                        curr -= i - x;
+                    }
+                }
+            }
+
+            cout << i << '\n';
+            for (ll j = 1; j <= n; j++) {
+                if (j != i) {
+                    cout << fa[j] << ' ' << j << '\n';
+                }
+            }
+
+            return;
         }
     }
+    cout << -1 << '\n';
 }
 
 int main() {
