@@ -10,6 +10,7 @@ constexpr int MOD = int(1e9 + 7);
 const ll MOD2 = 4611686018427387847;
 #define inf 100'000'005
 
+// m x n
 vector<vector<int>> rotate90NonSquare(const vector<vector<int>> &matrix) {
     int m = matrix.size();
     int n = matrix[0].size();
@@ -20,6 +21,15 @@ vector<vector<int>> rotate90NonSquare(const vector<vector<int>> &matrix) {
             rotated[j][m - 1 - i] = matrix[i][j];
 
     return rotated;
+}
+
+// n x n
+void transpose(int n, vector<vector<int>> &h) {
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            swap(h[i][j], h[j][i]);
+        }
+    }
 }
 
 int main() {
