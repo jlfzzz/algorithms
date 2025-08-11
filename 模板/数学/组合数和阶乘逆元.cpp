@@ -7,7 +7,7 @@ using pll = pair<ll, ll>;
 constexpr int MOD = int(1e9 + 7);
 
 
-const int N = 200005;
+const int N = 500'005;
 
 vector<ll> fac(N), ifac(N);
 
@@ -40,3 +40,6 @@ ll C(int n, int k) {
         return 0;
     return fac[n] * ifac[k] % MOD * ifac[n - k] % MOD;
 }
+
+
+// 模数不是质数的时候用 欧拉定理或者扩展lucas
