@@ -1,78 +1,144 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+#define i128 __int128_t
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+constexpr int MOD = int(1e9 + 7);
+const ll MOD2 = 4611686018427387847;
+#define int ll
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-constexpr int N = 5e3 + 5;
-int all_gcd[N][N];
-
-// dp 刷表法求转移gcd所需最少次数
+void init() {}
 
 void solve() {
-	int n;
-	cin >> n;
-	vector<int> nums(n);
-	for (int i = 0; i < n; i++) {
-		cin >> nums[i];
-	}
+    int n;
+    cin >> n;
+    vector<int> a(n);
+    For(i, n) cin >> a[i];
 
-	int g = nums[0];
-	for (int i = 1; i < n; i++) {
-		g = all_gcd[g][nums[i]];
-	}
+    int g = 0;
+    For(i, n) { g = gcd(g, a[i]); }
+    int cnt_g = 0;
+    For(i, n) {
+        if (a[i] == g) {
+            cnt_g++;
+        }
+    }
 
-	int cnt = 0;
-	for (int x: nums) {
-		if (x == g) {
-			cnt++;
-		}
-	}
-	if (cnt) {
-		cout << n - cnt << '\n';
-		return;
-	}
+    if (cnt_g != 0) {
+        cout << n - cnt_g << '\n';
+        return;
+    }
 
-	int mx = ranges::max(nums);
-	vector<vector<int> > dp(n + 1, vector<int>(mx + 1, INT_MAX / 2));
-	//dp[0][0] = 0;
-	for (int i = 1; i <= n; i++) {
-		int x = nums[i - 1];
-		dp[i][x] = 1;
-		for (int j = 0; j <= mx; j++) {
-			if (dp[i - 1][j] == INT_MAX) continue;
-			// 不选当前数
-			dp[i][j] = min(dp[i][j], dp[i - 1][j]);
-			// 选当前数，与当前 gcd 结合
-			int t = all_gcd[x][j];
-			dp[i][t] = min(dp[i][t], dp[i - 1][j] + 1);
-		}
-		// 单独选当前 x 作为一个 gcd 开始
-	}
-
-	cnt = dp[n][g];
-	cout << cnt + n - 2 << '\n';
+    int mx = ranges::max(a);
+    vector<int> dp(mx + 1, inf);
+    dp[0] = -1;
+    For(i, n) {
+        int x = a[i];
+        auto temp = dp;
+        for (int j = mx; j >= 0; j--) {
+            if (dp[j] != inf) {
+                int t = gcd(x, j);
+                temp[t] = min(temp[t], dp[j] + 1);
+            }
+        }
+        dp = std::move(temp);
+    }
+    cout << dp[g] + n - 1 << '\n';
 }
 
-int main() {
-	ios::sync_with_stdio(false);
-	cin.tie(nullptr);
-	cout.tie(nullptr);
-	int t;
-	cin >> t;
-	memset(all_gcd, -1, sizeof(all_gcd));
-
-	auto init = [&] {
-		for (int i = 1; i <= N - 2; i++) {
-			for (int j = 1; j <= N - 2; j++) {
-				all_gcd[i][j] = gcd(i, j);
-			}
-		}
-	};
-
-	init();
-
-	while (t--) {
-		solve();
-	}
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    cin >> T;
+    while (T--)
+        solve();
+    return 0;
 }
+
+
+
+
+
+
+// constexpr int N = 5e3 + 5;
+// int all_gcd[N][N];
+
+
+// // dp 刷表法求转移gcd所需最少次数
+
+// void solve() {
+// 	int n;
+// 	cin >> n;
+// 	vector<int> nums(n);
+// 	for (int i = 0; i < n; i++) {
+// 		cin >> nums[i];
+// 	}
+
+// 	int g = nums[0];
+// 	for (int i = 1; i < n; i++) {
+// 		g = all_gcd[g][nums[i]];
+// 	}
+
+// 	int cnt = 0;
+// 	for (int x: nums) {
+// 		if (x == g) {
+// 			cnt++;
+// 		}
+// 	}
+// 	if (cnt) {
+// 		cout << n - cnt << '\n';
+// 		return;
+// 	}
+
+// 	int mx = ranges::max(nums);
+// 	vector<vector<int> > dp(n + 1, vector<int>(mx + 1, INT_MAX / 2));
+// 	//dp[0][0] = 0;
+// 	for (int i = 1; i <= n; i++) {
+// 		int x = nums[i - 1];
+// 		dp[i][x] = 1;
+// 		for (int j = 0; j <= mx; j++) {
+// 			if (dp[i - 1][j] == INT_MAX) continue;
+// 			// 不选当前数
+// 			dp[i][j] = min(dp[i][j], dp[i - 1][j]);
+// 			// 选当前数，与当前 gcd 结合
+// 			int t = all_gcd[x][j];
+// 			dp[i][t] = min(dp[i][t], dp[i - 1][j] + 1);
+// 		}
+// 		// 单独选当前 x 作为一个 gcd 开始
+// 	}
+
+// 	cnt = dp[n][g];
+// 	cout << cnt + n - 2 << '\n';
+// // }
+
+// int main() {
+// 	ios::sync_with_stdio(false);
+// 	cin.tie(nullptr);
+// 	cout.tie(nullptr);
+// 	int t;
+// 	cin >> t;
+// 	memset(all_gcd, -1, sizeof(all_gcd));
+
+// 	auto init = [&] {
+// 		for (int i = 1; i <= N - 2; i++) {
+// 			for (int j = 1; j <= N - 2; j++) {
+// 				all_gcd[i][j] = gcd(i, j);
+// 			}
+// 		}
+// 	};
+
+// 	init();
+
+// 	while (t--) {
+// 		solve();
+// 	}
+// }
 
 
 // const int N = 5e3 + 5;

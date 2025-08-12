@@ -1,57 +1,109 @@
 #include <bits/stdc++.h>
-#define int long long
 using namespace std;
-typedef long long ll;
+using ll = long long;
+#define i128 __int128_t
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+constexpr int MOD = int(1e9 + 7);
+const ll MOD2 = 4611686018427387847;
+#define int ll
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-// 返回 {答案, 选择的星星数量}
-pair<int, int> solve1(ll l, ll r, ll k) {
-    // 如果区间长度小于k，无法处理
-    if ((r - l + 1) < k)
-        return {0, 0};
+void init() {}
 
-    if ((r - l + 1) % 2) {
-        // 奇数长度情况
-        ll mid = (l + r) / 2;
+void solve() {
+    int n, k;
+    cin >> n >> k;
 
-        // 递归计算左半部分 [l, mid-1]
-        pair<int, int> x = solve1(l, mid - 1, k);
 
-        // 右半部分的答案可以通过对称性计算
-        // 关键观察：右半部分每个被选择的星星的编号 = 对应左半部分的编号 + offset
-        // offset = (r-l+1)/2 + 1 = 区间长度的一半 + 1
-        ll offset = (r - l + 1) / 2 + 1;
-        ll rgt_ans = offset * x.second + x.first;
+    auto dfs = [&](this auto &&dfs, int l, int r) -> pll {
+        if (r - l + 1 < k) {
+            return {0, 0};
+        }
+        if (r == l) {
+            return {1, l};
+        }
 
-        // 总答案 = 左半答案 + 右半答案 + 中间星星
-        // 总选择数 = 左半选择数 * 2 + 1（中间的那个）
-        return {x.first + rgt_ans + mid, x.second * 2 + 1};
-    } else {
-        // 偶数长度情况
-        ll mid = (l + r) / 2;
-
-        // 递归计算左半部分 [l, mid]
-        pair<int, int> x = solve1(l, mid, k);
-
-        // 右半部分的答案计算
-        ll offset = (r - l + 1) / 2;
-        ll rgt_ans = offset * x.second + x.first;
-
-        // 总答案 = 左半答案 + 右半答案
-        // 总选择数 = 左半选择数 * 2
-        return {x.first + rgt_ans, x.second * 2};
-    }
+        int m = (l + r) / 2;
+        if ((r - l + 1) % 2 == 0) {
+            auto [a, b] = dfs(l, m);
+            return {a + a, 2 * a * m + a};
+        } else {
+            auto [a, b] = dfs(l, m - 1);
+            int res = (2 * a + 1) * m;
+            return {2 * a + 1, res};
+        }
+    };
+    cout << dfs(1, n).second << '\n';
 }
 
 signed main() {
-    int t;
-    cin >> t;
-    while (t--) {
-        int n, k;
-        cin >> n >> k;
-        cout << solve1(1, n, k).first << endl;
-    }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    cin >> T;
+    while (T--)
+        solve();
     return 0;
 }
+
+
+
+
+
+
+// // 返回 {答案, 选择的星星数量}
+// pair<int, int> solve1(ll l, ll r, ll k) {
+//     // 如果区间长度小于k，无法处理
+//     if ((r - l + 1) < k)
+//         return {0, 0};
+
+//     if ((r - l + 1) % 2) {
+//         // 奇数长度情况
+//         ll mid = (l + r) / 2;
+
+//         // 递归计算左半部分 [l, mid-1]
+//         pair<int, int> x = solve1(l, mid - 1, k);
+
+//         // 右半部分的答案可以通过对称性计算
+//         // 关键观察：右半部分每个被选择的星星的编号 = 对应左半部分的编号 + offset
+//         // offset = (r-l+1)/2 + 1 = 区间长度的一半 + 1
+//         ll offset = (r - l + 1) / 2 + 1;
+//         ll rgt_ans = offset * x.second + x.first;
+
+//         // 总答案 = 左半答案 + 右半答案 + 中间星星
+//         // 总选择数 = 左半选择数 * 2 + 1（中间的那个）
+//         return {x.first + rgt_ans + mid, x.second * 2 + 1};
+//     } else {
+//         // 偶数长度情况
+//         ll mid = (l + r) / 2;
+
+//         // 递归计算左半部分 [l, mid]
+//         pair<int, int> x = solve1(l, mid, k);
+
+//         // 右半部分的答案计算
+//         ll offset = (r - l + 1) / 2;
+//         ll rgt_ans = offset * x.second + x.first;
+
+//         // 总答案 = 左半答案 + 右半答案
+//         // 总选择数 = 左半选择数 * 2
+//         return {x.first + rgt_ans, x.second * 2};
+//     }
+// }
+
+// signed main() {
+//     int t;
+//     cin >> t;
+//     while (t--) {
+//         int n, k;
+//         cin >> n >> k;
+//         cout << solve1(1, n, k).first << endl;
+//     }
+//     return 0;
+// }
 
 /*
 为什么这个算法是正确的？

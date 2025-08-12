@@ -57,28 +57,37 @@ void solve() {
         cout << "? " << idx_for_1 << " " << idx_for_n << endl;
         int r1; // response 1
         cin >> r1;
+        cout << "? " << idx_for_n << " " << idx_for_1 << endl;
+        int r2; // response 1
+        cin >> r2;
 
-        if (r1 < n - 1) {
-            // 结果小于 n-1，不可能是对象 B，必然是对象 A
+        if (r1 + r2 <= n) {
             cout << "! A" << endl;
-        } else if (r1 > n - 1) {
-            // 结果大于 n-1，不可能是对象 A，必然是对象 B
-            cout << "! B" << endl;
         } else {
-            // 当 r1 == n-1 时，情况模棱两可，需要第二次查询
-            // 第二次查询：反向查询
-            cout << "? " << idx_for_n << " " << idx_for_1 << endl;
-            int r2; // response 2
-            cin >> r2;
-
-            if (r2 == n - 1) {
-                // 距离对称，结果仍然是 n-1，必然是对象 B
-                cout << "! B" << endl;
-            } else {
-                // 距离不对称，结果变小 (如 0 或 1)，必然是对象 A
-                cout << "! A" << endl;
-            }
+            cout << "! B" << endl;
         }
+
+        // if (r1 < n - 1) {
+        //     // 结果小于 n-1，不可能是对象 B，必然是对象 A
+        //     cout << "! A" << endl;
+        // } else if (r1 > n - 1) {
+        //     // 结果大于 n-1，不可能是对象 A，必然是对象 B
+        //     cout << "! B" << endl;
+        // } else {
+        //     // 当 r1 == n-1 时，情况模棱两可，需要第二次查询
+        //     // 第二次查询：反向查询
+        //     cout << "? " << idx_for_n << " " << idx_for_1 << endl;
+        //     int r2; // response 2
+        //     cin >> r2;
+
+        //     if (r2 == n - 1) {
+        //         // 距离对称，结果仍然是 n-1，必然是对象 B
+        //         cout << "! B" << endl;
+        //     } else {
+        //         // 距离不对称，结果变小 (如 0 或 1)，必然是对象 A
+        //         cout << "! A" << endl;
+        //     }
+        // }
     }
 }
 
