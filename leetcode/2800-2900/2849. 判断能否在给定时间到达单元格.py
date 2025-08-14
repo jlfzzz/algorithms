@@ -18,12 +18,9 @@ INF = float("inf")
 MOD = int(1e9 + 7)
 
 
-print(bin(1198372))
-print(" " + bin(599188))
+class Solution:
+    def isReachableAtTime(self, sx: int, sy: int, fx: int, fy: int, t: int) -> bool:
+        if sx == fx and sy == fy:
+            return t != 1
+        return max(abs(sx - fx), abs(sy - fy)) <= t
 
-
-t1 = factorial(19)
-print(t1)
-print(len(str(t1)))
-t2 = 1 << 25 
-print(t2)

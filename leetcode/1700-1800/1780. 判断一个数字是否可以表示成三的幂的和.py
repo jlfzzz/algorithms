@@ -17,13 +17,18 @@ Min = lambda a, b: b if b < a else a
 INF = float("inf")
 MOD = int(1e9 + 7)
 
+pow3 = [1 for _ in range(30)]
+for i in range(1, 30):
+    pow3[i] = pow3[i - 1] * 3
 
-print(bin(1198372))
-print(" " + bin(599188))
 
-
-t1 = factorial(19)
-print(t1)
-print(len(str(t1)))
-t2 = 1 << 25 
-print(t2)
+class Solution:
+    def checkPowersOfThree(self, n: int) -> bool:
+        st = set()
+        while n:
+            i = bisect_right(pow3, n) - 1
+            if i in st:
+                return False
+            n -= pow3[i]
+            st.add(i)
+        return True
