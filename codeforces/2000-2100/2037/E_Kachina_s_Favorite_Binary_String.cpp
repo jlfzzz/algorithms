@@ -18,34 +18,46 @@ void solve() {
     cin >> n;
 
     string s(n + 1, '0');
-    cout << '?' << ' ' << 1 << ' ' << n << endl;
-    int x;
-    cin >> x;
-    int pre = x;
+    bool f = false;
+    int pos = -1;
+    int pre = -1;
 
-    if (x == 0) {
+    for (int i = 2; i <= n; i++) {
+        cout << '?' << ' ' << 1 << ' ' << i << endl;
+        int t;
+        cin >> t;
+        if (t != 0) {
+            s[i] = '1';
+            for (int j = i - 1; j >= i - t; j--) {
+                s[j] = '0';
+            }
+
+            for (int j = i - t - 1; j >= 1; j--) {
+                s[j] = '1';
+            }
+            f = true;
+            pos = i;
+            pre = t;
+            break;
+        }
+    }
+
+    if (!f) {
         cout << "! IMPOSSIBLE" << endl;
         return;
     }
 
-    for (int i = n - 1; i >= 2; i--) {
+    for (int i = pos + 1; i <= n; i++) {
         cout << '?' << ' ' << 1 << ' ' << i << endl;
-        int x;
-        cin >> x;
-        if (pre == x) {
-            s[i + 1] = '0';
-        } else {
-            s[i + 1] = '1';
+        int t;
+        cin >> t;
+        if (t != pre) {
+            s[i] = '1';
+            pre = t;
         }
-
-        // if (x == 0 && i != 1) {
-        //     cout << "! IMPOSSIBLE" << endl;
-        //     return;
-        // }
     }
-    s[1] = '0';
     s = s.substr(1);
-    cout << "! " << s << '\n';
+    cout << "! " << s << endl;
 }
 
 signed main() {
