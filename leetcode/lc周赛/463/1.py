@@ -10,11 +10,8 @@ from queue import *
 from string import *
 from random import *
 
-
-print(bin(23))
-print(bin(7))
-print(bin(18))
-print(bin(21))
-print(bin(22))
-print(bin(23))
-print(ceil(-0.5))
+DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+Max = lambda a, b: b if b > a else a
+Min = lambda a, b: b if b < a else a
+INF = float("inf")
+MOD = int(1e9 + 7)
