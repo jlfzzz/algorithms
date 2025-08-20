@@ -6,16 +6,15 @@ using ll = long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
-#define For(i, n) for (int (i) = 0; (i) < (n); (i) += 1)
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
 const ll MOD2 = 4611686018427387847;
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-void init() {
-    
-}
+void init() {}
 
-void solve() { int n, m;
+void solve() {
+    int n, m;
     cin >> n >> m;
     vector<int> a(n + 1);
     For(i, n) cin >> a[i + 1];
@@ -27,30 +26,30 @@ void solve() { int n, m;
         return;
     }
 
-    vector<int> suf_max(n + 1, -inf);
-    suf_max[n] = a[n];
-    for (int i = n - 1; i >= 1;i--) {
-        suf_max[i] = max(suf_max[i + 1], a[i]);
-    }
-
     vector<vector<int>> dp(n + 1, vector<int>(m + 1, inf));
     for (int i = 0; i <= m; i++) {
-        dp[1][i] = 0;
+        dp[0][i] = 0;
     }
     vector<int> pre_sum(n + 1);
-    for (int i = 1; i <= n;i++){
+    for (int i = 1; i <= n; i++) {
         pre_sum[i] = pre_sum[i - 1] + a[i];
     }
+    pre_sum.push_back(inf);
 
-    for (int i = 1; i <= n;i++) {
+    for (int i = 1; i <= n; i++) {
+        int pre_min = inf;
         for (int j = 1; j <= m; j++) {
-            if (dp[i][j] == inf) {
-                continue;
-            }
+            int k = ranges::upper_bound(pre_sum, pre_sum[i - 1] + b[j]) - pre_sum.begin() - 1;
+            if (k < i)
+                break;
 
-            
+            pre_min = min(pre_min, dp[i - 1][j]);
+            dp[k][j] = min(dp[k][j], pre_min + m - j);
         }
     }
+
+    int ans = ranges::min(dp[n]);
+    cout << (ans == inf ? -1 : ans) << '\n';
 }
 
 signed main() {
@@ -59,6 +58,7 @@ signed main() {
     init();
     int T = 1;
     cin >> T;
-    while (T--) solve();
+    while (T--)
+        solve();
     return 0;
 }

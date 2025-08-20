@@ -1,156 +1,91 @@
-#include <iostream>
-#include <numeric>
-#include <vector>
-
-
-// 使用 long long 以免 n, m 溢出
+#include <bits/stdc++.h>
+using namespace std;
 using ll = long long;
+#define i128 __int128_t
+#define int ll
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+constexpr int MOD = int(1e9 + 7);
+const ll MOD2 = 4611686018427387847;
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-// 1. 快速幂
-// 计算 (base^exp) % mod
-ll power(ll base, ll exp, ll mod) {
-    ll res = 1;
-    base %= mod;
-    while (exp > 0) {
-        if (exp % 2 == 1)
-            res = (__int128) res * base % mod;
-        base = (__int128) base * base % mod;
-        exp /= 2;
+void init() {}
+
+void solve() {
+    int n, m;
+    cin >> n >> m;
+    vector<int> a(n + 1);
+    For(i, n) cin >> a[i + 1];
+    vector<int> b(m + 1);
+    For(i, m) cin >> b[i + 1];
+
+    if (ranges::max(a) > ranges::max(b)) {
+        cout << -1 << '\n';
+        return;
     }
-    return res;
-}
 
-// 2. 扩展欧几里得算法
-// 求解 ax + by = gcd(a, b)，并返回 gcd(a, b)
-ll ex_gcd(ll a, ll b, ll &x, ll &y) {
-    if (b == 0) {
-        x = 1;
-        y = 0;
-        return a;
+    vector<vector<pii>> dp(n + 1, vector<pii>(m + 1, {inf, 0}));
+    for (int j = 0; j <= m; ++j)
+        dp[0][j] = {inf, 0};
+    dp[0][1] = {0, 1};
+    vector<int> pre_sum(n + 1);
+    for (int i = 1; i <= n; i++) {
+        pre_sum[i] = pre_sum[i - 1] + a[i];
     }
-    ll d = ex_gcd(b, a % b, y, x);
-    y -= (a / b) * x;
-    return d;
-}
+    pre_sum.push_back(inf);
 
-// 3. 模逆元 (基于扩展欧几里得)
-// 计算 a 在模 m 下的逆元，要求 gcd(a, m) == 1
-ll mod_inverse(ll a, ll m) {
-    ll x, y;
-    ll d = ex_gcd(a, m, x, y);
-    if (d != 1)
-        return -1; // 逆元不存在
-    return (x % m + m) % m;
-}
+    for (int i = 1; i <= n; i++) {
+        int pre_min = inf;
+        int pre_cnt = 0;
+        for (int j = 1; j <= m; j++) {
+            int k = ranges::upper_bound(pre_sum, pre_sum[i - 1] + b[j]) - pre_sum.begin() - 1;
+            if (k < i)
+                break;
 
-// 4. 扩展卢卡斯定理的核心部分
-// 计算 n! 中质因子 p 的数量 (勒让德公式)
-ll count_p_in_factorial(ll n, ll p) {
-    if (n < p)
-        return 0;
-    return n / p + count_p_in_factorial(n / p, p);
-}
+            if (dp[i - 1][j].first == pre_min) {
+                pre_cnt = (pre_cnt + dp[i - 1][j].second) % MOD;
+            } else if (dp[i - 1][j].first < pre_min) {
+                pre_min = dp[i - 1][j].first;
+                pre_cnt = dp[i - 1][j].second % MOD;
+            }
 
-// 计算 n! mod p^k，但剔除所有 p 的因子
-ll factorial_mod_pk(ll n, ll p, ll pk) {
-    if (n == 0)
-        return 1;
-    ll res = 1;
-    // 计算 1 到 pk 中与 p 互质的数的乘积
-    if (n >= pk) {
-        for (ll i = 1; i <= pk; ++i) {
-            if (i % p != 0) {
-                res = (__int128) res * i % pk;
+            for (int l = i; l <= k; l++) {
+                if (pre_min + m - j < dp[l][j].first) {
+                    dp[l][j] = {pre_min + m - j, pre_cnt % MOD};
+                } else if (pre_min + m - j == dp[l][j].first) {
+                    dp[l][j].second = (dp[l][j].second + pre_cnt) % MOD;
+                }
             }
         }
-        // 这个乘积会重复 (n/pk) 次
-        res = power(res, n / pk, pk);
     }
 
-    // 计算剩余部分 n % pk 的乘积
-    for (ll i = 1; i <= n % pk; ++i) {
-        if (i % p != 0) {
-            res = (__int128) res * i % pk;
+    int ans = inf;
+    int ans_cnt = 0;
+
+    for (auto &[cost, cnt]: dp[n]) {
+        if (cost != inf && ans == cost) {
+            ans_cnt = (ans_cnt + cnt) % MOD;
+        } else if (cost != inf && cost < ans) {
+            ans = cost, ans_cnt = cnt % MOD;
         }
     }
-    // 递归处理 n/p 的阶乘
-    res = (__int128) res * factorial_mod_pk(n / p, p, pk) % pk;
-    return res;
-}
 
-// 计算 C(n, m) mod p^k
-ll combination_mod_pk(ll n, ll m, ll p, ll pk) {
-    if (m < 0 || m > n)
-        return 0;
-
-    // 1. 计算 C(n, m) 中质因子 p 的最终幂次
-    ll power_of_p = count_p_in_factorial(n, p) - count_p_in_factorial(m, p) - count_p_in_factorial(n - m, p);
-
-    // 2. 计算剔除因子p后的阶乘部分
-    ll res = factorial_mod_pk(n, p, pk);
-    res = (__int128) res * mod_inverse(factorial_mod_pk(m, p, pk), pk) % pk;
-    res = (__int128) res * mod_inverse(factorial_mod_pk(n - m, p, pk), pk) % pk;
-
-    // 3. 将之前剔除的因子 p 的幂次乘回来
-    res = (__int128) res * power(p, power_of_p, pk) % pk;
-    return res;
-}
-
-// 5. 中国剩余定理 (CRT) - 两两合并
-ll crt(ll a1, ll m1, ll a2, ll m2) {
-    ll M = m1 * m2;
-    ll t = mod_inverse(m1, m2);
-    ll x = (a2 - a1 % m2 + m2) % m2;
-    x = (__int128) x * t % m2;
-    return (a1 + (__int128) x * m1) % M;
-}
-
-// 6. 扩展卢卡斯定理主函数
-ll ex_lucas(ll n, ll m, ll p_mod) {
-    if (m < 0 || m > n)
-        return 0;
-    if (p_mod == 1)
-        return 0;
-
-    ll temp_M = p_mod;
-
-    // CRT 初始化
-    ll current_rem = 0;
-    ll current_mod = 1;
-
-    // 分解模数 p_mod
-    for (ll i = 2; i * i <= temp_M; ++i) {
-        if (temp_M % i == 0) {
-            ll pk = 1;
-            while (temp_M % i == 0) {
-                pk *= i;
-                temp_M /= i;
-            }
-            // 对每个质数幂求解，并用CRT合并
-            ll rem = combination_mod_pk(n, m, i, pk);
-            current_rem = crt(current_rem, current_mod, rem, pk);
-            current_mod *= pk;
-        }
+    if (ans == inf) {
+        cout << -1 << '\n';
+    } else {
+        cout << ans << ' ' << (ans_cnt % MOD) << '\n';
     }
-    if (temp_M > 1) { // 剩余一个大的质因子
-        ll pk = temp_M;
-        ll p = temp_M;
-        ll rem = combination_mod_pk(n, m, p, pk);
-        current_rem = crt(current_rem, current_mod, rem, pk);
-        current_mod *= pk;
-    }
-
-    return current_rem;
 }
 
-// 主函数，处理输入输出
-int main() {
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(nullptr);
-
-    ll n, m, p;
-    std::cin >> n >> m >> p;
-    std::cout << ex_lucas(n, m, p) << std::endl;
-
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    cin >> T;
+    while (T--)
+        solve();
     return 0;
 }
