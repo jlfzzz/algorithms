@@ -1,90 +1,63 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
-#define i128 __int128_t
 #define int ll
-using pii = pair<int, int>;
-using pll = pair<ll, ll>;
-#define ull unsigned long long
-#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
-constexpr int MOD = int(1e9 + 7);
-const ll MOD2 = 4611686018427387847;
-constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-vector<int> pow10;
+int Pow10[18];
 
-int sum(int n) {
-    if (n <= 0)
-        return 0;
-    int res = 0;
-    for (int f: pow10) {
-        if (f > n)
-            break;
-        int high = n / (f * 10);
-        int cur = (n / f) % 10;
-        int low = n % f;
-        res += high * f * 45LL;
-        res += cur * (low + 1);
-        res += (cur * (cur - 1) / 2) * f;
-    }
-    return res;
+void init() {
+    Pow10[0] = 1;
+    for (int i = 1; i < 18; i++)
+        Pow10[i] = 10 * Pow10[i - 1];
 }
 
-// 找到第 k 位对应的数字，pos 返回在该数字内的偏移（0-based 从左）
-int find(int k, int &pos) {
-    int d = 1, cnt = 9, start = 1;
-    while (true) {
-        int block = d * cnt;
-        if (k > block) {
-            k -= block;
-            d++;
-            cnt *= 10;
-            start *= 10;
-        } else {
-            int index = (k - 1) / d;
-            pos = (k - 1) % d;
-            return start + index;
-        }
-    }
-}
-
-// 返回数字 n 的前 pos+1 位数字和（0-based 从左）
-int prefix(int n, int pos) {
-    int len = 0, tmp = n;
-    while (tmp) {
-        tmp /= 10;
-        len++;
-    }
-    int sum = 0;
-    for (int j = 0; j <= pos; j++) {
-        int power_idx = len - 1 - j;
-        int d = (n / pow10[power_idx]) % 10;
-        sum += d;
-    }
-    return sum;
+// 计算 1..n 的位和
+int sumDigitsUpTo(int n) {
+    if (n < 10)
+        return n * (n + 1) / 2;
+    string s = to_string(n);
+    int len = s.size();
+    int first = s[0] - '0';
+    int rest = stoll(s.substr(1));
+    int sumFirstDigit = first * (first - 1) / 2 * Pow10[len - 1];
+    int sumRest = first * (rest + 1);
+    return sumFirstDigit + sumRest + sumDigitsUpTo(rest) + (len - 1) * first * 45 * Pow10[len - 2];
 }
 
 void solve() {
     int k;
     cin >> k;
-    int pos;
-    int n = find(k, pos);
-    int before = digit_sum(n - 1);
-    int t = prefix(n, pos);
-    cout << before + t << '\n';
+
+    int len = 1, curr = 9;
+    while (k > curr * len) {
+        k -= curr * len;
+        curr *= 10;
+        len++;
+    }
+
+    int pow10 = 1;
+    for (int i = 0; i < len - 1; i++)
+        pow10 *= 10;
+
+    int x = (k - 1) / len + pow10;
+    string s = to_string(x);
+    int need_digits = (k - 1) % len + 1;
+
+    // 先加上 x 的前 need_digits 位
+    int ans = 0;
+    for (int i = 0; i < need_digits; i++)
+        ans += s[i] - '0';
+
+    if (x > 1)
+        ans += sumDigitsUpTo(x - 1); // 用数学公式计算 1..x-1 的位和
+
+    cout << ans << '\n';
 }
 
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-
-    pow10.clear();
-    long long p = 1;
-    For(i, 19) {
-        pow10.push_back((int) p);
-        p *= 10;
-    }
-
+    init();
     int T;
     cin >> T;
     while (T--)

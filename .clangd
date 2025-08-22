@@ -1,0 +1,9 @@
+CompileFlags:
+  Add: 
+    - "-std=c++23"                   # 使用 C++23
+    - "-IC:/msys64/mingw64/include"  # MinGW 系统头文件
+    - "-IC:/msys64/mingw64/include/c++/12.2.0"  # MinGW C++ 标准库
+    - "-I."                           # 项目根目录
+    - "-Iinclude"                     # 项目 include 文件夹（如有）
+    - "-Wall"                         # 打开警告
+    - "-Wextra"
