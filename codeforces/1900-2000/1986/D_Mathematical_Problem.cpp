@@ -1,54 +1,82 @@
 #include <bits/stdc++.h>
 using namespace std;
-#define int long long
-int n;
-string s;
+using ll = long long;
+#define i128 __int128_t
+#define int ll
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+constexpr int MOD = int(1e9 + 7);
+const ll MOD2 = 4611686018427387847;
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
+
+void init() {}
+
 void solve() {
-    cin >> n >> s;
+    int n;
+    cin >> n;
+    string s;
+    cin >> s;
+
+
     if (n == 2) {
-        cout << (s[0] - '0') * 10 + s[1] - '0' << "\n";
-    } else if (n > 3 && s.find("0") != -1) {
-        cout << "0\n";
-    } else if (n == 3 && (s[0] == '0' || s[2] == '0')) {
-        cout << "0\n";
-    } else {
-        int res = 1e18;
-        for (int i = 0; i < n - 1; i++) {
-            int ans = 0, lst = 1;
-            for (int j = 0; j < n; j++) {
-                int c = s[j] - '0';
-                if (j == i + 1) {
-                    continue;
-                }
-                if (j == i) { // 找到断点
-                    c = c * 10 + s[j + 1] - '0';
-                }
-                if (c == 1) { // 字符为 1，跳过
-                    continue;
-                }
-                if (lst != 1)
-                    ans += lst; // 累加答案
-                lst = c;
-            }
-            res = min(res, ans + lst);
-        }
-        cout << res << "\n";
+        cout << stoi(s) << '\n';
+        return;
     }
+
+    if (n == 3) {
+        int t1 = stoi(s.substr(0, 2));
+        int t2 = stoi(s.substr(2));
+
+        int ans = inf;
+        ans = min(ans, t1 + t2);
+        ans = min(ans, t1 * t2);
+
+        t1 = stoi(s.substr(1, 2));
+        t2 = stoi(s.substr(0, 1));
+
+        ans = min(ans, t1 + t2);
+        ans = min(ans, t1 * t2);
+
+        cout << ans << '\n';
+        return;
+    }
+
+    int ans = inf;
+    for (char c: s) {
+        if (c == '0') {
+            cout << 0 << '\n';
+            return;
+        }
+    }
+
+    for (int i = 0; i < n - 1; i++) {
+        int t = stoi(s.substr(i, 2));
+        for (int j = 0; j < i; j++) {
+            if (s[j] != '1') {
+                t += s[j] - '0';
+            }
+        }
+
+        for (int j = i + 2; j < n; j++) {
+            if (s[j] != '1') {
+                t += s[j] - '0';
+            }
+        }
+
+        ans = min(ans, t);
+    }
+    cout << ans << '\n';
 }
+
 signed main() {
-    ios::sync_with_stdio(0);
-    cin.tie(0);
-    cout.tie(0);
-    int t;
-    cin >> t;
-    while (t--)
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    cin >> T;
+    while (T--)
         solve();
     return 0;
 }
-/*
-311312
-3*1+1*3+12 = 18
-3+11+3*1+2 = 19
-
-901
-*/
