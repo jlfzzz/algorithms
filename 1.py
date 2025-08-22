@@ -11,10 +11,18 @@ from string import *
 from random import *
 
 
-print(bin(23))
-print(bin(7))
-print(bin(18))
-print(bin(21))
-print(bin(22))
-print(bin(23))
-print(ceil(-0.5))
+# print(bin(23))
+# print(bin(7))
+# print(bin(18))
+# print(bin(21))
+# print(bin(22))
+# print(bin(23))
+# print(ceil(-0.5))
+
+cnt = 0
+for i in range(1000, 10000):
+    s = str(i)
+    for c in s:
+        if c == "1":
+            cnt += 1
+print(cnt)
