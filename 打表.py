@@ -19,10 +19,23 @@ from random import *
 # print(bin(23))
 # print(ceil(-0.5))
 
-cnt = 0
-for i in range(1000, 10000):
-    s = str(i)
-    for c in s:
-        if c == "1":
-            cnt += 1
-print(cnt)
+# cnt = 0
+# for i in range(1000, 10000):
+#     s = str(i)
+#     for c in s:
+#         if c == "1":
+#             cnt += 1
+# print(cnt)
+
+# x1 = 1313112
+x1 = 562423413413131
+st = set()
+for i in range(100):
+    print(bin(x1))
+    st.add(x1)
+    x1 = x1 ^ (x1 // 2)
+    if x1 in st:
+        print("find")
+        print(x1)
+        print(i)
+        break
