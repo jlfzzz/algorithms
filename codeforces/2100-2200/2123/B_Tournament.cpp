@@ -8,23 +8,24 @@ using pll = pair<ll, ll>;
 #define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
-const ll MOD2 = 4611686018427387847;
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 void init() {}
 
 void solve() {
-    int n;
-    cin >> n;
-    vector<ll> a(n);
-    for (int i = 0; i < n; i++) {
-        cin >> a[i];
+    int n, j, k;
+    cin >> n >> j >> k;
+    vector<int> a(n);
+    For(i, n) cin >> a[i];
+    if (k >= 2)
+        cout << "YES\n";
+    else {
+        if (a[j - 1] != ranges::max(a)) {
+            cout << "NO\n";
+        } else {
+            cout << "YES\n";
+        }
     }
-    ll ans = a[n - 1];
-    for (int i = 0; i < n - 1; i++) {
-        ans += max(0LL, a[i] - a[i + 1]);
-    }
-    cout << ans << endl;
 }
 
 signed main() {

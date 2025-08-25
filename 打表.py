@@ -27,15 +27,12 @@ from random import *
 #             cnt += 1
 # print(cnt)
 
-# x1 = 1313112
-x1 = 562423413413131
-st = set()
+arr = [i for i in range(200)]
 for i in range(100):
-    print(bin(x1))
-    st.add(x1)
-    x1 = x1 ^ (x1 // 2)
-    if x1 in st:
-        print("find")
-        print(x1)
-        print(i)
-        break
+    print(f"ROUND {i}")
+    print(arr)
+    for j in range(100):
+        if j - 1 >= 0:
+            arr[j] |= arr[j - 1]
+        if j + 1 < 100:
+            arr[j] |= arr[j + 1]

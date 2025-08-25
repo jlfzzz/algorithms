@@ -3,7 +3,7 @@ using namespace std;
 using ll = long long;
 const ll INF = (ll) 4e18;
 
-void solve() {
+void solve2() {
     int n;
     cin >> n;
     vector<ll> a(n + 3, 0), s(n + 3, 0), dp(n + 3, INF), g(n + 3, INF);
@@ -29,20 +29,35 @@ void solve() {
             extra = max(0LL, a[i + 1] - (ll) i);
         ll cand = a[i] + extra - s[i + 1] + (ll) i + sufmin;
         dp[i] = min(dp[i], cand);
-
-        // update g[i] for future sufmin uses
         g[i] = dp[i] + s[i - 1] - (ll) (i - 2);
     }
 
     cout << dp[1] << '\n';
 }
 
+void solve() {
+    int n;
+    cin >> n;
+    vector<ll> a(n);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+
+    vector<ll> dp(n + 1);
+    dp[1] = a[0];
+    for (int i = 1; i < n; i++) {
+        ll curr_chicken = a[i - 1];
+        ll nxt_chicken = a[i];
+        dp[i + 1] = min(dp[i] + a[i] - 1, dp[i - 1] + curr_chicken + max(0ll, nxt_chicken - i));
+    }
+    cout << dp[n] << '\n';
+}
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int T = 1;
-    if (!(cin >> T))
-        return 0;
+    cin >> T;
     while (T--)
         solve();
     return 0;
