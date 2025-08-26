@@ -27,12 +27,19 @@ from random import *
 #             cnt += 1
 # print(cnt)
 
-arr = [i for i in range(200)]
-for i in range(100):
-    print(f"ROUND {i}")
-    print(arr)
-    for j in range(100):
-        if j - 1 >= 0:
-            arr[j] |= arr[j - 1]
-        if j + 1 < 100:
-            arr[j] |= arr[j + 1]
+
+k = 2
+for i in range(1, 10000):
+    t = i
+    sm = 0
+    while t:
+        sm += t % 10
+        t //= 10
+
+    t = k * i
+    sm2 = 0
+    while t:
+        sm2 += t % 10
+        t //= 10
+    if sm2 == k * sm:
+        print(i)
