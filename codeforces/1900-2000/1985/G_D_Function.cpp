@@ -33,9 +33,12 @@ void solve() {
     };
 
     int contri = 9 / k + 1;
-    int ans = (q_pow(2, l) * ((1 - q_pow(2, r - l) + MOD) % MOD) % MOD * (MOD - 1)) % MOD;
-
-
+    int ans = q_pow(contri, l);
+    ans = ans * (9 / k) % MOD;
+    ans = ans * ((1 - q_pow(contri, r - l) + MOD) % MOD + MOD) % MOD;
+    ans = ans * q_pow(-1, MOD - 2) % MOD;
+    ans = ans * q_pow(contri - 1, MOD - 2) % MOD;
+    ans = (ans % MOD + MOD) % MOD;
     cout << ans << '\n';
 }
 

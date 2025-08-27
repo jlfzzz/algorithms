@@ -15,15 +15,20 @@ void init() {}
 void solve() {
     int n, a, b;
     cin >> n >> a >> b;
-    if (((n - b) & 1)) {
+    if ((n ^ b) & 1) {
         cout << "NO\n";
         return;
     }
+
     if (a <= b) {
         cout << "YES\n";
-        return;
+    } else {
+        if ((n ^ a) & 1) {
+            cout << "NO\n";
+        } else {
+            cout << "YES\n";
+        }
     }
-    cout << (((n - a) & 1) == 0 ? "YES\n" : "NO\n");
 }
 
 signed main() {
