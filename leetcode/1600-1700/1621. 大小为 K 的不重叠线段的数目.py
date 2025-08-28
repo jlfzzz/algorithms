@@ -20,6 +20,27 @@ MOD = int(1e9 + 7)
 
 class Solution:
     def numberOfSets(self, n: int, k: int) -> int:
+        dp = [[0] * (k + 1) for _ in range(n)]
+        pref = [[0] * (k + 1) for _ in range(n)]
+        dp[0][0] = 1
+        pref[0][0] = 1
+
+        for i in range(1, n):
+            for j in range(min(i, k) + 1):
+                dp[i][j] = dp[i - 1][j]
+                if j - 1 >= 0:
+                    dp[i][j] = (dp[i][j] + pref[i - 1][j - 1]) % MOD
+                    if j - 2 >= 0:
+                        dp[i][j] = (dp[i][j] - pref[j - 2][j - 1] + MOD) % MOD
+                    # for l in range(j - 1, i):
+                    #     dp[i][j] = (dp[i][j] + dp[l][j - 1]) % MOD
+            for j in range(k + 1):
+                pref[i][j] = (pref[i - 1][j] + dp[i][j]) % MOD
+        return dp[n - 1][k]
+
+
+class Solution:
+    def numberOfSets(self, n: int, k: int) -> int:
         dp = [[0] * (k + 1) for _ in range(n + 1)]
         pref = [[0] * (k + 1) for _ in range(n + 1)]
         dp[0][0] = 1
