@@ -12,17 +12,15 @@ from random import *
 
 
 def main():
-    arr = [4, 5, 2, 4, 2]
 
-    def f1(arr: List[int]):
-        k = 3
-        for x in arr:
-            x += 1
-
-    def f2(x: int):
-        print(bin(x))
-
-    print(pow(3,16))
+    n, m = 100, 1233
+    cnt = 0
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            if (i + j) % (j * gcd(i, j)) == 0:
+                cnt += 1
+                print([i, j])
+    print(cnt)
 
 
 if __name__ == "__main__":

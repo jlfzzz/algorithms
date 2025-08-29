@@ -13,24 +13,26 @@ constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 void init() {}
 
 void solve() {
-    int n, m;
-    cin >> n >> m;
-    vector<vector<int>> g(n + 1);
-    For(i, m) {
-        int a, b;
-        cin >> a >> b;
-        g[a].push_back(b);
+    int n;
+    cin >> n;
+    vector g(n + 1, vector<int>());
+    For(i, n) {
+        int t;
+        cin >> t;
+        while (t != 0) {
+            g[i + 1].push_back(t);
+            cin >> t;
+        }
     }
 
-    int cnt = 0;
-    int timestamp = 0;
     vector<int> dfn(n + 1), low(n + 1), in_stack(n + 1);
+    vector<int> scc(n + 1);
+    int scc_cnt = 0, timestamp = 0;
     stack<int> stk;
 
     auto tarjan = [&](this auto &&tarjan, int u) -> void {
         dfn[u] = low[u] = ++timestamp;
-        stk.push(u);
-        in_stack[u] = true;
+        stk.emplace(u), in_stack[u] = 1;
 
         for (int v: g[u]) {
             if (!dfn[v]) {
@@ -41,18 +43,16 @@ void solve() {
             }
         }
 
-        if (low[u] == dfn[u]) {
-            vector<int> scc;
+        if (dfn[u] == low[u]) {
+            scc_cnt++;
             while (true) {
                 int x = stk.top();
                 stk.pop();
-                in_stack[x] = false;
-                scc.push_back(x);
-                if (x == u)
+                in_stack[x] = 0;
+                scc[x] = scc_cnt;
+                if (x == u) {
                     break;
-            }
-            if (scc.size() > 1) {
-                cnt++;
+                }
             }
         }
     };
@@ -63,7 +63,34 @@ void solve() {
         }
     }
 
-    cout << cnt << '\n';
+    vector<int> in(scc_cnt + 1), out(scc_cnt + 1);
+
+    for (int i = 1; i <= n; i++) {
+        for (int v: g[i]) {
+            if (scc[i] != scc[v]) {
+                in[scc[v]]++;
+                out[scc[i]]++;
+            }
+        }
+    }
+    int a = 0, b = 0;
+    for (int i = 1; i <= scc_cnt; i++) {
+        if (!in[i]) {
+            a++;
+        }
+
+        if (!out[i]) {
+            b++;
+        }
+    }
+
+    cout << a << '\n';
+
+    if (scc_cnt == 1) {
+        cout << 0 << '\n';
+    } else {
+        cout << max(a, b) << '\n';
+    }
 }
 
 signed main() {

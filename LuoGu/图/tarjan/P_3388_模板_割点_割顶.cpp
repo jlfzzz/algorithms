@@ -8,6 +8,7 @@ using pll = pair<ll, ll>;
 #define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
+const ll MOD2 = 4611686018427387847;
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 void init() {}
@@ -15,57 +16,51 @@ void init() {}
 void solve() {
     int n, m;
     cin >> n >> m;
-    vector<vector<int>> g(n + 1);
+    vector<vector<int>> g(n + 1, vector<int>());
     For(i, m) {
         int a, b;
         cin >> a >> b;
         g[a].push_back(b);
+        g[b].push_back(a);
     }
 
-    int cnt = 0;
+    vector<int> dfn(n + 1), low(n + 1), cut(n + 1);
     int timestamp = 0;
-    vector<int> dfn(n + 1), low(n + 1), in_stack(n + 1);
-    stack<int> stk;
 
-    auto tarjan = [&](this auto &&tarjan, int u) -> void {
+    auto tarjan = [&](this auto &&tarjan, int u, int fa) -> void {
         dfn[u] = low[u] = ++timestamp;
-        stk.push(u);
-        in_stack[u] = true;
-
+        int child = 0;
         for (int v: g[u]) {
+            if (v == fa)
+                continue;
             if (!dfn[v]) {
-                tarjan(v);
+                tarjan(v, u);
                 low[u] = min(low[u], low[v]);
-            } else if (in_stack[v]) {
+                if (fa != -1 && low[v] >= dfn[u])
+                    cut[u] = 1;
+                child++;
+            } else {
                 low[u] = min(low[u], dfn[v]);
             }
         }
-
-        if (low[u] == dfn[u]) {
-            vector<int> scc;
-            while (true) {
-                int x = stk.top();
-                stk.pop();
-                in_stack[x] = false;
-                scc.push_back(x);
-                if (x == u)
-                    break;
-            }
-            if (scc.size() > 1) {
-                cnt++;
-            }
-        }
+        if (fa == -1 && child > 1)
+            cut[u] = 1;
     };
 
     for (int i = 1; i <= n; i++) {
         if (!dfn[i]) {
-            tarjan(i);
+            tarjan(i, -1);
         }
     }
 
-    cout << cnt << '\n';
+    vector<int> res;
+    for (int i = 1; i <= n; i++)
+        if (cut[i])
+            res.push_back(i);
+    cout << res.size() << '\n';
+    for (int i = 0; i < res.size(); i++)
+        cout << res[i] << (i + 1 == res.size() ? '\n' : ' ');
 }
-
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

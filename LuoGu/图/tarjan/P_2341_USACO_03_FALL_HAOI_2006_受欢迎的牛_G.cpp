@@ -15,22 +15,19 @@ void init() {}
 void solve() {
     int n, m;
     cin >> n >> m;
-    vector<vector<int>> g(n + 1);
+    vector<vector<int>> g(n + 1, vector<int>());
     For(i, m) {
         int a, b;
         cin >> a >> b;
         g[a].push_back(b);
     }
 
-    int cnt = 0;
-    int timestamp = 0;
-    vector<int> dfn(n + 1), low(n + 1), in_stack(n + 1);
+    vector<int> dfn(n + 1), in_stack(n + 1), low(n + 1), scc(n + 1), scc_sz(n + 1);
+    int cnt = 0, timestamp = 0;
     stack<int> stk;
-
     auto tarjan = [&](this auto &&tarjan, int u) -> void {
         dfn[u] = low[u] = ++timestamp;
-        stk.push(u);
-        in_stack[u] = true;
+        stk.emplace(u), in_stack[u] = 1;
 
         for (int v: g[u]) {
             if (!dfn[v]) {
@@ -42,18 +39,18 @@ void solve() {
         }
 
         if (low[u] == dfn[u]) {
-            vector<int> scc;
+            ++cnt;
+            int sz = 0;
             while (true) {
                 int x = stk.top();
                 stk.pop();
-                in_stack[x] = false;
-                scc.push_back(x);
-                if (x == u)
+                scc[x] = cnt;
+                sz++;
+                if (x == u) {
                     break;
+                }
             }
-            if (scc.size() > 1) {
-                cnt++;
-            }
+            scc_sz[cnt] = sz;
         }
     };
 
@@ -63,7 +60,34 @@ void solve() {
         }
     }
 
-    cout << cnt << '\n';
+    set<pii> edges;
+    for (int i = 1; i <= n; i++) {
+        for (int v: g[i]) {
+            int s1 = scc[i], s2 = scc[v];
+            if (s1 != s2) {
+                edges.emplace(s1, s2);
+            }
+        }
+    }
+
+    vector<int> out(cnt + 1);
+    for (auto &[from, to]: edges) {
+        out[from]++;
+    }
+
+    int sink_cnt = 0, sink_id = -1;
+    for (int i = 1; i <= cnt; i++) {
+        if (out[i] == 0) {
+            sink_cnt++;
+            sink_id = i;
+        }
+    }
+
+    int ans = 0;
+    if (sink_cnt == 1)
+        ans = scc_sz[sink_id];
+
+    cout << ans << '\n';
 }
 
 signed main() {

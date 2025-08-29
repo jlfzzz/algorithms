@@ -15,55 +15,47 @@ void init() {}
 void solve() {
     int n, m;
     cin >> n >> m;
-    vector<vector<int>> g(n + 1);
+    vector<vector<int>> g(n + 1, vector<int>());
     For(i, m) {
         int a, b;
         cin >> a >> b;
         g[a].push_back(b);
+        g[b].push_back(a);
     }
 
-    int cnt = 0;
-    int timestamp = 0;
-    vector<int> dfn(n + 1), low(n + 1), in_stack(n + 1);
-    stack<int> stk;
-
-    auto tarjan = [&](this auto &&tarjan, int u) -> void {
-        dfn[u] = low[u] = ++timestamp;
-        stk.push(u);
-        in_stack[u] = true;
-
+    vector<int> dfn(n + 1), low(n + 1);
+    int ts = 0;
+    vector<pii> ans;
+    auto tarjan = [&](this auto &&tarjan, int u, int fa) -> void {
+        dfn[u] = low[u] = ++ts;
         for (int v: g[u]) {
-            if (!dfn[v]) {
-                tarjan(v);
-                low[u] = min(low[u], low[v]);
-            } else if (in_stack[v]) {
-                low[u] = min(low[u], dfn[v]);
+            if (v == fa) {
+                continue;
             }
-        }
 
-        if (low[u] == dfn[u]) {
-            vector<int> scc;
-            while (true) {
-                int x = stk.top();
-                stk.pop();
-                in_stack[x] = false;
-                scc.push_back(x);
-                if (x == u)
-                    break;
-            }
-            if (scc.size() > 1) {
-                cnt++;
+            if (!dfn[v]) {
+                tarjan(v, u);
+                low[u] = min(low[u], low[v]);
+
+                if (low[v] > dfn[u]) {
+                    ans.emplace_back(u, v);
+                }
+            } else {
+                low[u] = min(low[u], dfn[v]);
             }
         }
     };
 
     for (int i = 1; i <= n; i++) {
         if (!dfn[i]) {
-            tarjan(i);
+            tarjan(i, -1);
         }
     }
 
-    cout << cnt << '\n';
+    ranges::sort(ans);
+    for (auto &[x, y]: ans) {
+        cout << x << ' ' << y << '\n';
+    }
 }
 
 signed main() {

@@ -27,7 +27,7 @@ void solve() {
     vector<int> dfn(n + 1), low(n + 1), in_stack(n + 1);
     stack<int> stk;
 
-    auto tarjan = [&](this auto &&tarjan, int u) -> void {
+    function<void(int)> tarjan = [&](int u) {
         dfn[u] = low[u] = ++timestamp;
         stk.push(u);
         in_stack[u] = true;
