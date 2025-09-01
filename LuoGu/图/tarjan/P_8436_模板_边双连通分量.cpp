@@ -68,7 +68,7 @@ void solve2() {
         if (!vis[i]) {
             vector<int> buf;
             dfs2(dfs2, i, buf);
-            comps.push_back(move(buf));
+            comps.push_back(std::move(buf));
         }
 
     cout << comps.size() << '\n';

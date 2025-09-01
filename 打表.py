@@ -13,14 +13,15 @@ from random import *
 
 def main():
 
-    n, m = 100, 1233
-    cnt = 0
-    for i in range(1, n + 1):
-        for j in range(1, m + 1):
-            if (i + j) % (j * gcd(i, j)) == 0:
-                cnt += 1
-                print([i, j])
-    print(cnt)
+    pre = 0
+    arr = [0] * 31
+    for i in range(30):
+        arr[i] = 1 + pre
+        pre = pre + arr[i]
+    
+    for x in arr:
+        print(x)
+    
 
 
 if __name__ == "__main__":

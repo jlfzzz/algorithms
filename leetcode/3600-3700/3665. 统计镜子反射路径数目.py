@@ -1,10 +1,10 @@
 from collections import *
-from funcdesols import *
+from functools import *
 from math import *
-from iterdesols import *
+from itertools import *
 from heapq import *
 from bisect import *
-from operadesr import *
+from operator import *
 from typing import *
 from queue import *
 from string import *
@@ -14,7 +14,7 @@ from sortedcontainers import *
 DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 Max = lambda a, b: b if b > a else a
 Min = lambda a, b: b if b < a else a
-INF = float("inf")
+INF = float('inf')
 MOD = int(1e9 + 7)
 
 
