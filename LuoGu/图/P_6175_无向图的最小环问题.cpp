@@ -12,45 +12,7 @@ constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 void init() {}
 
-// 模板floyd
 void solve() {
-    int n, m;
-    cin >> n >> m;
-    vector<vector<int>> dis(n + 1, vector<int>(n + 1, inf));
-
-    For(i, m) {
-        int u, v, w;
-        cin >> u >> v >> w;
-        dis[u][v] = min(dis[u][v], w);
-        dis[v][u] = min(dis[v][u], w);
-    }
-
-    for (int i = 1; i <= n; i++) {
-        dis[i][i] = 0;
-    }
-
-    auto floyd = [&]() -> void {
-        for (int k = 1; k <= n; k++) {
-            for (int i = 1; i <= n; i++) {
-                for (int j = 1; j <= n; j++) {
-                    if (dis[i][k] + dis[k][j] < dis[i][j]) {
-                        dis[i][j] = dis[i][k] + dis[k][j];
-                    }
-                }
-            }
-        }
-    };
-    floyd();
-
-    for (int i = 1; i <= n; i++) {
-        for (int j = 1; j <= n; j++) {
-            cout << dis[i][j] << (j == n ? '\n' : ' ');
-        }
-    }
-}
-
-// 求最短环
-void solve1() {
     int n, m;
     cin >> n >> m;
     vector<vector<int>> g(n + 1, vector<int>(n + 1, inf));

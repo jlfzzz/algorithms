@@ -63,7 +63,12 @@ void solve() {
             return;
         }
 
-        if (cnt1 == 1 || (u == start && cnt1 == 2)) {
+        if (cnt1 > 2) {
+            ans = 0;
+            return;
+        }
+
+        if (u == start && cnt1 >= 1) {
             ans = 2 * ans % MOD;
         }
 
