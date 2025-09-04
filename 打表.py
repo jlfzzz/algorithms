@@ -13,15 +13,23 @@ from random import *
 
 def main():
 
-    pre = 0
-    arr = [0] * 31
-    for i in range(30):
-        arr[i] = 1 + pre
-        pre = pre + arr[i]
-    
-    for x in arr:
-        print(x)
-    
+    res = [i for i in range(100) if i & 1]
+    n = 100
+
+    arr = []
+
+    for i in range(2, 101):
+        cnt = 0
+        for x in res:
+            if x * i <= n and x * i not in res:
+                cnt += 1
+                res.append(x * i)
+        if cnt:
+            arr.append(cnt)
+
+    print(res)
+
+    print(arr)
 
 
 if __name__ == "__main__":
