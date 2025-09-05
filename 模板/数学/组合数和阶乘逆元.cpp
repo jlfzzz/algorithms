@@ -11,7 +11,6 @@ const int N = 500'005;
 
 vector<ll> fac(N), ifac(N);
 
-// 快速幂
 ll qpow(ll a, ll b) {
     ll res = 1;
     a %= MOD;
@@ -24,7 +23,6 @@ ll qpow(ll a, ll b) {
     return res;
 }
 
-// 预处理阶乘和逆元
 void init() {
     fac[0] = ifac[0] = 1;
     for (int i = 1; i < N; ++i)
@@ -34,7 +32,6 @@ void init() {
         ifac[i] = ifac[i + 1] * (i + 1) % MOD;
 }
 
-// 组合数 C(n, k)
 ll C(int n, int k) {
     if (k < 0 || k > n)
         return 0;

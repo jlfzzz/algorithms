@@ -13,26 +13,32 @@ constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 void init() {}
 
 void solve() {
-    int n, k, m;
-    cin >> n >> k >> m;
-    vector<int> cnt(26);
-    string s;
-    cin >> s;
-    for (char c: s) {
-        cnt[c - 'a']++;
+    int n;
+    cin >> n;
+
+    if (n == 1) {
+        cout << 1 << '\n';
+        return;
     }
 
-    for (int i = 0; i < k; i++) {
-        if (cnt[i] < k) {
-            cout << "NO\n";
+    if (n == 2) {
+        cout << -1 << '\n';
+        return;
+    }
 
-            string t(k, (char) ('a' + i));
-            cout << t << '\n';
-            return;
+    if (n & 1) {
+        for (int i = 1; i <= n; i++) {
+            cout << i << ' ';
         }
+        cout << '\n';
+    } else {
+        for (int i = 1; i <= n; i++) {
+            if (i != 2) {
+                cout << i << ' ';
+            }
+        }
+        cout << 2 << '\n';
     }
-
-    cout << "YES\n";
 }
 
 signed main() {

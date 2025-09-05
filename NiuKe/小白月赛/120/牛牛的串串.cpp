@@ -8,25 +8,31 @@ using pll = pair<ll, ll>;
 #define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
-const ll MOD2 = 4611686018427387847;
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 void init() {}
 
 void solve() {
-    int n, m, k;
-    cin >> n >> m >> k;
+    int n;
+    cin >> n;
+    string s;
+    cin >> s;
 
-    vector<vector<int>> diff(n + 2, vector<int>(m + 2, 0));
-
-    for (int i = 1; i + k - 1 <= n; i++) {
-        for (int j = 1; j + k - 1 <= m; j++) {
-            diff[i][j]++;
-            diff[i][j + k]--;
-            diff[i + k][j]--;
-            diff[i + k][j + k]++;
-        }
+    map<int, int> cnt;
+    for (char c: s) {
+        cnt[c - 'a']++;
     }
+
+    int pre = cnt.begin()->second;
+    for (auto it = next(cnt.begin()); it != cnt.end(); it++) {
+        if (it->second - pre != 1) {
+            cout << "NO\n";
+            return;
+        }
+        pre = it->second;
+    }
+
+    cout << "YES\n";
 }
 
 signed main() {
