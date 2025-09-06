@@ -10,26 +10,21 @@ from queue import *
 from string import *
 from random import *
 
+N0 = 15
+N1 = 105
+N2 = 100_5
+N3 = 100_05
+N4 = 100_005
+
+for i in range(1, N1 + 1):
+    for j in range(1, sqrt(i) + 1):
+        x = 1
+
 
 def main():
 
-    res = [i for i in range(100) if i & 1]
-    n = 100
-
-    arr = []
-
-    for i in range(2, 101):
-        cnt = 0
-        for x in res:
-            if x * i <= n and x * i not in res:
-                cnt += 1
-                res.append(x * i)
-        if cnt:
-            arr.append(cnt)
-
-    print(res)
-
-    print(arr)
+    for i in range(100_005):
+        j = i * i
 
 
 if __name__ == "__main__":
