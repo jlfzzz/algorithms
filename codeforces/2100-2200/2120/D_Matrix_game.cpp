@@ -1,11 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
+#define i128 __int128_t
+#define int ll
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
+#define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
-
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 const int N = 500'005;
 
@@ -32,8 +35,13 @@ void init() {
         ifac[i] = ifac[i + 1] * (i + 1) % MOD;
 }
 
-// O(a)
-ll C_large(ll n, int a) {
+ll C(int n, int k) {
+    if (k < 0 || k > n)
+        return 0;
+    return fac[n] * ifac[k] % MOD * ifac[n - k] % MOD;
+}
+
+ll C_large(long long n, int a) {
     if (a < 0)
         return 0;
     if (n < a)
@@ -46,12 +54,22 @@ ll C_large(ll n, int a) {
     res = res * ifac[a] % MOD;
     return res;
 }
+void solve() {
+    int a, b, k;
+    cin >> a >> b >> k;
 
-ll C(int n, int k) {
-    if (k < 0 || k > n)
-        return 0;
-    return fac[n] * ifac[k] % MOD * ifac[n - k] % MOD;
+    int n = (a - 1) * k + 1;
+    int m = (((b - 1) * k % MOD) * C_large(n, a) % MOD) + 1ll;
+    cout << n % MOD << ' ' << m % MOD << '\n';
 }
 
-
-// 模数不是质数的时候用 欧拉定理或者扩展lucas
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    cin >> T;
+    while (T--)
+        solve();
+    return 0;
+}

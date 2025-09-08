@@ -13,18 +13,18 @@ constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 void init() {}
 
 void solve() {
-    int n, m;
-    cin >> n >> m;
-    vector<int> w(n + 1);
-    for (int i = 1; i <= n; i++)
-        cin >> w[i];
-    vector<vector<int>> g(n + 1);
-    for (int i = 0; i < m; i++) {
-        int u, v;
-        cin >> u >> v;
-        g[u].push_back(v);
-        g[v].push_back(u);
+    int a, b;
+    cin >> a >> b;
+    int ans;
+    if (a == b) {
+        ans = 0;
+    } else if (a % b == 0 || b % a == 0) {
+        ans = 1;
+    } else {
+        ans = 2;
     }
+
+    cout << ans << '\n';
 }
 
 signed main() {
@@ -32,6 +32,7 @@ signed main() {
     cin.tie(nullptr);
     init();
     int T = 1;
+    cin >> T;
     while (T--)
         solve();
     return 0;

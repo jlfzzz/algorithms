@@ -12,6 +12,70 @@ constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 void init() {}
 
+void solve2() {
+    int n, q;
+    cin >> n >> q;
+    vector<vector<int>> g(n + 1);
+    For(i, n - 1) {
+        int u, v;
+        cin >> u >> v;
+        g[u].push_back((int) v);
+        g[v].push_back((int) u);
+    }
+    vector<int> tin(n + 1), tout(n + 1), sz(n + 1);
+    int ts = 0;
+    auto dfs = [&](this auto &&dfs, int u, int p) -> void {
+        tin[u] = ++ts;
+        sz[u] = 1;
+        for (int v: g[u])
+            if (v != p) {
+                dfs(v, u);
+                sz[u] += sz[v];
+            }
+        tout[u] = tin[u] + sz[u] - 1;
+    };
+    dfs(1, 0);
+
+    vector<int> p(n + 1);
+    for (int i = 1; i <= n; ++i)
+        cin >> p[i];
+
+    struct Info {
+        int x, id, sign;
+    };
+    vector<vector<Info>> ev(n + 1);
+    for (int i = 0; i < q; ++i) {
+        int l, r, x;
+        cin >> l >> r >> x;
+        ev[r].push_back({x, i, 1});
+        if (l - 1 >= 0)
+            ev[l - 1].push_back({x, i, -1});
+    }
+
+    vector<int> bit(n + 2, 0), ans(q, 0);
+    auto add = [&](int idx, int val) {
+        for (; idx <= n; idx += idx & -idx)
+            bit[idx] += val;
+    };
+    auto query = [&](int idx) {
+        int s = 0;
+        for (; idx > 0; idx -= idx & -idx)
+            s += bit[idx];
+        return s;
+    };
+
+    for (int k = 0; k <= n; ++k) {
+        if (k >= 1)
+            add(tin[p[k]], 1);
+        for (auto &e: ev[k]) {
+            int cnt = query(tout[e.x]) - query(tin[e.x] - 1);
+            ans[e.id] += e.sign * cnt;
+        }
+    }
+
+    for (int i = 0; i < q; ++i)
+        cout << (ans[i] > 0 ? "YES\n" : "NO\n");
+}
 
 struct Node {
     int val = 0;
@@ -95,38 +159,44 @@ public:
     int kth(int cur_version, int pre_version, int k) { return _kth(cur_version, pre_version, 1, n, k); }
 };
 
+
 void solve() {
-    int n, m;
-    cin >> n >> m;
+    int n, q;
+    cin >> n >> q;
+    vector<vector<int>> g(n + 1);
+    For(i, n - 1) {
+        int u, v;
+        cin >> u >> v;
+        g[u].push_back((int) v);
+        g[v].push_back((int) u);
+    }
+    vector<int> tin(n + 1), tout(n + 1), sz(n + 1);
+    int ts = 0;
+    auto dfs = [&](this auto &&dfs, int u, int p) -> void {
+        tin[u] = ++ts;
+        sz[u] = 1;
+        for (int v: g[u])
+            if (v != p) {
+                dfs(v, u);
+                sz[u] += sz[v];
+            }
+        tout[u] = tin[u] + sz[u] - 1;
+    };
+    dfs(1, 0);
 
-    vector<int> a(n + 1);
-    for (int i = 1; i <= n; i++)
-        cin >> a[i];
-
-    vector<int> b;
-    b.reserve(n);
-    for (int i = 1; i <= n; i++)
-        b.push_back(a[i]);
-    sort(b.begin(), b.end());
-    b.erase(unique(b.begin(), b.end()), b.end());
-    int tot = (int) b.size();
-
-    PST pst(n);
-    vector<int> rev(tot + 1);
-    for (int i = 1; i <= tot; i++)
-        rev[i] = b[i - 1];
-
-    pst.root[0] = 0;
-    for (int i = 1; i <= n; i++) {
-        int p = int(lower_bound(b.begin(), b.end(), a[i]) - b.begin()) + 1;
-        pst.root[i] = pst.update(pst.root[i - 1], p, 1);
+    PST pst(n + 10);
+    for (int i = 1; i <= n; ++i) {
+        int p;
+        cin >> p;
+        pst.root[i] = pst.update(pst.root[i - 1], tin[p], 1);
     }
 
-    while (m--) {
-        int l, r, k;
-        cin >> l >> r >> k;
-        int id = pst.kth(pst.root[r], pst.root[l - 1], k);
-        cout << rev[id] << '\n';
+    while (q--) {
+        int l, r, x;
+        cin >> l >> r >> x;
+
+        int cnt = pst.query(pst.root[r], pst.root[l - 1], tin[x], tout[x]);
+        cout << ((cnt > 0) ? "YES\n" : "NO\n");
     }
 }
 
@@ -134,6 +204,9 @@ signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     init();
-    solve();
+    int T = 1;
+    cin >> T;
+    while (T--)
+        solve();
     return 0;
 }
