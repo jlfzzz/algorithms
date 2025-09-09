@@ -12,7 +12,31 @@ constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n;
+    cin >> n;
+    vector<int> a(n);
+    For(i, n) cin >> a[i];
+
+    int suf_mn = inf;
+    int ans = 0;
+    for (int i = n - 1; i >= 0; i--) {
+        if (a[i] > suf_mn) {
+            if (a[i] % suf_mn == 0) {
+                ans += a[i] / suf_mn - 1;
+            } else {
+                int t = a[i] / suf_mn;
+                ans += t;
+                suf_mn = a[i] / (t + 1);
+            }
+
+        } else {
+            suf_mn = a[i];
+        }
+    }
+
+    cout << ans << '\n';
+}
 
 signed main() {
     ios::sync_with_stdio(false);

@@ -19,28 +19,17 @@ N4 = 100_005
 
 def main():
 
-    # arr = [6, 6, 2, 4, 3, 0, 1, 8, 3, 1, 3, 2, 1, 5, 113, 31, 31]
-    # arr = [0, 1, 14141412, 32, 1, 12, 3, 1, 123, 1, 12, 1, 23, 1, 31, 42141]
-    arr = [0, 0, 1]
-    k = 15
+    x =2221
+    s1 = str(x)
+    s2 = str(x * 8)
+    s3 = s1 + s2
+    y = int(s3)
 
-    # print(arr)
+    if y % (x + int(s2)) == 0:
+        print(x)
 
-    for i in range(k):
-        temp = arr.copy()
-        st = []
-        for x in temp:
-            st.append(x)
 
-        for i, x in enumerate(arr):
-            st.remove(x)
-            mex = 0
-            while mex in st:
-                mex += 1
-            temp[i] = mex
-            st.append(x)
-        arr = temp.copy()
-        print(arr)
+        
 
 
 if __name__ == "__main__":

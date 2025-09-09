@@ -14,7 +14,8 @@ void init() {}
 
 int mod;
 struct SegmentTreeNode {
-    ll val, lazy1, lazy2;
+    ll val, add, mul;
+    SegmentTreeNode() : val(0), add(0), mul(1) {}
 };
 
 class SegmentTree {
@@ -22,31 +23,34 @@ private:
     SegmentTreeNode merge(const SegmentTreeNode &left, const SegmentTreeNode &right) {
         SegmentTreeNode res;
         res.val = (left.val + right.val) % mod;
-        res.lazy1 = 0;
-        res.lazy2 = 1;
         return res;
     }
 
-    void apply(int node, int l, int r) {
-        if (tree[node].lazy1) {
-            tree[node].val += (r - l + 1) * tree[node].lazy1 % mod;
-        } else if (tree[node].lazy2) {
-            tree[node].val = tree[node].val * tree[node].lazy2 % mod;
-        }
-    }
-
     void pushDown(int node, int l, int r) {
-        if (tree[node].lazy1 || tree[node].lazy2) {
+        if (tree[node].mul != 1 || tree[node].add != 0) {
             int mid = (l + r) / 2;
-            apply(node * 2, l, mid);
-            apply(node * 2 + 1, mid + 1, r);
-            tree[node].lazy1 = tree[node].lazy2 = 0;
+
+            // 更新左子树
+            tree[node * 2].val =
+                (tree[node * 2].val * tree[node].mul % mod + tree[node].add * (mid - l + 1) % mod) % mod;
+            tree[node * 2].mul = tree[node * 2].mul * tree[node].mul % mod;
+            tree[node * 2].add = (tree[node * 2].add * tree[node].mul % mod + tree[node].add) % mod;
+
+            // 更新右子树
+            tree[node * 2 + 1].val =
+                (tree[node * 2 + 1].val * tree[node].mul % mod + tree[node].add * (r - mid) % mod) % mod;
+            tree[node * 2 + 1].mul = tree[node * 2 + 1].mul * tree[node].mul % mod;
+            tree[node * 2 + 1].add = (tree[node * 2 + 1].add * tree[node].mul % mod + tree[node].add) % mod;
+
+            // 清空当前节点的懒标记
+            tree[node].mul = 1;
+            tree[node].add = 0;
         }
     }
 
     void update(int node, int l, int r, int idx, ll val) {
         if (l == r) {
-            tree[node].val += val;
+            tree[node].val = (tree[node].val + val) % mod;
             return;
         }
         pushDown(node, l, r);
@@ -62,8 +66,8 @@ private:
         if (qr < l || r < ql)
             return;
         if (ql <= l && r <= qr) {
-            tree[node].lazy1 += val;
-            apply(node, l, r);
+            tree[node].val = (tree[node].val + val * (r - l + 1) % mod) % mod;
+            tree[node].add = (tree[node].add + val) % mod;
             return;
         }
         pushDown(node, l, r);
@@ -77,8 +81,9 @@ private:
         if (qr < l || r < ql)
             return;
         if (ql <= l && r <= qr) {
-            tree[node].lazy2 += val;
-            apply(node, l, r);
+            tree[node].val = tree[node].val * val % mod;
+            tree[node].mul = tree[node].mul * val % mod;
+            tree[node].add = tree[node].add * val % mod;
             return;
         }
         pushDown(node, l, r);
@@ -95,23 +100,24 @@ private:
             return tree[node].val;
         pushDown(node, l, r);
         int mid = (l + r) / 2;
-        return query(node * 2, l, mid, ql, qr) + query(node * 2 + 1, mid + 1, r, ql, qr);
+        return (query(node * 2, l, mid, ql, qr) + query(node * 2 + 1, mid + 1, r, ql, qr)) % mod;
     }
 
 public:
     int n;
     vector<SegmentTreeNode> tree;
+
     explicit SegmentTree(const vector<ll> &nums) {
-        n = nums.size();
+        n = nums.size() - 1; // 因为nums[0]不使用
         tree.resize(4 * n + 5);
-        build(nums, 1, 0, n - 1);
+        build(nums, 1, 1, n); // 从索引1开始构建
     }
 
     explicit SegmentTree(int n) : n(n), tree(4 * n + 5) {}
 
     void build(const vector<ll> &nums, int node, int l, int r) {
         if (l == r) {
-            tree[node] = {nums[l], 0};
+            tree[node].val = nums[l] % mod;
             return;
         }
         int mid = (l + r) / 2;
@@ -120,13 +126,13 @@ public:
         tree[node] = merge(tree[node * 2], tree[node * 2 + 1]);
     }
 
-    void update(int idx, ll val) { update(1, 0, n - 1, idx, val); }
+    void update(int idx, ll val) { update(1, 1, n, idx, val); }
 
-    void rangeAdd(int l, int r, ll val) { rangeAdd(1, 0, n - 1, l, r, val); }
+    void rangeAdd(int l, int r, ll val) { rangeAdd(1, 1, n, l, r, val); }
 
-    void rangeMul(int l, int r, ll val) { rangeMul(1, 0, n - 1, l, r, val); }
+    void rangeMul(int l, int r, ll val) { rangeMul(1, 1, n, l, r, val); }
 
-    ll rangeSum(int l, int r) { return query(1, 0, n - 1, l, r); }
+    ll rangeSum(int l, int r) { return query(1, 1, n, l, r); }
 
     ll getValue(int idx) { return rangeSum(idx, idx); }
 };
@@ -147,17 +153,14 @@ void solve() {
         if (op == 1) {
             int x, y, k;
             cin >> x >> y >> k;
-
             st.rangeMul(x, y, k);
         } else if (op == 2) {
             int x, y, k;
             cin >> x >> y >> k;
-
             st.rangeAdd(x, y, k);
         } else {
             int x, y;
             cin >> x >> y;
-
             cout << st.rangeSum(x, y) << '\n';
         }
     }
