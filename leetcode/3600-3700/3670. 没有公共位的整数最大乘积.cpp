@@ -8,6 +8,41 @@ constexpr int MOD = int(1e9 + 7);
 #define ull unsigned long long
 constexpr int inf = 0x3f3f3f3f / 2;
 
+class Solution {
+public:
+    long long maxProduct(vector<int> &nums) {
+        int mx = 0;
+        for (int x: nums) {
+            mx = max(mx, x);
+        }
+
+        int n = bit_width((unsigned) mx);
+        vector<int> dp(1 << n);
+        for (int x: nums) {
+            dp[x] = x;
+        }
+
+        for (int i = 0; i < n; i++) {
+            for (int mask = 0; mask < (1 << n); mask++) {
+                if ((mask >> i & 1) == 0) {
+                    dp[mask | (1 << i)] = max(dp[mask | (1 << i)], dp[mask]);
+                }
+            }
+        }
+
+        ll ans = 0;
+        for (int i = 0; i < (1 << n); i++) {
+            ans = max(ans, 1ll * dp[i] * dp[~i & ((1 << n) - 1)]);
+        }
+
+        return ans;
+    }
+};
+
+
+
+
+
 
 class Solution {
 public:

@@ -19,17 +19,9 @@ N4 = 100_005
 
 def main():
 
-    x =2221
-    s1 = str(x)
-    s2 = str(x * 8)
-    s3 = s1 + s2
-    y = int(s3)
-
-    if y % (x + int(s2)) == 0:
-        print(x)
-
-
-        
+    x = 2318381298321
+    print(bin(x))
+    print(bin(10))
 
 
 if __name__ == "__main__":

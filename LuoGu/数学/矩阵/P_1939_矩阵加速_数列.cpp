@@ -1,11 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
-vector<vector<int>> DIRS = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
 using ll = long long;
+#define i128 __int128_t
+#define int ll
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-// 矩阵乘法，缓存友好版本。先算一整行的
-
+void init() {}
 using Matrix = vector<vector<ll>>;
 
 Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
@@ -43,36 +48,33 @@ Matrix quick_mul(Matrix mat, int n) {
     }
     return unit;
 }
+void solve() {
+    int T;
+    cin >> T;
+    while (T--) {
+        int n;
+        cin >> n;
 
-
-
-// lc3337 调用示例
-class Solution {
-public:
-    int lengthAfterTransformations(string s, int t, vector<int> &nums) {
-        int SIZE = 26;
-        Matrix mat(SIZE, vector<ll>(SIZE, 0));
-        int n = nums.size();
-        for (int i = 0; i < n; ++i) {
-            int m = nums[i];
-            for (int j = 0; j < m; ++j) {
-                mat[(i + j + 1) % SIZE][i] += 1;
-            }
+        if (n <= 3) {
+            cout << 1 << '\n';
+            continue;
         }
 
-        mat = quick_mul(mat, t);
-
-        Matrix mat2(SIZE, vector<ll>(1, 0));
-        for (char c: s) {
-            mat2[c - 'a'][0] += 1;
-        }
-
-        mat = mat_mul(mat, mat2);
-
-        ll total = 0;
-        for (int i = 0; i < SIZE; ++i) {
-            total += mat[i][0];
-        }
-        return total % MOD;
+        Matrix m = {{1, 1, 0}, {0, 0, 1}, {1, 0, 0}};
+        m = quick_mul(m, n - 3);
+        Matrix m2 = {{1, 1, 1}};
+        m2 = mat_mul(m2, m);
+        cout << m2[0][0] << '\n';
     }
-};
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    // cin >> T;
+    while (T--)
+        solve();
+    return 0;
+}
