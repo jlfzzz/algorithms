@@ -6,16 +6,29 @@ using ll = long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
-#define For(i, n) for (int (i) = 0; (i) < (n); (i) += 1)
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-void init() {
-    
-}
+void init() {}
 
 void solve() {
-    
+    int n;
+    cin >> n;
+
+    vector<pii> vp(n);
+    For(i, n) {
+        int a, b;
+        cin >> a >> b;
+        vp[i] = {a, b};
+    }
+
+    set<int> st;
+    for (auto &[a, b]: vp) {
+        st.insert(a + b);
+    }
+
+    cout << st.size() << '\n';
 }
 
 signed main() {
@@ -23,7 +36,8 @@ signed main() {
     cin.tie(nullptr);
     init();
     int T = 1;
-    cin >> T;
-    while (T--) solve();
+    // cin >> T;
+    while (T--)
+        solve();
     return 0;
 }
