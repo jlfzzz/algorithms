@@ -19,9 +19,15 @@ N4 = 100_005
 
 def main():
 
-    x = 2318381298321
-    print(bin(x))
-    print(bin(10))
+    s = "1011001"
+    n = len(s)
+    for i in range(n):
+        t = s[:]
+        if t[i] == "0":
+            t = s[:i] + "1" + s[i + 1 :]
+        else:
+            t = s[:i] + "0" + s[i + 1 :]
+        print(t)
 
 
 if __name__ == "__main__":
