@@ -110,6 +110,89 @@ void solve() {
 
     cout << (ans == n + 1 ? -1 : ans) << '\n';
 }
+struct TrieNode {
+    int count;
+    TrieNode *nxt[2]{};
+
+    TrieNode() : count(0) { nxt[0] = nxt[1] = nullptr; }
+};
+
+struct Trie {
+    TrieNode root;
+
+    Trie() : root() {}
+
+    void insert(int x) {
+        TrieNode *curr = &root;
+        curr->count++;
+        for (int i = 30; i >= 0; i--) {
+            int bit = (x >> i) & 1;
+            if (curr->nxt[bit] == nullptr) {
+                curr->nxt[bit] = new TrieNode();
+            }
+            curr = curr->nxt[bit];
+            curr->count++;
+        }
+    }
+
+    int get_max(int x) {
+        TrieNode *curr = &root;
+        int ans = 0;
+        if (curr->count == 0) {
+            return ans;
+        }
+        for (int i = 30; i >= 0; i--) {
+            int bit = (x >> i) & 1;
+            int t = 1 - bit;
+            if (curr->nxt[t] != nullptr && curr->nxt[t]->count > 0) {
+                ans |= (1 << i);
+                curr = curr->nxt[t];
+            } else if (curr->nxt[bit] != nullptr && curr->nxt[bit]->count > 0) {
+                curr = curr->nxt[bit];
+            } else {
+                break;
+            }
+        }
+        return ans;
+    }
+
+    void erase(int x) {
+        TrieNode *curr = &root;
+        curr->count--;
+        for (int i = 30; i >= 0; i--) {
+            int bit = (x >> i) & 1;
+            curr = curr->nxt[bit];
+            curr->count--;
+        }
+    }
+};
+
+void solve() {
+    int n, k;
+    cin >> n >> k;
+    vector<int> a(n);
+    For(i, n) cin >> a[i];
+
+    Trie trie;
+
+    int l = 0;
+    int ans = n + 1;
+    for (int r = 0; r < n; r++) {
+        int x = a[r];
+        trie.insert(x);
+        int mx = trie.get_max(x);
+
+        while (mx >= k && l <= r) {
+            ans = min(ans, r - l + 1);
+            trie.erase(a[l]);
+            l++;
+            mx = trie.get_max(x);
+        }
+    }
+
+    cout << (ans == n + 1 ? -1 : ans) << '\n';
+}
+
 
 signed main() {
     ios::sync_with_stdio(false);
