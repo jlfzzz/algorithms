@@ -226,12 +226,13 @@ void solve4() {
         }
     };
 
-    for (int i = 1; i <= n; ++i)
+    for (int i = 1; i <= n; ++i) {
         if (!vis[i]) {
             vector<int> buf;
             dfs2(dfs2, i, buf);
             comps.push_back(std::move(buf));
         }
+    }
 
     cout << comps.size() << '\n';
     for (auto &c: comps) {

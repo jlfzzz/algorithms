@@ -33,16 +33,17 @@ void solve2() {
     };
 
     int inv = q_pow(2, MOD - 2);
-    int ans = (n - 1) % MOD;
-    int p = inv;
-    for (int i = 2; i <= n; i += 1) {
+
+    int f = 0;
+    for (int i = n; i >= 2; i--) {
         if (s[i] == '1') {
-            ans = (ans + p) % MOD;
+            f = (f + (((1 - f + MOD) % MOD) * inv % MOD)) % MOD;
+        } else {
+            f = inv * f % MOD;
         }
-        p = p * inv % MOD;
     }
 
-    cout << (ans + MOD) % MOD << '\n';
+    cout << n - 1 + f << '\n';
 }
 void solve() {
     int n;
