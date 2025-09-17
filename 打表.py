@@ -19,15 +19,18 @@ N4 = 100_005
 
 def main():
 
-    s = "1011001"
-    n = len(s)
-    for i in range(n):
-        t = s[:]
-        if t[i] == "0":
-            t = s[:i] + "1" + s[i + 1 :]
-        else:
-            t = s[:i] + "0" + s[i + 1 :]
-        print(t)
+    s = "10100"
+
+    for i in range(200):
+        t = 0
+        n = len(s) + 1
+        for j in range(n // 2):
+            t = t ^ (ord(s[j]) - ord("0"))
+        s += str(t)
+        print(s)
+
+    ss = "0000000000000000000000"
+    print(len(ss))
 
 
 if __name__ == "__main__":
