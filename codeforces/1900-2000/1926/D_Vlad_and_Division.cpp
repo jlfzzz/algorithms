@@ -15,26 +15,18 @@ void init() {}
 void solve() {
     int n;
     cin >> n;
-    vector<int> a(n);
-    For(i, n) cin >> a[i];
-
     int ans = 0;
-    int mask = (1ll << 31) - 1;
     map<int, int> cnt;
     for (int i = 0; i < n; i++) {
-        int x = a[i];
-        if (cnt.contains(mask - x)) {
-            cnt[mask - x]--;
-            ans++;
-        } else {
-            cnt[x]++;
-        }
+        int x;
+        cin >> x;
+        cnt[x]++;
     }
-
-    for (auto &[k, v]: cnt) {
-        ans += v;
+    for (auto [x, y]: cnt) {
+        int mask = ((1ll << 31) - 1) ^ x;
+        if (x < mask || cnt.find(mask) == cnt.end())
+            ans += max(y, cnt[mask]);
     }
-
     cout << ans << '\n';
 }
 
