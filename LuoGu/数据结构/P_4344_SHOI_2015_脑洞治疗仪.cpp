@@ -127,39 +127,6 @@ struct Seg {
         Node node = queryNode(o, l, r, ql, qr);
         return node.mx0;
     }
-
-    int fill(int o, int l, int r, int ql, int qr, int cnt) {
-        if (cnt == 0)
-            return 0;
-        if (ql > r || qr < l)
-            return 0;
-
-        pushdown(o);
-
-        int free = tree[o].len - tree[o].sum;
-        if (free == 0)
-            return 0;
-
-        if (ql <= l && r <= qr) {
-            if (free <= cnt) {
-                apply(o, 1);
-                return free;
-            }
-        }
-
-        int mid = (l + r) / 2;
-        int filled = 0;
-
-        if (ql <= mid) {
-            filled += fill(o * 2, l, mid, ql, qr, cnt);
-        }
-        if (filled < cnt && mid < qr) {
-            filled += fill(o * 2 + 1, mid + 1, r, ql, qr, cnt - filled);
-        }
-
-        tree[o] = merge(tree[o * 2], tree[o * 2 + 1]);
-        return filled;
-    }
 };
 
 void solve() {
@@ -179,9 +146,22 @@ void solve() {
             int l0, r0, l1, r1;
             cin >> l0 >> r0 >> l1 >> r1;
             int cnt = seg.querySum(1, 1, n, l0, r0);
+            seg.update(1, 1, n, l0, r0, 0);
+            int ans = 0;
             if (cnt > 0) {
-                seg.update(1, 1, n, l0, r0, 0);
-                seg.fill(1, 1, n, l1, r1, cnt);
+                int l = l1, r = r1 + 1;
+                while (l < r) {
+                    int m = (l + r) / 2;
+                    int free = m - l1 + 1 - seg.querySum(1, 1, n, l1, m);
+                    if (free <= cnt) {
+                        l = m + 1;
+                        ans = m;
+                    } else {
+                        r = m;
+                    }
+                }
+
+                seg.update(1, 1, n, l1, ans, 1);
             }
         } else {
             int l, r;

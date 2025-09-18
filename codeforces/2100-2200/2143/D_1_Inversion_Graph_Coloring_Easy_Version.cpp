@@ -139,7 +139,7 @@ void solve() {
             }
         }
 
-        dp = move(ndp);
+        dp = std::move(ndp);
     }
 
     Z ans = 0;
