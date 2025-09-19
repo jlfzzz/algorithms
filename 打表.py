@@ -16,21 +16,25 @@ N2 = 100_5
 N3 = 100_05
 N4 = 100_005
 
+MOD = int(1e9 + 7)
+
 
 def main():
 
-    s = "10100"
-
-    for i in range(200):
-        t = 0
-        n = len(s) + 1
-        for j in range(n // 2):
-            t = t ^ (ord(s[j]) - ord("0"))
-        s += str(t)
-        print(s)
-
-    ss = "0000000000000000000000"
-    print(len(ss))
+    f1, f2 = 1, 1
+    n = 5
+    k = 19
+    cnt = 0
+    index = 2
+    while True:
+        f3 = (f1 + f2) % k
+        index += 1
+        if f3 == 0:
+            cnt += 1
+            if cnt == n:
+                print(index)
+                break
+        f1, f2 = f2, f3
 
 
 if __name__ == "__main__":

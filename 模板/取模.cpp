@@ -97,8 +97,19 @@ public:
     }
     friend modnum operator+(const modnum &a, const modnum &b) { return modnum(a) += b; }
     friend modnum operator-(const modnum &a, const modnum &b) { return modnum(a) -= b; }
-    friend modnum operator*(const modnum &a, const modnum &b) { return modnuZm(a) *= b; }
+    friend modnum operator*(const modnum &a, const modnum &b) { return modnum(a) *= b; }
     friend modnum operator/(const modnum &a, const modnum &b) { return modnum(a) /= b; }
 };
 
 using Z = modnum<MOD>;
+
+Z q_pow(Z base, long long exp) {
+    Z result(1);
+    while (exp > 0) {
+        if (exp & 1)
+            result *= base;
+        base *= base;
+        exp >>= 1;
+    }
+    return result;
+}
