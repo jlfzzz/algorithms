@@ -21,20 +21,19 @@ MOD = int(1e9 + 7)
 
 def main():
 
-    f1, f2 = 1, 1
-    n = 5
-    k = 19
-    cnt = 0
-    index = 2
-    while True:
-        f3 = (f1 + f2) % k
-        index += 1
-        if f3 == 0:
-            cnt += 1
-            if cnt == n:
-                print(index)
-                break
-        f1, f2 = f2, f3
+    n = 10
+    k = 20000
+    x = 50
+    arr = [int(1e9)] * 10000
+
+    for i in range(k):
+        mx = max(arr)
+        arr.remove(mx)
+        arr.append(mx / 2)
+        arr.append(mx / 2)
+        print(mx)
+    arr.sort()
+    print(arr[x - 1])
 
 
 if __name__ == "__main__":

@@ -110,6 +110,27 @@ public:
 
 using Z = modnum<MOD>;
 
+template<typename T>
+struct Bit {
+    int n;
+    vector<T> tree;
+
+    Bit() : n(0) {}
+    explicit Bit(int n) : n(n), tree(n + 1) {}
+
+    void add(int i, T val) {
+        for (; i <= n; i += i & -i)
+            tree[i] += val;
+    }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i -= i & -i)
+            res += tree[i];
+        return res;
+    }
+};
+
 void solve() {
     int n;
     cin >> n;
@@ -117,32 +138,42 @@ void solve() {
     For(i, n) cin >> a[i + 1];
 
     int mx = ranges::max(a);
-    vector<vector<Z>> dp(mx + 1, vector<Z>(mx + 1));
+
+    vector<Bit<Z>> row(mx + 1, Bit<Z>(mx + 2));
+    vector<Bit<Z>> col(mx + 1, Bit<Z>(mx + 2));
 
     for (int i = 1; i <= n; i++) {
-        auto ndp = dp;
         int cur = a[i];
-        for (int j = 0; j <= mx; j++) {
-            for (int k = 0; k <= j; k++) {
-                if (cur >= j) {
-                    ndp[cur][k] += dp[j][k];
-                } else if (cur >= k) {
-                    ndp[j][cur] += dp[j][k];
-                }
-            }
+
+        struct Add {
+            int j, k;
+            Z v;
+        };
+        vector<Add> pend;
+
+        for (int k = 0; k <= cur; k++) {
+            Z val = col[k].pre(cur + 1);
+            if (int(val) != 0)
+                pend.push_back({cur, k, val});
         }
-        ndp[cur][0] += 1;
-        dp = std::move(ndp);
+
+        for (int j = cur + 1; j <= mx; j++) {
+            Z val = row[j].pre(cur + 1);
+            if (int(val) != 0)
+                pend.push_back({j, cur, val});
+        }
+
+        pend.push_back({cur, 0, Z(1)});
+
+        for (auto &e: pend) {
+            row[e.j].add(e.k + 1, e.v);
+            col[e.k].add(e.j + 1, e.v);
+        }
     }
 
-    Z ans = 0;
-    for (int i = 0; i <= mx; i++) {
-        for (int j = 0; j <= mx; j++) {
-            ans += dp[i][j];
-        }
-    }
-
-    ans += 1;
+    Z ans = 1;
+    for (int j = 0; j <= mx; j++)
+        ans += row[j].pre(mx + 1);
     cout << ans << '\n';
 }
 
