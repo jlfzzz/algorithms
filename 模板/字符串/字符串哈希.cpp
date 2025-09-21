@@ -4,9 +4,6 @@
 #include "bits/stdc++.h"
 using namespace std;
 using ll = long long;
-constexpr int MOD = 1'000'000'007;
-constexpr int DIR[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-
 
 /*
 下面的模板大概就是先取随机数MOD和BASE
@@ -21,6 +18,10 @@ H[r] - H[l - 1] * P[r - l + 1]
 
 // 字符串哈希模板开始
 
+// 两个都是后缀哈希
+// query_rev_on_reversed 就是 区间[l, r]的哈希，不过是正着计算的
+// query_rev_sub 是区间[l, r]的哈希，并且反转了。（可以理解为[r,l])
+
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
 int rnd(long long x, long long y) { return uniform_int_distribution<int>(x, y)(rng); }
@@ -29,21 +30,51 @@ long long MOD = 1e18 + rnd(0, 1e9);
 int BASE = 233 + rnd(0, 1e3);
 
 struct HashSeq {
-    vector<__int128> P, H;
+    int n;
+    vector<__int128> P, H, HR;
 
     HashSeq(string s) {
-        int n = s.size();
+        n = s.size();
         P.resize(n + 1);
         P[0] = 1;
         for (int i = 1; i <= n; i++)
             P[i] = P[i - 1] * BASE % MOD;
+
         H.resize(n + 1);
         H[0] = 0;
         for (int i = 1; i <= n; i++)
             H[i] = (H[i - 1] * BASE + (s[i - 1] ^ 7)) % MOD;
+
+        HR.resize(n + 1);
+        HR[0] = 0;
+        for (int i = 1; i <= n; i++) {
+            HR[i] = (HR[i - 1] * BASE + (s[n - i] ^ 7)) % MOD;
+        }
     }
 
-    long long query(int l, int r) { return (H[r] - H[l - 1] * P[r - l + 1] % MOD + MOD) % MOD; }
+    long long query(int l, int r) const {
+        if (l > r)
+            return 0;
+        __int128 res = (H[r] - (H[l - 1] * P[r - l + 1]) % (__int128) MOD);
+        long long ans = (long long) ((res + (__int128) MOD) % (__int128) MOD);
+        return ans;
+    }
+
+    long long query_rev_on_reversed(int l, int r) const {
+        if (l > r)
+            return 0;
+        __int128 res = (HR[r] - (HR[l - 1] * P[r - l + 1]) % (__int128) MOD);
+        return (long long) ((res + (__int128) MOD) % (__int128) MOD);
+    }
+
+    long long query_rev_sub(int l, int r) const {
+        if (l > r)
+            return 0;
+        int L = n - r + 1;
+        int R = n - l + 1;
+        __int128 res = (HR[R] - (HR[L - 1] * P[R - L + 1]) % (__int128) MOD);
+        return (long long) ((res + (__int128) MOD) % (__int128) MOD);
+    }
 };
 
 // 字符串哈希模板结束

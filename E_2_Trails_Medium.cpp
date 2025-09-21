@@ -1,11 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
-vector<vector<int>> DIRS = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
 using ll = long long;
+#define i128 __int128_t
+// #define int ll
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-// 矩阵乘法，缓存友好版本。先算一整行的
-
+void init() {}
 template<int MOD_>
 struct modnum {
     static constexpr int MOD = MOD_;
@@ -142,35 +147,43 @@ Matrix quick_mul(Matrix mat, int n) {
     return unit;
 }
 
+void solve() {
+    int m, n;
+    cin >> m >> n;
 
+    vector<Z> s(m), l(m);
+    For(i, m) cin >> s[i];
+    For(i, m) cin >> l[i];
 
-// lc3337 调用示例
-class Solution {
-public:
-    int lengthAfterTransformations(string s, int t, vector<int> &nums) {
-        int SIZE = 26;
-        Matrix mat(SIZE, vector<Z>(SIZE, 0));
-        int n = nums.size();
-        for (int i = 0; i < n; ++i) {
-            int m = nums[i];
-            for (int j = 0; j < m; ++j) {
-                mat[(i + j + 1) % SIZE][i] += 1;
-            }
+    Matrix mat1(1, vector<Z>(m));
+    mat1[0][0] = 1;
+
+    Matrix mat2(m, vector<Z>(m));
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < m; j++) {
+            mat2[i][j] = s[i] * (s[j] + l[j]) + l[i] * s[j];
         }
-
-        mat = quick_mul(mat, t);
-
-        Matrix mat2(SIZE, vector<Z>(1, 0));
-        for (char c: s) {
-            mat2[c - 'a'][0] += 1;
-        }
-
-        mat = mat_mul(mat, mat2);
-
-        Z total = 0;
-        for (int i = 0; i < SIZE; ++i) {
-            total += mat[i][0];
-        }
-        return (int) total;
     }
-};
+
+    auto mat3 = quick_mul(mat2, n);
+    auto mat4 = mat_mul(mat1, mat3);
+
+    Z ans = 0;
+
+    for (int i = 0; i < m; i++) {
+        ans += mat4[0][i];
+    }
+
+    cout << ans << '\n';
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    // cin >> T;
+    while (T--)
+        solve();
+    return 0;
+}

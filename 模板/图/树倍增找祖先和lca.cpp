@@ -9,87 +9,73 @@ constexpr int DIR[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
 class LcaBinaryLifting {
 public:
-	vector<int> depth;
-	vector<long long> dis;
-	vector<vector<int> > pa;
+    vector<int> depth;
+    vector<ll> dis;
+    vector<vector<int>> pa;
+    vector<vector<pair<int, int>>> g;
+    int N, LOG;
 
-	LcaBinaryLifting(vector<vector<int> > &edges) {
-		int n = edges.size() + 1;
-		int m = bit_width((unsigned) n);
-		vector<vector<pair<int, int> > > g(n);
-		for (auto &e: edges) {
-			int x = e[0], y = e[1], w = e[2];
-			g[x].emplace_back(y, w);
-			g[y].emplace_back(x, w);
-		}
+    LcaBinaryLifting(int n, vector<vector<int>> &edges) {
+        N = n;
+        LOG = bit_width((unsigned) (N + 1));
+        g.assign(N + 1, {});
+        for (auto &e: edges) {
+            int x = e[0], y = e[1], w = e[2];
+            g[x].emplace_back(y, w);
+            g[y].emplace_back(x, w);
+        }
+        depth.assign(N + 1, 0);
+        dis.assign(N + 1, 0);
+        pa.assign(N + 1, vector<int>(LOG, -1));
 
-		depth.resize(n);
-		dis.resize(n);
-		pa.resize(n, vector<int>(m, -1));
+        dfs(1, -1);
 
-		auto dfs = [&](this auto &&dfs, int x, int fa) -> void {
-			pa[x][0] = fa;
-			for (auto &[y, w]: g[x]) {
-				if (y != fa) {
-					depth[y] = depth[x] + 1;
-					dis[y] = dis[x] + w;
-					dfs(y, x);
-				}
-			}
-		};
-		dfs(0, -1);
+        for (int j = 0; j + 1 < LOG; ++j) {
+            for (int v = 1; v <= N; ++v) {
+                if (pa[v][j] != -1)
+                    pa[v][j + 1] = pa[pa[v][j]][j];
+            }
+        }
+    }
 
-		for (int i = 0; i < m - 1; i++) {
-			for (int x = 0; x < n; x++) {
-				if (int p = pa[x][i]; p != -1) {
-					pa[x][i + 1] = pa[p][i];
-				}
-			}
-		}
-	}
+    void dfs(int x, int fa) {
+        pa[x][0] = fa;
+        for (auto &ew: g[x]) {
+            int y = ew.first, w = ew.second;
+            if (y == fa)
+                continue;
+            depth[y] = depth[x] + 1;
+            dis[y] = dis[x] + w;
+            dfs(y, x);
+        }
+    }
 
-	int get_kth_ancestor(int node, int k) {
-		for (int i = 0; i < bit_width((unsigned) k); ++i) {
-			if (k >> i & 1) {
-				node = pa[node][i];
-			}
-		}
-		return node;
-	}
+    int get_kth_ancestor(int node, int k) {
+        for (int i = 0; i < LOG && node != -1; ++i) {
+            if (k >> i & 1) {
+                node = pa[node][i];
+            }
+        }
+        return node;
+    }
 
-	int get_lca(int x, int y) {
-		if (depth[x] > depth[y]) {
-			swap(x, y);
-		}
+    int get_lca(int x, int y) {
+        if (depth[x] > depth[y])
+            swap(x, y);
+        y = get_kth_ancestor(y, depth[y] - depth[x]);
+        if (x == y)
+            return x;
+        for (int i = LOG - 1; i >= 0; --i) {
+            if (pa[x][i] != pa[y][i]) {
+                x = pa[x][i];
+                y = pa[y][i];
+            }
+        }
+        return pa[x][0];
+    }
 
-		y = get_kth_ancestor(y, depth[y] - depth[x]);
-		if (x == y) {
-			return x;
-		}
-
-		for (int i = pa[x].size() - 1; i >= 0; --i) {
-			int px = pa[x][i], py = pa[y][i];
-			if (px != py) {
-				x = px;
-				y = py;
-			}
-		}
-
-		return pa[x][0];
-	}
-
-	long long get_dis(int x, int y) {
-		return dis[x] + dis[y] - dis[get_lca(x, y) * 2];
-	}
-
-	int upto_dis(int x, long long d) {
-		long long dx = dis[x];
-		for (int i = pa[x].size() - 1; i >= 0; --i) {
-			int p = pa[x][i];
-			if (p != -1 && dx - dis[p] <= d) {
-				x = p;
-			}
-		}
-		return x;
-	}
+    ll get_dis(int x, int y) {
+        int l = get_lca(x, y);
+        return dis[x] + dis[y] - 2 * dis[l];
+    }
 };

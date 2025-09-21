@@ -1,11 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
-vector<vector<int>> DIRS = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
 using ll = long long;
+#define i128 __int128_t
+// #define int ll
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-// 矩阵乘法，缓存友好版本。先算一整行的
-
+void init() {}
 template<int MOD_>
 struct modnum {
     static constexpr int MOD = MOD_;
@@ -103,74 +108,50 @@ public:
 };
 
 using Z = modnum<MOD>;
+void solve() {
+    int m, n;
+    cin >> m >> n;
 
-using Matrix = vector<vector<Z>>;
+    vector<Z> s(m + 1), l(m + 1);
+    For(i, m) cin >> s[i + 1];
+    For(i, m) cin >> l[i + 1];
 
-Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
-    int n = m1.size();
-    int p = m1[0].size();
-    int m = m2[0].size();
+    vector<Z> dp(m + 1);
+    dp[1] = 1;
+    for (int i = 1; i <= n; i++) {
+        vector<Z> ndp(m + 1);
+        for (int j = 1; j <= m; j++) {
+            for (int k = 1; k <= m; k++) {
+                if (j == k) {
+                    ndp[j] += l[k] * s[k] * dp[k];
+                    ndp[j] += (l[k] + s[k]) * s[k] * dp[k];
+                    continue;
+                }
 
-    Matrix ret(n, vector<Z>(m, 0));
-    for (int i = 0; i < n; ++i) {
-        for (int k = 0; k < p; ++k) {
-            if (m1[i][k] == 0) {
-                continue;
-            }
-            for (int j = 0; j < m; ++j) {
-                ret[i][j] = ret[i][j] + m1[i][k] * m2[k][j];
+                Z sj = s[j], sk = s[k];
+                Z lj = l[j], lk = l[k];
+
+                ndp[j] += (sk * (lj + sj) + lk * sj) * dp[k];
             }
         }
+        dp = std::move(ndp);
     }
-    return ret;
+
+    Z ans = 0;
+    for (int i = 1; i <= m; i++) {
+        ans += dp[i];
+    }
+
+    cout << ans << '\n';
 }
 
-Matrix quick_mul(Matrix mat, int n) {
-    int m = mat.size();
-    Matrix unit(m, vector<Z>(m, 0));
-    for (int i = 0; i < m; ++i) {
-        unit[i][i] = 1;
-    }
-
-    while (n) {
-        if (n & 1) {
-            unit = mat_mul(unit, mat);
-        }
-        mat = mat_mul(mat, mat);
-        n >>= 1;
-    }
-    return unit;
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    // cin >> T;
+    while (T--)
+        solve();
+    return 0;
 }
-
-
-
-// lc3337 调用示例
-class Solution {
-public:
-    int lengthAfterTransformations(string s, int t, vector<int> &nums) {
-        int SIZE = 26;
-        Matrix mat(SIZE, vector<Z>(SIZE, 0));
-        int n = nums.size();
-        for (int i = 0; i < n; ++i) {
-            int m = nums[i];
-            for (int j = 0; j < m; ++j) {
-                mat[(i + j + 1) % SIZE][i] += 1;
-            }
-        }
-
-        mat = quick_mul(mat, t);
-
-        Matrix mat2(SIZE, vector<Z>(1, 0));
-        for (char c: s) {
-            mat2[c - 'a'][0] += 1;
-        }
-
-        mat = mat_mul(mat, mat2);
-
-        Z total = 0;
-        for (int i = 0; i < SIZE; ++i) {
-            total += mat[i][0];
-        }
-        return (int) total;
-    }
-};
