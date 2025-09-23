@@ -1,143 +1,16 @@
-//
-// Created by 123 on 25-7-24.
-//
-#include <bit>
 #include <bits/stdc++.h>
-#include <vector>
 using namespace std;
 using ll = long long;
+#define i128 __int128_t
+// #define int ll
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
+#define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
-#define i128 __int128_t
-#define ull unsigned long long
-const ll MOD2 = 4611686018427387847;
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-class St {
-public:
-    vector<int> tree;
-    St(int n) { tree.resize(2 << (bit_width((unsigned) n))); }
-
-    void update(int o, int l, int r, int i, int val) {
-        if (l == r) {
-            tree[o] = val;
-            return;
-        }
-        int m = l + (r - l) / 2;
-        if (i <= m) {
-            update(o * 2, l, m, i, val);
-        } else {
-            update(o * 2 + 1, m + 1, r, i, val);
-        }
-        tree[o] = max(tree[o * 2], tree[o * 2 + 1]);
-    }
-
-    int query(int o, int l, int r, int target) {
-        if (tree[o] < target) {
-            return -1;
-        }
-        if (l == r) {
-            return l;
-        }
-        int m = l + (r - l) / 2;
-        int res = query(o * 2, l, m, target);
-        if (res < 0) {
-            res = query(o * 2 + 1, m + 1, r, target);
-        }
-        return res;
-    }
-};
-
-
-class Solution {
-public:
-    int numOfUnplacedFruits(vector<int> &fruits, vector<int> &baskets) {
-        int n = fruits.size();
-        St st(n);
-        for (int i = 0; i < n; i++) {
-            st.update(1, 0, n - 1, i, baskets[i]);
-        }
-
-        int ans = 0;
-        for (int i = 0; i < n; i++) {
-            int f = fruits[i];
-            int j = st.query(1, 0, n - 1, f);
-            if (j < 0) {
-                ans++;
-            } else {
-                st.update(1, 0, n - 1, j, 0);
-            }
-        }
-        return ans;
-    }
-};
-
-
-class SegmentTree {
-    vector<int> mx;
-
-    void maintain(int o) { mx[o] = max(mx[o * 2], mx[o * 2 + 1]); }
-
-    // 初始化线段树
-    void build(const vector<int> &a, int o, int l, int r) {
-        if (l == r) {
-            mx[o] = a[l];
-            return;
-        }
-        int m = (l + r) / 2;
-        build(a, o * 2, l, m);
-        build(a, o * 2 + 1, m + 1, r);
-        maintain(o);
-    }
-
-public:
-    SegmentTree(const vector<int> &a) {
-        size_t n = a.size();
-        mx.resize(2 << bit_width(n - 1));
-        build(a, 1, 0, n - 1);
-    }
-
-    // 找区间内的第一个 >= x 的数，并更新为 -1，返回这个数的下标（没有则返回 -1）
-    int findFirstAndUpdate(int o, int l, int r, int x) {
-        if (mx[o] < x) {
-            // 区间没有 >= x 的数
-            return -1;
-        }
-        if (l == r) {
-            mx[o] = -1; // 更新为 -1，表示不能放水果
-            return l;
-        }
-        int m = (l + r) / 2;
-        int i = findFirstAndUpdate(o * 2, l, m, x); // 先递归左子树
-        if (i < 0) {
-            // 左子树没找到
-            i = findFirstAndUpdate(o * 2 + 1, m + 1, r, x); // 再递归右子树
-        }
-        maintain(o);
-        return i;
-    }
-};
-
-class Solution {
-public:
-    int numOfUnplacedFruits(vector<int> &fruits, vector<int> &baskets) {
-        SegmentTree t(baskets);
-        int n = baskets.size(), ans = 0;
-        for (int x: fruits) {
-            if (t.findFirstAndUpdate(1, 0, n - 1, x) < 0) {
-                ans++;
-            }
-        }
-        return ans;
-    }
-};
-
-
-#include <bits/stdc++.h>
-using namespace std;
-
-
+void init() {}
 namespace atcoder::internal {
 
 #if __cplusplus >= 202002L
@@ -146,6 +19,7 @@ namespace atcoder::internal {
 
 #else
 
+    // @return same with std::bit::bit_ceil
     unsigned int bit_ceil(unsigned int n) {
         unsigned int x = 1;
         while (x < (unsigned int) (n))
@@ -155,6 +29,8 @@ namespace atcoder::internal {
 
 #endif
 
+    // @param n `1 <= n`
+    // @return same with std::bit::countr_zero
     int countr_zero(unsigned int n) {
 #ifdef _MSC_VER
         unsigned long index;
@@ -165,6 +41,8 @@ namespace atcoder::internal {
 #endif
     }
 
+    // @param n `1 <= n`
+    // @return same with std::bit::countr_zero
     constexpr int countr_zero_constexpr(unsigned int n) {
         int x = 0;
         while (!(n & (1 << x)))
@@ -392,22 +270,22 @@ namespace atcoder {
 } // namespace atcoder
 
 struct S {
-    int mx;
+    int sum, len;
 };
 
 struct F {
     int lazy;
 };
 
-S op(S a, S b) { return {max(a.mx, b.mx)}; }
+S op(S a, S b) { return {a.sum + b.sum, a.len + b.len}; }
 
-S e() { return {0}; }
+S e() { return {0, 0}; }
 
 S mapping(F f, S x) {
     if (f.lazy == -1)
         return x;
 
-    return {0};
+    return {f.lazy * x.len, x.len};
 }
 
 F composition(F f, F g) {
@@ -420,30 +298,88 @@ F composition(F f, F g) {
 F id() { return {-1}; }
 
 
+void solve() {
+    int n, m;
+    cin >> n >> m;
 
-class Solution {
-public:
-    int numOfUnplacedFruits(vector<int> &fruits, vector<int> &baskets) {
-        int n = baskets.size();
-        vector<S> temp(n);
-        for (int i = 0; i < n; i++) {
-            temp[i] = {baskets[i]};
-        }
-        atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(temp);
+    struct Q {
+        int op, l, r;
+    };
 
-        int ans = 0;
+    vector<int> p(n);
+    For(i, n) cin >> p[i];
 
-        for (int x: fruits) {
-            auto g = [&](S node) { return node.mx < x; };
-            int idx = seg.max_right(0, g);
-            if (idx == n) {
-                ans++;
-            } else {
-                int remaining = seg.get(idx).mx - x;
-                seg.set(idx, {0});
-            }
-        }
-
-        return ans;
+    vector<Q> queries(m);
+    For(i, m) {
+        int op, l, r;
+        cin >> op >> l >> r;
+        queries[i] = {op, l, r};
     }
-};
+
+    int q;
+    cin >> q;
+    q--;
+
+    int lo = 1;
+    int hi = n + 1;
+
+    int ans = 0;
+    while (lo < hi) {
+        int mid = (lo + hi) / 2;
+
+        auto check = [&](int target) -> int {
+            vector<S> temp(n);
+            For(i, n) {
+                if (p[i] >= target)
+                    temp[i] = {1, 1};
+                else
+                    temp[i] = {0, 1};
+            }
+
+            atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(temp);
+
+            for (auto [op, l, r]: queries) {
+                l--;
+                r--;
+
+                int cnt = seg.prod(l, r + 1).sum;
+                int zeros = r - l + 1 - cnt;
+                if (op) {
+                    // 降序：1 在前，0 在后
+                    if (cnt > 0)
+                        seg.apply(l, l + cnt, {1});
+                    if (zeros > 0)
+                        seg.apply(l + cnt, l + cnt + zeros, {0});
+                } else {
+                    // 升序：0 在前，1 在后
+                    if (zeros > 0)
+                        seg.apply(l, l + zeros, {0});
+                    if (cnt > 0)
+                        seg.apply(l + zeros, l + zeros + cnt, {1});
+                }
+            }
+
+            return seg.get(q).sum == 1;
+        };
+
+        if (check(mid)) {
+            ans = mid;
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+
+    cout << ans << '\n';
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    // cin >> T;
+    while (T--)
+        solve();
+    return 0;
+}

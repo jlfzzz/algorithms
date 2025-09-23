@@ -21,19 +21,7 @@ MOD = int(1e9 + 7)
 
 def main():
 
-    n = 10
-    k = 20000
-    x = 50
-    arr = [int(1e9)] * 10000
-
-    for i in range(k):
-        mx = max(arr)
-        arr.remove(mx)
-        arr.append(mx / 2)
-        arr.append(mx / 2)
-        print(mx)
-    arr.sort()
-    print(arr[x - 1])
+    
 
 
 if __name__ == "__main__":
