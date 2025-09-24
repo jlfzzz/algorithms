@@ -109,6 +109,7 @@ void solve() {
         }
     }
 
+    vector<vector<int>> all_dist(n + 1, vector<int>(n + 1, inf));
     for (int i = 1; i <= n; i++) {
         vector<int> dist(n + 1, inf);
         dist[i] = 0;
@@ -128,14 +129,12 @@ void solve() {
             }
         }
 
-        int ans = 0;
         for (int j = 1; j <= n; j++) {
-            if (dist[j] == inf) {
-            } else {
+            if (dist[j] < inf) {
                 int actual = dist[j] - h[i] + h[j];
+                all_dist[i][j] = actual;
             }
         }
-        cout << ans << '\n';
     }
 }
 
