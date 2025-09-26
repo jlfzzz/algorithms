@@ -12,7 +12,7 @@ constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 void init() {}
 
-void solve() {
+void solve2() {
     int n;
     cin >> n;
     vector<int> a(2 * n + 1);
@@ -58,6 +58,54 @@ void solve() {
         int ans = left + mid + right;
         cout << ans << ' ';
     }
+    cout << '\n';
+}
+
+void solve() {
+    int n;
+    cin >> n;
+    vector<int> a(2 * n);
+    For(i, n + n) cin >> a[i];
+
+    vector<int> sum0(n + 1), sum1(n + 1);
+    For(i, n + n) {
+        if (i & 1) {
+            sum1[i / 2] = (i / 2 - 1 >= 0) ? sum1[i / 2 - 1] + a[i] : a[i];
+        } else {
+            sum0[i / 2] = (i / 2 - 1 >= 0) ? sum0[i / 2 - 1] + a[i] : a[i];
+        }
+    }
+
+    int pre = 0, suf = 0;
+    vector<int> ans;
+    for (int i = 0; i < n; i++) {
+        pre += a[i];
+        suf += a[2 * n - 1 - i];
+
+        int j = i + 1;
+        if (j % 2 == 0) {
+            if (j < n) {
+                int posi = sum0[n - j / 2 - 1] - ((j / 2 - 1 >= 0) ? sum0[j / 2 - 1] : 0);
+                int neg = sum1[n - j / 2 - 1] - ((j / 2 - 1 >= 0) ? sum1[j / 2 - 1] : 0);
+
+                ans.push_back(posi - neg + suf - pre);
+            } else {
+                ans.push_back(suf - pre);
+            }
+        } else {
+            if (j < n) {
+                int posi = sum1[n - j / 2 - 2] - ((j / 2 - 1 >= 0) ? sum1[j / 2 - 1] : 0);
+                int neg = sum0[n - (j + 1) / 2] - ((j / 2 >= 0) ? sum0[j / 2] : 0);
+
+                ans.push_back(posi - neg + suf - pre);
+            } else {
+                ans.push_back(suf - pre);
+            }
+        }
+    }
+
+    for (int x: ans)
+        cout << x << ' ';
     cout << '\n';
 }
 

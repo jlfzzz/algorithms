@@ -2,15 +2,13 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-// #define int ll
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
-constexpr int MOD = int(998244353);
+constexpr int MOD = int(1e9 + 7);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-void init() {}
 template<int MOD_>
 struct modnum {
     static constexpr int MOD = MOD_;
@@ -119,43 +117,74 @@ Z q_pow(Z base, long long exp) {
     }
     return result;
 }
+const int N = 500'005;
+
+vector<Z> fac(N), ifac(N);
+
+void init() {
+    fac[0] = ifac[0] = 1;
+    for (int i = 1; i < N; ++i)
+        fac[i] = fac[i - 1] * Z(i);
+    ifac[N - 1] = fac[N - 1].inv();
+    for (int i = N - 2; i >= 1; --i)
+        ifac[i] = ifac[i + 1] * Z(i + 1);
+}
+
+// O(a)
+Z C_large(int n, int a) {
+    if (a < 0)
+        return {0};
+    if (n < a)
+        return {0};
+    Z res = 1;
+    for (int i = 0; i < a; ++i) {
+        Z term = n - i;
+        res = res * term;
+    }
+    res = res * ifac[a];
+    return res;
+}
+
+Z C(int n, int k) {
+    if (k < 0 || k > n)
+        return {0};
+    return fac[n] * ifac[k] * ifac[n - k];
+}
 void solve() {
-    int n;
-    cin >> n;
+    int n, k;
+    cin >> n >> k;
 
-    vector<int> a(n + 1);
-    For(i, n) cin >> a[i + 1];
-
-    for (int i = (n + 1) / 2 + 1; i <= n; i++) {
-        if (a[i]) {
-            cout << 0 << '\n';
-            return;
-        }
+    vector<vector<int>> g(n + 1);
+    For(i, n - 1) {
+        int u, v;
+        cin >> u >> v;
+        g[u].push_back(v);
+        g[v].push_back(u);
     }
 
-    if (a[1] < 2) {
-        cout << 0 << '\n';
+    if (k & 1) {
+        cout << 1 << '\n';
         return;
     }
 
-    if (accumulate(a.begin() + 1, a.end(), 0) != n) {
-        cout << 0 << '\n';
-        return;
-    }
-
-    int pre = 0;
-    Z ans = 1;
-    for (int i = (n + 1) / 2; i >= 1; i--) {
-        pre++;
-        if (a[i]) {
-            if (a[i] > pre) {
-                cout << 0 << '\n';
-                return;
-            }
-            pre -= a[i];
-            ans *= pre;
+    vector<int> sz(n + 1);
+    Z sum = 0;
+    int m = k >> 1;
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        sz[u] = 1;
+        for (int v: g[u]) {
+            if (v == fa)
+                continue;
+            dfs(v, u);
+            sum += C(sz[v], m) * C(n - sz[v], m);
+            sz[u] += sz[v];
         }
-    }
+    };
+
+    dfs(1, -1);
+
+    Z total = C(n, k);
+    Z ans = (total + sum) / total;
 
     cout << (int) ans << '\n';
 }
@@ -165,7 +194,7 @@ signed main() {
     cin.tie(nullptr);
     init();
     int T = 1;
-    cin >> T;
+    // cin >> T;
     while (T--)
         solve();
     return 0;

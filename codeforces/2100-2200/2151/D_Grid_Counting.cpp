@@ -1,8 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
-constexpr int MOD = int(1e9 + 7);
+using ll = long long;
+#define i128 __int128_t
+// #define int ll
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+constexpr int MOD = int(998244353);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-
+void init() {}
 template<int MOD_>
 struct modnum {
     static constexpr int MOD = MOD_;
@@ -101,22 +109,7 @@ public:
 
 using Z = modnum<MOD>;
 
-Z q_pow(Z base, long long exp) {
-    Z result(1);
-    while (exp > 0) {
-        if (exp & 1)
-            result *= base;
-        base *= base;
-        exp >>= 1;
-    }
-    return result;
-}
-
-
-
 constexpr int N = 500'005;
-
-
 
 struct Comb {
     int n;
@@ -178,4 +171,61 @@ struct Comb {
     }
 } comb(N);
 
-// 模数不是质数的时候用 欧拉定理或者扩展lucas
+
+void solve() {
+    int n;
+    cin >> n;
+
+    vector<int> a(n + 1);
+    For(i, n) cin >> a[i + 1];
+
+    Z ans = 1;
+    Z have = 0;
+
+    int m = (n + 1) / 2;
+    for (int i = n; i >= 1; i--) {
+        if (i == m) {
+            if (n & 1) {
+                have++;
+            } else {
+                have += 2;
+            }
+        } else if (i < m) {
+            have += 2;
+        }
+
+        if (int(have) && i > m) {
+            ans = 0;
+            break;
+        }
+
+        if (i == 1 && a[i] < 2) {
+            ans = 0;
+        }
+
+        if (int(have) < a[i]) {
+            ans = 0;
+            break;
+        }
+
+        ans *= comb.C(int(have), a[i]);
+        have -= a[i];
+    }
+
+    if (int(have)) {
+        ans = 0;
+    }
+
+    cout << (int) ans << '\n';
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    cin >> T;
+    while (T--)
+        solve();
+    return 0;
+}

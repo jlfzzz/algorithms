@@ -1,8 +1,15 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+#define i128 __int128_t
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-
+void init() {}
 template<int MOD_>
 struct modnum {
     static constexpr int MOD = MOD_;
@@ -112,70 +119,56 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
+void solve() {
+    int n, k;
+    cin >> n >> k;
 
-
-constexpr int N = 500'005;
-
-
-
-struct Comb {
-    int n;
-    std::vector<Z> _fac;
-    std::vector<Z> _invfac;
-    std::vector<Z> _inv;
-
-    Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
-    explicit Comb(int n) : Comb() { init(n); }
-
-    void init(int m) {
-        if (m <= n) {
-            return;
-        }
-        _fac.resize(m + 1);
-        _invfac.resize(m + 1);
-        _inv.resize(m + 1);
-
-        for (int i = n + 1; i <= m; i++) {
-            _fac[i] = _fac[i - 1] * i;
-        }
-        _invfac[m] = _fac[m].inv();
-        for (int i = m; i > n; i--) {
-            _invfac[i - 1] = _invfac[i] * i;
-            _inv[i] = _invfac[i] * _fac[i - 1];
-        }
-        n = m;
+    vector<vector<int>> g(n + 1);
+    For(i, n - 1) {
+        int u, v;
+        cin >> u >> v;
+        g[u].push_back(v);
+        g[v].push_back(u);
     }
 
-    Z fac(int m) {
-        if (m > n) {
-            init(2 * m);
-        }
-        return _fac[m];
+    if (k == 1) {
+        cout << 1 << '\n';
+        return;
     }
-    Z invfac(int m) {
-        if (m > n) {
-            init(2 * m);
-        }
-        return _invfac[m];
+    if (k == 3) {
+        cout << 1 << '\n';
+        return;
     }
-    Z inv(int m) {
-        if (m > n) {
-            init(2 * m);
-        }
-        return _inv[m];
-    }
-    Z C(int n, int m) {
-        if (n < m || m < 0) {
-            return 0;
-        }
-        return fac(n) * invfac(m) * invfac(n - m);
-    }
-    Z A(int n, int m) {
-        if (n < m || m < 0) {
-            return 0;
-        }
-        return fac(n) * invfac(n - m);
-    }
-} comb(N);
 
-// 模数不是质数的时候用 欧拉定理或者扩展lucas
+    vector<int> sz(n + 1);
+    Z sum = 0;
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        sz[u] = 1;
+        for (int v: g[u]) {
+            if (v == fa)
+                continue;
+            dfs(v, u);
+            sum += Z(sz[v]) * Z(n - sz[v]);
+            sz[u] += sz[v];
+        }
+    };
+
+    dfs(1, -1);
+
+    Z t = n;
+    Z total = t * (t - 1) / 2;
+    Z ans = (total + sum) / total;
+
+    cout << (int) ans << '\n';
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    // cin >> T;
+    while (T--)
+        solve();
+    return 0;
+}

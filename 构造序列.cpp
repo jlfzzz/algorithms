@@ -1,6 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+#define i128 __int128_t
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
+
 
 
 template<int MOD_>
@@ -101,22 +109,7 @@ public:
 
 using Z = modnum<MOD>;
 
-Z q_pow(Z base, long long exp) {
-    Z result(1);
-    while (exp > 0) {
-        if (exp & 1)
-            result *= base;
-        base *= base;
-        exp >>= 1;
-    }
-    return result;
-}
-
-
-
 constexpr int N = 500'005;
-
-
 
 struct Comb {
     int n;
@@ -176,6 +169,61 @@ struct Comb {
         }
         return fac(n) * invfac(n - m);
     }
-} comb(N);
+};
 
-// 模数不是质数的时候用 欧拉定理或者扩展lucas
+
+Z q_pow(Z base, long long exp) {
+    Z result(1);
+    while (exp > 0) {
+        if (exp & 1)
+            result *= base;
+        base *= base;
+        exp >>= 1;
+    }
+    return result;
+}
+
+void init() {}
+
+void solve() {
+    int n, m;
+    cin >> n >> m;
+
+    vector<Z> prev(n + 1), curr(n + 1);
+    prev[0] = Z(1);
+
+    Z ans = Z(0);
+    Z color = Z(m);
+    Z step = Z(m - 1);
+
+
+    for (int i = 1; i * i / 2 <= n; i++) {
+        fill(curr.begin(), curr.end(), Z(0));
+        for (int s = 0; s <= n; s++) {
+            Z a = (s >= i) ? curr[s - i] : Z(0);
+            Z b = (s >= 1) ? prev[s - 1] : Z(0);
+            curr[s] = a + b;
+        }
+
+        int S = n - i * (i - 1) / 2;
+        if (S >= 0 && S <= n) {
+            ans += curr[S] * color;
+        }
+
+
+        swap(prev, curr);
+        color *= step;
+    }
+
+    cout << (int) ans << '\n';
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    while (T--)
+        solve();
+    return 0;
+}

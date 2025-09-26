@@ -20,10 +20,7 @@ MOD = int(1e9 + 7)
 
 
 def main():
-    x = 12
-    i = 3
-    j = 1
-    print((i ^ x) & (j ^ x))
+    print(factorial(8) * (1 << 9))
 
 
 if __name__ == "__main__":

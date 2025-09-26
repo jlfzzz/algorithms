@@ -11,19 +11,13 @@ constexpr int inf = 0x3f3f3f3f / 2;
 vector<int> random_array(int n, int lo, int hi);
 
 void func1() {
-    ll s = 9;
+    int n = 10;
+    int k = 100;
 
-    while (true) {
-        if (s % 10 == 0) {
-            break;
-        }
+    vector<int> arr = {1, 2, 3, 4, 5};
+    vector<int> random_arr = random_array(n, 1, 100);
 
-        s += s % 10;
-        cout << s << endl;
-        this_thread::sleep_for(chrono::duration<double>(0.1));
-    }
-
-    cout << s << endl;
+    
 }
 
 int main() { func1(); }
