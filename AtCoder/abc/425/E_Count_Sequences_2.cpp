@@ -554,67 +554,16 @@ using Z = atcoder::modint;
 
 constexpr int N = 5005;
 
-struct Comb {
-    int n;
-    std::vector<Z> _fac;
-    std::vector<Z> _invfac;
-    std::vector<Z> _inv;
+Z C[N][N];
 
-    Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
-    explicit Comb(int n) : Comb() { init(n); }
-
-    void init(int m) {
-        if (m <= n) {
-            return;
+void init() {
+    for (int i = 0; i < N; i++) {
+        C[i][0] = C[i][i] = 1;
+        for (int j = 1; j < i; j++) {
+            C[i][j] = C[i - 1][j - 1] + C[i - 1][j];
         }
-        _fac.resize(m + 1);
-        _invfac.resize(m + 1);
-        _inv.resize(m + 1);
-
-        for (int i = n + 1; i <= m; i++) {
-            _fac[i] = _fac[i - 1] * i;
-        }
-        _invfac[m] = _fac[m].inv();
-        for (int i = m; i > n; i--) {
-            _invfac[i - 1] = _invfac[i] * i;
-            _inv[i] = _invfac[i] * _fac[i - 1];
-        }
-        n = m;
     }
-
-    Z fac(int m) {
-        if (m > n) {
-            init(2 * m);
-        }
-        return _fac[m];
-    }
-    Z invfac(int m) {
-        if (m > n) {
-            init(2 * m);
-        }
-        return _invfac[m];
-    }
-    Z inv(int m) {
-        if (m > n) {
-            init(2 * m);
-        }
-        return _inv[m];
-    }
-    Z C(int n, int m) {
-        if (n < m || m < 0) {
-            return 0;
-        }
-        return fac(n) * invfac(m) * invfac(n - m);
-    }
-    Z A(int n, int m) {
-        if (n < m || m < 0) {
-            return 0;
-        }
-        return fac(n) * invfac(n - m);
-    }
-};
-
-void init() {}
+}
 
 void solve() {
     int n;
@@ -626,7 +575,7 @@ void solve() {
 
     Z ans = 1;
     for (int x: c) {
-        ans *= comb.C(total, x);
+        ans *= C[total][x];
         total -= x;
     }
 
@@ -636,12 +585,13 @@ void solve() {
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    init();
+
     int T = 1;
     cin >> T;
     int mod;
     cin >> mod;
     Z::set_mod(mod);
+    init();
     while (T--)
         solve();
     return 0;

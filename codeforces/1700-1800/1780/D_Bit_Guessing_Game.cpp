@@ -97,7 +97,45 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    read(n);
+
+    int ans = 0;
+
+    int i = 0;
+    while (true) {
+        prt_endl('-', 1 << i);
+        int t;
+        read(t);
+
+        if (t == n - 1) {
+            ans |= 1 << i;
+            if (t == 0) {
+                break;
+            }
+            i++;
+            n = t;
+            continue;
+        }
+
+        int d = t - n;
+        ans |= 1 << (i + d + 1);
+
+        int mask = (1 << (d + 1)) - 1;
+        mask <<= i;
+        prt_endl('-', mask);
+
+        read(t);
+        if (t == 0) {
+            break;
+        }
+
+        n = t;
+
+        i = i + d + 2;
+    }
+
+    prt_endl('!', ans);
 }
 
 signed main() {

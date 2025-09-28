@@ -92,12 +92,86 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
-void init() {}
+int pow10[15];
+
+void init() {
+    pow10[0] = 1;
+    for (int i = 1; i < 15; i++) {
+        pow10[i] = 10 * pow10[i - 1];
+    }
+}
 
 void solve() {
-    
+    int n;
+    read(n);
+    vector<int> a(n);
+    read_vec(a);
+
+    auto f = [&](vector<int> &arr) -> int {
+        int res = 0;
+
+        vector<int> temp(n);
+        For(i, n) { temp[i] = arr[i] % 11; }
+
+        map<int, int> cnt;
+        vector<int> mask(n);
+        For(i, n) {
+            int x = arr[i];
+            int len = to_string(x).size();
+            int cur = 0;
+            for (int j = 0; j <= 10; j++) {
+                int t = x + j * pow10[len];
+                if (t % 11 == 0) {
+                    cur |= 1 << j;
+                }
+            }
+            mask[i] = cur;
+        }
+
+        For(i, n) {
+            int x = arr[i];
+            int cur = mask[i];
+            for (int j = 0; j <= 10; j++) {
+                if (cur >> j & 1) {
+                    res += cnt[j];
+                }
+            }
+            cnt[x % 11]++;
+        }
+        return res;
+    };
+
+    int ans = f(a);
+    ranges::reverse(a);
+    ans += f(a);
+    prt(ans);
+}
+
+void solve2() {
+    int n;
+    read(n);
+    vector<int> a(n);
+    read_vec(a);
+
+    int c[2][11] = {};
+    for (int v: a) {
+        int parity = to_string(v).size() & 1;
+        c[parity][v % 11] += 1;
+    }
+
+    int ans = 0;
+    for (int i = 0; i < 11; i++) {
+        ans += (c[0][i] + c[1][i]) * c[1][i];
+        ans += (c[0][i] + c[1][i]) * c[0][(11 - i) % 11];
+    }
+    int s = 0;
+    for (int i = 0; i < 11; i++)
+        s += c[1][i];
+    ans -= s;
+    ans -= c[0][0];
+    prt(ans);
 }
 
 signed main() {
@@ -109,6 +183,6 @@ signed main() {
         read(T);
     }
     while (T--)
-        solve();
+        solve2();
     return 0;
 }

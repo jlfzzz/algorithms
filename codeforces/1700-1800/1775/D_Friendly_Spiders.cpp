@@ -92,12 +92,87 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    read(n);
+
+    int m = 0;
+    vector<int> a(n);
+    read_vec(a);
+    m = ranges::max(a);
+
+    vector<int> minp(m + 1), primes;
+    for (int i = 2; i <= m; i++) {
+        if (!minp[i]) {
+            minp[i] = i;
+            primes.push_back(i);
+        }
+        for (auto p: primes) {
+            if (i * p > m)
+                break;
+            minp[i * p] = p;
+            if (p == minp[i])
+                break;
+        }
+    }
+
+    int s, t;
+    read(s, t);
+    s--, t--;
+
+    vector<vector<int>> f(m + 1);
+    for (int i = 0; i < n; i++) {
+        for (int x = a[i]; x > 1; x /= minp[x]) {
+            f[minp[x]].push_back(i);
+        }
+    }
+
+    vector<int> dis(n + m + 1, -1), prev(n + m + 1);
+
+    queue<tuple<int, int, int>> q;
+    q.emplace(s, 0, -1);
+
+    while (!q.empty()) {
+        auto [u, d, p] = q.front();
+        q.pop();
+
+        if (dis[u] != -1)
+            continue;
+
+        dis[u] = d;
+        prev[u] = p;
+
+        if (u < n) {
+            for (int x = a[u]; x > 1; x /= minp[x]) {
+                q.emplace(n + minp[x], d + 1, u);
+            }
+        } else {
+            for (auto x: f[u - n]) {
+                q.emplace(x, d + 1, u);
+            }
+        }
+    }
+
+    if (dis[t] == -1) {
+        prt(-1);
+        return;
+    }
+
+    vector<int> ans;
+    for (int i = t; i != -1; i = prev[i]) {
+        if (i < n)
+            ans.push_back(i);
+    }
+
+    reverse(ans.begin(), ans.end());
+    prt(ans.size());
+    for (int &x: ans)
+        x++;
+    prt_vec(ans);
 }
 
 signed main() {
@@ -110,5 +185,4 @@ signed main() {
     }
     while (T--)
         solve();
-    return 0;
 }

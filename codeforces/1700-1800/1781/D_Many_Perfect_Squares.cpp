@@ -47,16 +47,10 @@ namespace io {
         cout << "\n";
     }
 
-    template<typename End, typename... Args>
-    void prt_end(const End &end, const Args &...args) {
+    template<typename... Args>
+    void prt_end(const string &end, const Args &...args) {
         ((cout << args << " "), ...);
         cout << end;
-    }
-
-    template<typename... Args>
-    void prt_endl(const Args &...args) {
-        ((cout << args << " "), ...);
-        cout << endl;
     }
 
     template<typename T>
@@ -93,11 +87,60 @@ namespace io {
 using namespace io;
 
 int Multitest = 1;
+constexpr int N = int(1e5);
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    read(n);
+    vector<int> a(n);
+    read_vec(a);
+
+    ranges::sort(a);
+
+    int ans = 1;
+    {
+        int cnt0 = 0;
+        for (int i = 0; i < n; i++) {
+            int r = (int) sqrt((long double) a[i]);
+            if (r * r == a[i])
+                cnt0++;
+        }
+        if (cnt0 > ans)
+            ans = cnt0;
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            int d = a[j] - a[i];
+            for (int k = 1; k * k <= d; k++) {
+                if (d % k)
+                    continue;
+                int x = k;
+                int y = d / k;
+                if ((y - x) % 2 != 0)
+                    continue;
+                int dd = x + (y - x) / 2;
+                int ee = dd - x;
+                int p = max(dd, ee);
+                int t = p * p - a[j];
+                if (t <= 0)
+                    continue;
+
+                int cnt = 0;
+                for (int q = 0; q < n; q++) {
+                    int r = (int) sqrt((long double) (a[q] + t));
+                    if (r * r == a[q] + t)
+                        cnt++;
+                }
+                if (cnt > ans)
+                    ans = cnt;
+            }
+        }
+    }
+
+    prt(ans);
 }
 
 signed main() {

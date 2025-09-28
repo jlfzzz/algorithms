@@ -92,12 +92,32 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    read(n);
+    vector<int> a(n), b(n);
+    read_vec(a);
+    read_vec(b);
+
+
+    int mn = 0;
+    for (int i = 1; i < n; i++) {
+        if (a[i] < a[mn]) {
+            mn = i;
+        }
+    }
+    int mx = 0;
+    for (int i = 1; i < n; i++) {
+        if (b[i] > b[mx]) {
+            mx = i;
+        }
+    }
+
+    prt(mn + 1, mx + 1);
 }
 
 signed main() {

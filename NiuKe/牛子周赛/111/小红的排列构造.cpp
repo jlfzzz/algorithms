@@ -92,12 +92,36 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, k;
+    read(n, k);
+    int min_k = (n + 1) / 2;
+    int max_k = n - 1;
+    if (k < min_k || k > max_k) {
+        prt(-1);
+        return;
+    }
+
+    int c = n - k;
+    vector<int> p(n + 1, 0);
+    int cur = 1;
+
+    for (int i = 1; i <= c - 1; i++) {
+        p[cur] = cur + 1;
+        p[cur + 1] = cur;
+        cur += 2;
+    }
+
+    for (int i = cur; i < n; i++) {
+        p[i] = i + 1;
+    }
+    p[n] = cur;
+
+    prt_vec(p, 1);
 }
 
 signed main() {

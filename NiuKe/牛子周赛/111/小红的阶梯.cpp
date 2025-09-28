@@ -92,12 +92,18 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int a, b, c;
+    read(a, b, c);
+    if (b - a == 1 && c - b == 1) {
+        prt("Yes");
+    } else {
+        prt("No");
+    }
 }
 
 signed main() {

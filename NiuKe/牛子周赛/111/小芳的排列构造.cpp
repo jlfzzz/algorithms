@@ -92,12 +92,65 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, k;
+    read(n, k);
+
+    if (n == 1) {
+        if (k != 2 * n) {
+            prt(-1);
+        } else {
+            prt(n);
+        }
+        return;
+    }
+
+    if (n == 2) {
+        if (k != 2 * n + n - 1) {
+            prt(-1);
+        } else {
+            prt(n, n - 1);
+        }
+        return;
+    }
+
+    int t = k - n - n - n + 1;
+    if (t < 0) {
+        prt(-1);
+        return;
+    }
+
+    vector<int> chosen(n + 1);
+    for (int x = n - 2; x >= 1; x--) {
+        if (x <= t) {
+            chosen[x] = 1;
+            t -= x;
+        }
+    }
+
+    if (t) {
+        prt(-1);
+        return;
+    }
+
+    vector<int> ans;
+    for (int i = 1; i <= n; i++) {
+        if (chosen[i]) {
+            ans.push_back(i);
+        }
+    }
+    ans.push_back(n - 1);
+    for (int i = 1; i <= n - 2; i++) {
+        if (!chosen[i]) {
+            ans.push_back(i);
+        }
+    }
+    ans.push_back(n);
+    prt_vec(ans);
 }
 
 signed main() {

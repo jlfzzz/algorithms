@@ -92,12 +92,36 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, k, x;
+    read(n, k, x);
+
+    vector<int> a(n);
+    read_vec(a);
+
+    int t = k % x;
+    vector<int> ans(n);
+
+    for (int i = x; i < n; i++) {
+        ans[i] = a[i];
+    }
+
+    int p = 0;
+    for (int i = x - t; i < x; i++) {
+        ans[p] = a[i];
+        p++;
+    }
+
+    for (int i = 0; i < x - t; i++) {
+        ans[p] = a[i];
+        p++;
+    }
+
+    prt_vec(ans);
 }
 
 signed main() {

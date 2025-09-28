@@ -38,6 +38,23 @@ void linear_sieve(int n) {
     }
 }
 
+// 最小质因数
+
+vector<int> minp(N + 1), primes;
+for (int i = 2; i <= N; i++) {
+    if (!minp[i]) {
+        minp[i] = i;
+        primes.push_back(i);
+    }
+    for (auto p: primes) {
+        if (i * p > m)
+            break;
+        minp[i * p] = p;
+        if (p == minp[i])
+            break;
+    }
+}
+
 // --- 线性筛模板开始 ---
 // 筛质因子数量和不同的质因子数量
 

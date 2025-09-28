@@ -544,7 +544,7 @@ namespace atcoder {
 } // namespace atcoder
 
 using Z = atcoder::static_modint<1000000007>;
-using Z = atcoder::static_modint<998244353>;
+// using Z = atcoder::static_modint<998244353>;
 
-using Z = atcoder::modint;
-Z::set_mod(M);
+// using Z = atcoder::modint;
+// Z::set_mod(M);

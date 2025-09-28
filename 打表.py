@@ -20,7 +20,8 @@ MOD = int(1e9 + 7)
 
 
 def main():
-    print(factorial(8) * (1 << 9))
+    n = eval(input("Enter a number: "))
+    print("{:*^30}".format(n))
 
 
 if __name__ == "__main__":
