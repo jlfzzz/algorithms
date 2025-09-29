@@ -1,4 +1,95 @@
-#include "bits/stdc++.h"
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+#define i128 __int128_t
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+constexpr int MOD = int(1e9 + 7);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
+
+namespace io {
+    void debug() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void debug(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        debug(args...);
+    }
+
+    template<typename... Args>
+    void prt(const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename End, typename... Args>
+    void prt_end(const End &end, const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << end;
+    }
+
+    template<typename... Args>
+    void prt_endl(const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << endl;
+    }
+
+    template<typename T>
+    void read(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void read(T &x, Args &...args) {
+        cin >> x;
+        read(args...);
+    }
+
+    template<typename A, typename B>
+    void read(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void read_vec(vector<T> &v) {
+        for (auto &x: v) {
+            read(x);
+        }
+    }
+
+    template<typename T>
+    void read_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            read(v[i]);
+        }
+    }
+} // namespace io
+
+using namespace io;
 
 namespace atcoder {
 
@@ -535,8 +626,110 @@ namespace atcoder {
 
 } // namespace atcoder
 
-using Z = atcoder::static_modint<1000000007>;
-// using Z = atcoder::static_modint<998244353>;
+using Z = atcoder::static_modint<998244353>;
 
-// using Z = atcoder::modint;
-// Z::set_mod(M);
+int Multitest = 1;
+
+void solve() {
+    int n, m;
+    read(n, m);
+
+    vector<int> a(n);
+    read_vec(a);
+
+    for (int i = 1; i < n; i++) {
+        if (a[i - 1] % a[i] != 0) {
+            prt(0);
+            return;
+        }
+    }
+
+    auto calc = [&](ll a, ll b) -> Z {
+        Z res = b;
+
+        vector<int> primes;
+        for (int i = 2; 1LL * i * i <= a; i++) {
+            if (a % i == 0) {
+                primes.push_back(i);
+                while (a % i == 0)
+                    a /= i;
+            }
+        }
+        if (a > 1)
+            primes.push_back(a);
+
+        int k = primes.size();
+        for (int mask = 1; mask < (1 << k); mask++) {
+            ll mult = 1;
+            for (int i = 0; i < k; i++)
+                if (mask >> i & 1) {
+                    int p = primes[i];
+                    mult *= p;
+                }
+
+            ll add = b / mult;
+            if (__builtin_popcount(mask) & 1)
+                res -= add;
+            else
+                res += add;
+        }
+
+        return res;
+    };
+
+    auto calc2 = [&](ll a, ll b) -> Z {
+        Z res = 0;
+
+        vector<int> primes;
+        for (int i = 2; 1LL * i * i <= a; i++) {
+            if (a % i == 0) {
+                primes.push_back(i);
+                while (a % i == 0)
+                    a /= i;
+            }
+        }
+        if (a > 1)
+            primes.push_back(a);
+
+        int k = primes.size();
+        for (int mask = 1; mask < (1 << k); mask++) {
+            ll mult = 1;
+            for (int i = 0; i < k; i++)
+                if (mask >> i & 1) {
+                    int p = primes[i];
+                    mult *= p;
+                }
+
+            ll add = b / mult;
+            if (__builtin_popcount(mask) & 1)
+                res += add;
+            else
+                res -= add;
+        }
+
+        return b - res;
+    };
+
+    Z ans = 1;
+    for (int i = 1; i < n; i++) {
+        int pre = a[i - 1];
+        int cur = a[i];
+        ll M = m / cur;
+        int x = pre / cur;
+        ans *= calc2(x, M);
+    }
+
+    prt(ans.val());
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int T = 1;
+    if (Multitest) {
+        read(T);
+    }
+    while (T--)
+        solve();
+    return 0;
+}

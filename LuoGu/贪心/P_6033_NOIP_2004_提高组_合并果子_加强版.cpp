@@ -60,53 +60,96 @@ namespace io {
     }
 
     template<typename T>
-    void rd(T &x) {
+    void read(T &x) {
         cin >> x;
     }
 
     template<typename T, typename... Args>
-    void rd(T &x, Args &...args) {
+    void read(T &x, Args &...args) {
         cin >> x;
-        rd(args...);
+        read(args...);
     }
 
     template<typename A, typename B>
-    void rd(pair<A, B> &p) {
+    void read(pair<A, B> &p) {
         cin >> p.first >> p.second;
     }
 
     template<typename T>
-    void rd_vec(vector<T> &v) {
+    void read_vec(vector<T> &v) {
         for (auto &x: v) {
-            rd(x);
+            read(x);
         }
     }
 
     template<typename T>
-    void rd_vec(vector<T> &v, int start_index) {
+    void read_vec(vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
-            rd(v[i]);
+            read(v[i]);
         }
     }
 } // namespace io
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
-void init() {}
+constexpr int MAXV = 1e5 + 5;
+int cnt[MAXV];
 
 void solve() {
-    
+    int n;
+    read(n);
+
+    For(i, n) {
+        int x;
+        read(x);
+        cnt[x]++;
+    }
+
+    if (n == 1) {
+        prt(0);
+        return;
+    }
+
+    queue<int> q2;
+    int cur = 1;
+    int rem = n;
+    int ans = 0;
+
+    auto fetch = [&]() -> int {
+        while (cur <= MAXV && cnt[cur] == 0)
+            cur++;
+        int v1 = (cur <= MAXV ? cur : inf);
+        int v2 = (q2.empty() ? inf : q2.front());
+        if (v1 <= v2) {
+            if (cur <= MAXV)
+                cnt[cur]--;
+            return v1;
+        } else {
+            q2.pop();
+            return v2;
+        }
+    };
+
+    while (rem > 1) {
+        int x = fetch();
+        int y = fetch();
+        int s = x + y;
+        ans += s;
+        q2.push(s);
+        rem--;
+    }
+
+    prt(ans);
 }
 
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    init();
     int T = 1;
     if (Multitest) {
-        rd(T);
+        read(T);
     }
     while (T--)
         solve();

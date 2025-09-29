@@ -14,9 +14,14 @@ public:
 	FenwickTree(int n) : tree(n + 1) {}
 
 	void update(int i, T val) {
-		for (; i < tree.size(); i += i & -i) {
+		for (; i <= tree.size(); i += i & -i) {
 			tree[i] += val;
 		}
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const {
+		return this->pre(r) - this->pre(l - 1);
 	}
 
 	T pre(int i) const {
@@ -25,7 +30,7 @@ public:
 			res += tree[i];
 		}
 		return res;
-	}
+    }
 };
 
 // 求1到i的max

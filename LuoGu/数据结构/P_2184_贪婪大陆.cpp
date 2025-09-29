@@ -92,12 +92,53 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
+template<typename T>
+class FenwickTree {
+    vector<T> tree;
+
+public:
+    FenwickTree(int n) : tree(n + 1) {}
+
+    void update(int i, T val) {
+        for (; i <= tree.size(); i += i & -i) {
+            tree[i] += val;
+        }
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+};
+
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+
+    FenwickTree<int> start(n), end(n);
+
+    while (m--) {
+        int q, l, r;
+        rd(q, l, r);
+
+        if (q == 1) {
+            start.update(l, 1);
+            end.update(r, 1);
+        } else {
+            int ans = start.pre(r) - end.pre(l - 1);
+            prt(ans);
+        }
+    }
 }
 
 signed main() {

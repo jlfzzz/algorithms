@@ -92,12 +92,50 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int q;
+    rd(q);
+
+    set<int> st;
+    map<int, int> mex;
+    map<int, vector<int>> mp;
+    while (q--) {
+        char op;
+        rd(op);
+
+        if (op == '+') {
+            int x;
+            rd(x);
+
+            st.insert(x);
+
+            // if (mp.contains(x)) {
+            //     for (int y: mp[x]) {
+
+            //     }
+            // }
+        } else {
+            int k;
+            rd(k);
+
+            int t = k;
+            if (mex.contains(t)) {
+                k = mex[t];
+            }
+
+            while (st.contains(k)) {
+                k += t;
+            }
+
+            mex[t] = k;
+            // mp[k].push_back(t);
+            prt(k);
+        }
+    }
 }
 
 signed main() {

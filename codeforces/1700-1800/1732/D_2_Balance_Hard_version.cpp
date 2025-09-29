@@ -92,12 +92,56 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int q;
+    rd(q);
+
+    map<int, int> vis;
+    map<int, int> last;
+    map<int, set<int>> del;
+    map<int, vector<int>> change;   // 因子
+
+    while (q--) {
+        char op;
+        rd(op);
+
+        if (op == '+') {
+            int x;
+            rd(x);
+
+            vis[x] = 1;
+            for (int y: change[x]) {
+                del[y].erase(x);
+            }
+        } else if (op == '?') {
+            int x;
+            rd(x);
+
+            if (!last.count(x))
+                last[x] = x;
+            if (del[x].size()) {
+                cout << *del[x].begin() << endl;
+            } else {
+                while (vis[last[x]]) {
+                    change[last[x]].push_back(x);
+                    last[x] += x;
+                }
+                cout << last[x] << endl;
+            }
+        } else if (op == '-') {
+            int x;
+            rd(x);
+
+            vis[x] = 0;
+            for (int y: change[x]) {
+                del[y].insert(x);
+            }
+        }
+    }
 }
 
 signed main() {

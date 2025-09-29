@@ -97,7 +97,60 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, q;
+    rd(n, q);
+
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
+
+    vector<int> b;
+    b.push_back(0);
+    for (int i = 1; i <= n; i++)
+        if (a[i] != 0)
+            b.push_back(i);
+    int m = b.size() - 1;
+
+    vector<int> pre1(m + 1), pre2(m + 1);
+    for (int i = 1; i <= m; i++) {
+        pre1[i] = pre1[i - 1] + a[b[i]];
+        pre2[i] = pre2[i - 1] ^ a[b[i]];
+    }
+
+    auto calc = [&](int l, int r) -> int { return pre1[r] - pre1[l - 1] - (pre2[r] ^ pre2[l - 1]); };
+
+    while (q--) {
+        int L, R;
+        rd(L, R);
+
+        if (m == 0) {
+            prt(L, L);
+            continue;
+        }
+
+        int l = int(lower_bound(b.begin() + 1, b.end(), L) - b.begin());
+        int r = int(upper_bound(b.begin() + 1, b.end(), R) - b.begin()) - 1;
+
+        if (l > r) {
+            prt(L, L);
+            continue;
+        }
+
+        int ansl = l, ansr = r;
+        int limL = min(l + 30, r);
+        int limR = max(r - 30, l);
+        for (int i = l; i <= limL; i++) {
+            for (int j = r; j >= max(limR, i); j--) {
+                if (calc(i, j) == calc(l, r)) {
+                    if (b[j] - b[i] < b[ansr] - b[ansl]) {
+                        ansl = i;
+                        ansr = j;
+                    }
+                }
+            }
+        }
+
+        prt(b[ansl], b[ansr]);
+    }
 }
 
 signed main() {

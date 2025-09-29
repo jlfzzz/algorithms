@@ -45,10 +45,16 @@ namespace io {
         cout << "\n";
     }
 
-    template<typename... Args>
-    void prt_end(const string &end, const Args &...args) {
+    template<typename End, typename... Args>
+    void prt_end(const End &end, const Args &...args) {
         ((cout << args << " "), ...);
         cout << end;
+    }
+
+    template<typename... Args>
+    void prt_endl(const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << endl;
     }
 
     template<typename T>
@@ -129,17 +135,71 @@ namespace helpers {
 
 } // namespace helpers
 
+namespace math {
+    // 质因数分解
+    vector<int> decompose(int x) {
+        vector<int> primes;
+        for (int i = 2; i * i <= x; i++) {
+            if (x % i == 0) {
+                primes.push_back(i);
+                while (x % i == 0) {
+                    x /= i;
+                }
+            }
+        }
+        if (x > 1) {
+            primes.push_back(x);
+        }
+        return primes;
+    }
+} // namespace math
+
 using namespace io;
 using namespace helpers;
+using namespace math;
 
 void func1() {
-    int n = 10;
-    int k = 100;
+    int n = 10000;
 
     vector<int> arr = {1, 2, 3, 4, 5};
-    vector<int> random_arr = random_array(n, 1, 100);
+    vector<int> random_arr = random_array(n, 1, 1e9);
 
-    prt_bin(5, 5);
+    // random_arr = {5, 10};
+    prt_vec(random_arr);
+
+    n = random_arr.size();
+
+    ll mx = 0;
+    pii mx_p{-1, -1};
+    for (int i = 0; i < n; i++) {
+        ll sum = 0;
+        int xors = 0;
+        for (int j = i; j < n; j++) {
+            sum += random_arr[j];
+            xors ^= random_arr[j];
+            if (mx_p.first == -1) {
+                mx = sum - xors;
+                mx_p = {i, j};
+            } else if (sum - xors >= mx) {
+                if (j - i < mx_p.second - mx_p.first) {
+                    mx = sum - xors;
+                    mx_p = {i, j};
+                }
+            }
+        }
+    }
+
+    ll sum = accumulate(random_arr.begin(), random_arr.end(), 0ll);
+    prt("sum is", sum);
+
+    sum = 0;
+    for (int x: random_arr) {
+        sum ^= x;
+    }
+    prt("xors is", sum);
+
+    prt(mx_p.first + 1, mx_p.second + 1);
+    prt("mx is:", mx);
 }
 
 int main() { func1(); }

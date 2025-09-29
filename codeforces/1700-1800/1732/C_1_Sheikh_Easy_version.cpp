@@ -97,7 +97,59 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, q;
+    rd(n, q);
+
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
+
+    int L, R;
+    rd(L, R);
+
+    vector<int> pre1(n + 1), pre2(n + 1);
+    for (int i = 1; i <= n; i++) {
+        pre1[i] = pre1[i - 1] + a[i];
+        pre2[i] = pre2[i - 1] ^ a[i];
+    }
+
+    int ans_mx = 0;
+    pii ans = {-1, -1};
+    for (int i = 1; i <= n; i++) {
+        int l = i;
+        int r = n + 1;
+        int mx = pre1[n] - pre1[i - 1] - (pre2[n] ^ pre2[i - 1]);
+        int R = i;
+
+        while (l < r) {
+            int mid = (l + r) / 2;
+
+            int sum = pre1[mid] - pre1[i - 1];
+            int sum2 = pre2[mid] ^ pre2[i - 1];
+
+            if (sum - sum2 >= mx) {
+                r = mid;
+                R = mid;
+            } else {
+                l = mid + 1;
+            }
+        }
+
+        r = R;
+        l = i;
+        if (ans.first == -1) {
+            ans = {i, r};
+            ans_mx = mx;
+        } else if (mx == ans_mx) {
+            if (r - l + 1 < ans.second - ans.first + 1) {
+                ans = {l, r};
+            }
+        } else if (mx > ans_mx) {
+            ans_mx = mx;
+            ans = {l, r};
+        }
+    }
+
+    prt(ans.first, ans.second);
 }
 
 signed main() {

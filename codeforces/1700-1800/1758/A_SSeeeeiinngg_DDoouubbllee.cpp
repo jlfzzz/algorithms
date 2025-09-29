@@ -60,32 +60,32 @@ namespace io {
     }
 
     template<typename T>
-    void rd(T &x) {
+    void read(T &x) {
         cin >> x;
     }
 
     template<typename T, typename... Args>
-    void rd(T &x, Args &...args) {
+    void read(T &x, Args &...args) {
         cin >> x;
-        rd(args...);
+        read(args...);
     }
 
     template<typename A, typename B>
-    void rd(pair<A, B> &p) {
+    void read(pair<A, B> &p) {
         cin >> p.first >> p.second;
     }
 
     template<typename T>
-    void rd_vec(vector<T> &v) {
+    void read_vec(vector<T> &v) {
         for (auto &x: v) {
-            rd(x);
+            read(x);
         }
     }
 
     template<typename T>
-    void rd_vec(vector<T> &v, int start_index) {
+    void read_vec(vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
-            rd(v[i]);
+            read(v[i]);
         }
     }
 } // namespace io
@@ -97,7 +97,24 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    string s;
+    read(s);
+
+    s += s;
+    map<char, int> cnt;
+    for (char c: s) {
+        cnt[c]++;
+    }
+
+    string ans;
+    for (auto &[c, cc]: cnt) {
+        ans += string(cc / 2, c);
+    }
+
+    auto temp = ans;
+    ranges::reverse(temp);
+    ans += temp;
+    prt(ans);
 }
 
 signed main() {
@@ -106,7 +123,7 @@ signed main() {
     init();
     int T = 1;
     if (Multitest) {
-        rd(T);
+        read(T);
     }
     while (T--)
         solve();

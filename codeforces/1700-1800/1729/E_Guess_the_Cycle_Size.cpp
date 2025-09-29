@@ -92,12 +92,68 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    // int lo = 3;
+
+    // auto f = [&](int a, int b) -> int {
+    //     int ans = a;
+    //     b++;
+    //     while (a < b) {
+    //         int mid = a + (b - a) / 2;
+
+    //         prt_endl("?", 1, mid);
+    //         int t;
+    //         rd(t);
+
+    //         if (t == -1) {
+    //             b = mid;
+    //         } else {
+    //             ans = mid;
+    //             a = max(mid, t) + 1;
+    //         }
+    //     }
+    //     return ans;
+    // };
+
+    // int mx = 3;
+    // int hi = 1;
+    // while (true) {
+    //     hi *= 10;
+    //     prt_endl("?", 1, (1 + hi) / 2);
+
+    //     int t;
+    //     rd(t);
+
+    //     if (t == -1) {
+    //         prt_endl("!", f(mx, hi));
+    //         break;
+    //     } else {
+    //         mx = max({mx, t, hi / 10});
+    //     }
+    // }
+
+    for (int i = 2; i <= 26; i++) {
+        prt_endl("?", 1, i);
+        int t;
+        rd(t);
+
+        if (t == -1) {
+            prt_endl("!", i - 1);
+            return;
+        }
+
+        prt_endl("?", i, 1);
+        int t2;
+        rd(t2);
+        if (t != t2) {
+            prt_endl("!", t + t2);
+            return;
+        }
+    }
 }
 
 signed main() {
