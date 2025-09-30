@@ -1,6 +1,97 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+#define i128 __int128_t
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+constexpr int MOD = int(1e9 + 7);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
+namespace io {
+    void debug() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void debug(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        debug(args...);
+    }
+
+    template<typename... Args>
+    void prt(const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename End, typename... Args>
+    void prt_end(const End &end, const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << end;
+    }
+
+    template<typename... Args>
+    void prt_endl(const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << endl;
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace io
+
+using namespace io;
+
+int Multitest = 0;
 
 namespace atcoder::internal {
 
@@ -256,39 +347,96 @@ namespace atcoder {
 } // namespace atcoder
 
 struct S {
-    int sum, len;
+    int mx;
 };
 
 struct F {
     int lazy;
 };
 
-S op(S a, S b) { return {a.sum + b.sum, a.len + b.len}; }
+S op(S a, S b) { return {max(a.mx, b.mx)}; }
 
-S e() { return {0, 0}; }
+S e() { return {0}; }
 
 S mapping(F f, S x) {
-    return {x.sum + x.len * f.lazy, x.len};
+    if (f.lazy == -1)
+        return x;
+
+    return {0};
 }
 
 F composition(F f, F g) {
+    if (f.lazy == -1) {
+        return g;
+    }
     return f;
 }
 
-F id() { return {0}; }
+F id() { return {-1}; }
 
-// S 就是 Node，结构体
-// F 是 lazy 的结构体
-// op 就是maintain，pushup，合并节点
-// e 就是无效值，例如0，或者求最大值的时候一定要设置会为最小，反之
-// mapping 就是用lazy去更新
-// composition 就是lazy合并，参数f是新lazy，g是旧lazy。记得优先级
-// id 就是无效的lazy，例如-1
+void init() {}
 
-// 构造函数记得传入 S 数组 tree_arr
-// 查询是 左闭右开！
-// max_right 是传入一个索引，左起点，从它开始一直往右找一个return true的
-// min_left 是传入一个索引，右起点，从它开始一直往左找一个return true的
+void solve() {
+    int n, m;
+    rd(n, m);
+    vector<S> tree_arr(m);
+    For(i, m) {
+        int h;
+        rd(h);
+        tree_arr[i] = {h};
+    }
+    atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(tree_arr);
 
-vector<S> tree_arr;
-atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(tree_arr);
+    int q;
+    rd(q);
+
+    while (q--) {
+        int sx, sy, tx, ty, k;
+        rd(sx, sy, tx, ty, k);
+
+        if (ty < sy) {
+            swap(tx, sx);
+            swap(ty, sy);
+        }
+
+        int mx = seg.prod(sy, ty).mx;
+
+        int dx = mx - sx + 1;
+
+        if (dx > 0) {
+            int move = (dx + k - 1) / k;
+            if ((ll) sx + (ll) move * k > n) {
+                prt("NO");
+                continue;
+            }
+            sx += move * k;
+        }
+
+        int dy = ty - sy;
+        if (dy % k) {
+            prt("NO");
+            continue;
+        }
+
+        int ddx = abs(tx - sx);
+        if (ddx % k) {
+            prt("NO");
+            continue;
+        }
+
+        prt("YES");
+    }
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--)
+        solve();
+    return 0;
+}
