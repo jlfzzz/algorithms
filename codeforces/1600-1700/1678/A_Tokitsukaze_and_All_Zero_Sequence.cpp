@@ -39,7 +39,7 @@ namespace io {
 
     template<typename T>
     void prt_vec(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
             cout << v[i];
@@ -84,7 +84,7 @@ namespace io {
 
     template<typename T>
     void rd_vec(vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
     }
@@ -97,49 +97,36 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    int n;
+    rd(n);
+    vector<int> a(n);
+    rd_vec(a);
 
-    int n = s.size();
-    int open = 0, cnt = 0;
-    for (char c: s) {
-        if (c == '(')
-            open++;
-        else if (c == '?')
-            cnt++;
-    }
-    int need = n / 2 - open;
-    vector<int> pos;
-    for (int i = 0; i < n; i++)
-        if (s[i] == '?')
-            pos.push_back(i);
-
-    string t = s;
-    for (int i = 0; i < pos.size(); i++)
-        t[pos[i]] = (i < need ? '(' : ')');
-
-    if (need == 0 || need == cnt) {
-        prt("YES");
-        return;
+    int c = 0;
+    bool same = false;
+    set<int> vis;
+    for (int x: a) {
+        if (x == 0) {
+            c++;
+        }
+        if (vis.contains(x)) {
+            same = true;
+        }
+        vis.insert(x);
     }
 
-    string tt = t;
-    tt[pos[need - 1]] = ')';
-    tt[pos[need]] = '(';
-
-    int left = 0;
-    bool ok = true;
-    for (int i = 0; i < n; i++) {
-        left += (tt[i] == '(' ? 1 : -1);
-        if (left < 0) {
-            ok = false;
-            break;
+    int ans;
+    if (c) {
+        ans = n - c;
+    } else {
+        if (same) {
+            ans = n;
+        } else {
+            ans = n + 1;
         }
     }
-    if (ok)
-        prt("NO");
-    else
-        prt("YES");
+
+    prt(ans);
 }
 
 signed main() {

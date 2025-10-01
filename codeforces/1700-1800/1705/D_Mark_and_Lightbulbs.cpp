@@ -39,7 +39,7 @@ namespace io {
 
     template<typename T>
     void prt_vec(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
             cout << v[i];
@@ -84,7 +84,7 @@ namespace io {
 
     template<typename T>
     void rd_vec(vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
     }
@@ -97,49 +97,57 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    int n;
+    rd(n);
 
-    int n = s.size();
-    int open = 0, cnt = 0;
-    for (char c: s) {
-        if (c == '(')
-            open++;
-        else if (c == '?')
-            cnt++;
-    }
-    int need = n / 2 - open;
-    vector<int> pos;
-    for (int i = 0; i < n; i++)
-        if (s[i] == '?')
-            pos.push_back(i);
+    string s1, s2;
+    rd(s1, s2);
 
-    string t = s;
-    for (int i = 0; i < pos.size(); i++)
-        t[pos[i]] = (i < need ? '(' : ')');
-
-    if (need == 0 || need == cnt) {
-        prt("YES");
+    if (s1[0] != s2[0] || s1[n - 1] != s2[n - 1]) {
+        prt(-1);
         return;
     }
 
-    string tt = t;
-    tt[pos[need - 1]] = ')';
-    tt[pos[need]] = '(';
+    auto calc = [&](string &s) -> vector<pii> {
+        vector<pii> res;
+        int i = 0;
+        while (i < n) {
+            while (i < n && s[i] == '0') {
+                i++;
+            }
 
-    int left = 0;
-    bool ok = true;
-    for (int i = 0; i < n; i++) {
-        left += (tt[i] == '(' ? 1 : -1);
-        if (left < 0) {
-            ok = false;
-            break;
+            if (i == n) {
+                break;
+            }
+
+            int j = i + 1;
+            while (j < n && s[j] == '1') {
+                j++;
+            }
+
+            res.emplace_back(i + 1, j - 1);
+            i = j;
         }
+        return res;
+    };
+
+    auto v1 = calc(s1);
+    auto v2 = calc(s2);
+
+    if (v1.size() != v2.size()) {
+        prt(-1);
+        return;
     }
-    if (ok)
-        prt("NO");
-    else
-        prt("YES");
+
+    int ans = 0;
+    for (int i = 0; i < v1.size(); i++) {
+        auto [l1, r1] = v1[i];
+        auto [l2, r2] = v2[i];
+
+        ans += abs(l2 - l1) + abs(r2 - r1);
+    }
+
+    prt(ans);
 }
 
 signed main() {

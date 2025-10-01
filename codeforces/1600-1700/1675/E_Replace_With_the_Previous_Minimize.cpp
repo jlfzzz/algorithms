@@ -39,7 +39,7 @@ namespace io {
 
     template<typename T>
     void prt_vec(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
             cout << v[i];
@@ -84,7 +84,7 @@ namespace io {
 
     template<typename T>
     void rd_vec(vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
     }
@@ -96,50 +96,67 @@ int Multitest = 1;
 
 void init() {}
 
+class UnionFind {
+public:
+    vector<int> parent;
+
+    explicit UnionFind(const int n) {
+        parent.resize(n);
+        iota(parent.begin(), parent.end(), 0);
+    }
+
+    int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
+        }
+        return parent[x];
+    }
+
+    bool unite(int x, int y) {
+        int root_x = find(x);
+        int root_y = find(y);
+
+        if (root_x == root_y) {
+            return false;
+        }
+
+        if (root_x < root_y) {
+            parent[root_y] = root_x;
+        } else {
+            parent[root_x] = root_y;
+        }
+
+        return true;
+    }
+};
+
 void solve() {
+    int n, k;
+    rd(n, k);
+
     string s;
     rd(s);
 
-    int n = s.size();
-    int open = 0, cnt = 0;
-    for (char c: s) {
-        if (c == '(')
-            open++;
-        else if (c == '?')
-            cnt++;
-    }
-    int need = n / 2 - open;
-    vector<int> pos;
-    for (int i = 0; i < n; i++)
-        if (s[i] == '?')
-            pos.push_back(i);
+    UnionFind uf(26);
 
-    string t = s;
-    for (int i = 0; i < pos.size(); i++)
-        t[pos[i]] = (i < need ? '(' : ')');
-
-    if (need == 0 || need == cnt) {
-        prt("YES");
-        return;
-    }
-
-    string tt = t;
-    tt[pos[need - 1]] = ')';
-    tt[pos[need]] = '(';
-
-    int left = 0;
-    bool ok = true;
     for (int i = 0; i < n; i++) {
-        left += (tt[i] == '(' ? 1 : -1);
-        if (left < 0) {
-            ok = false;
-            break;
+        int v = s[i] - 'a';
+        int r = uf.find(v);
+        while (r > 0 && k > 0) {
+            uf.parent[r] = r - 1;
+            k--;
+            r = uf.find(r);
         }
     }
-    if (ok)
-        prt("NO");
-    else
-        prt("YES");
+
+    string ans;
+    for (int i = 0; i < n; i++) {
+        char c = s[i];
+        char fa = uf.find(c - 'a') + 'a';
+        ans += fa;
+    }
+
+    prt(ans);
 }
 
 signed main() {

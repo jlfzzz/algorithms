@@ -39,7 +39,7 @@ namespace io {
 
     template<typename T>
     void prt_vec(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
             cout << v[i];
@@ -84,7 +84,7 @@ namespace io {
 
     template<typename T>
     void rd_vec(vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
     }
@@ -92,54 +92,85 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
+
+template<typename T>
+class FenwickTree {
+    vector<T> tree;
+
+public:
+    FenwickTree(int n) : tree(n + 1) {}
+
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
+        }
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+};
 
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    int n, m, q;
+    rd(n, m, q);
 
-    int n = s.size();
-    int open = 0, cnt = 0;
-    for (char c: s) {
-        if (c == '(')
-            open++;
-        else if (c == '?')
-            cnt++;
-    }
-    int need = n / 2 - open;
-    vector<int> pos;
-    for (int i = 0; i < n; i++)
-        if (s[i] == '?')
-            pos.push_back(i);
+    FenwickTree<int> fwt(n * m + 1);
 
-    string t = s;
-    for (int i = 0; i < pos.size(); i++)
-        t[pos[i]] = (i < need ? '(' : ')');
-
-    if (need == 0 || need == cnt) {
-        prt("YES");
-        return;
-    }
-
-    string tt = t;
-    tt[pos[need - 1]] = ')';
-    tt[pos[need]] = '(';
-
-    int left = 0;
-    bool ok = true;
-    for (int i = 0; i < n; i++) {
-        left += (tt[i] == '(' ? 1 : -1);
-        if (left < 0) {
-            ok = false;
-            break;
+    int total = 0;
+    vector<vector<int>> grid(n, vector<int>(m));
+    For(i, n) {
+        string s;
+        rd(s);
+        For(j, m) {
+            int idx = n * j + i + 1;
+            if (s[j] == '*') {
+                total++;
+                fwt.update(idx, 1);
+                grid[i][j] = 1;
+            }
         }
     }
-    if (ok)
-        prt("NO");
-    else
-        prt("YES");
+
+    while (q--) {
+        int x, y;
+        rd(x, y);
+        x--, y--;
+
+        if (grid[x][y]) {
+            grid[x][y] = 0;
+            total--;
+
+            int idx = n * y + x + 1;
+            fwt.update(idx, -1);
+        } else {
+            grid[x][y] = 1;
+            total++;
+
+            int idx = n * y + x + 1;
+            fwt.update(idx, 1);
+        }
+
+        int have = fwt.pre(total);
+        prt(total - have);
+    }
 }
 
 signed main() {

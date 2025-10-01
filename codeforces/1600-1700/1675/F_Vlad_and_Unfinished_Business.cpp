@@ -39,7 +39,7 @@ namespace io {
 
     template<typename T>
     void prt_vec(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
             cout << v[i];
@@ -84,7 +84,7 @@ namespace io {
 
     template<typename T>
     void rd_vec(vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
     }
@@ -97,49 +97,76 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    int n, k;
+    rd(n, k);
 
-    int n = s.size();
-    int open = 0, cnt = 0;
-    for (char c: s) {
-        if (c == '(')
-            open++;
-        else if (c == '?')
-            cnt++;
-    }
-    int need = n / 2 - open;
-    vector<int> pos;
-    for (int i = 0; i < n; i++)
-        if (s[i] == '?')
-            pos.push_back(i);
+    int x, y;
+    rd(x, y);
 
-    string t = s;
-    for (int i = 0; i < pos.size(); i++)
-        t[pos[i]] = (i < need ? '(' : ')');
+    vector<int> a(k);
+    rd_vec(a);
 
-    if (need == 0 || need == cnt) {
-        prt("YES");
-        return;
+
+
+    vector<vector<int>> g(n + 1);
+    For(i, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].push_back(v);
+        g[v].push_back(u);
     }
 
-    string tt = t;
-    tt[pos[need - 1]] = ')';
-    tt[pos[need]] = '(';
-
-    int left = 0;
-    bool ok = true;
-    for (int i = 0; i < n; i++) {
-        left += (tt[i] == '(' ? 1 : -1);
-        if (left < 0) {
-            ok = false;
-            break;
+    vector<int> path;
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> bool {
+        path.push_back(u);
+        if (u == y) {
+            return true;
         }
-    }
-    if (ok)
-        prt("NO");
-    else
-        prt("YES");
+
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            if (dfs(v, u)) {
+                return true;
+            }
+        }
+
+        path.pop_back();
+        return false;
+    };
+
+    dfs(x, -1);
+
+    int m = (int) path.size();
+    vector<int> need(n + 1, 0);
+    for (int v: path)
+        need[v] = 1;
+    for (int v: a)
+        need[v] = 1;
+
+    int tot = 0;
+    for (int i = 1; i <= n; i++)
+        tot += need[i];
+
+    int edges = 0;
+    auto dfs_cnt = [&](this auto &&dfs_cnt, int u, int fa) -> int {
+        int s = need[u];
+        for (int v: g[u])
+            if (v != fa) {
+                int t = dfs_cnt(v, u);
+                if (t > 0 && t < tot)
+                    edges++;
+                s += t;
+            }
+        return s;
+    };
+
+    dfs_cnt(x, 0);
+    int dis = m ? (m - 1) : 0;
+    int ans = edges * 2 - dis;
+    prt(ans);
 }
 
 signed main() {

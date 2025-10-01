@@ -39,7 +39,7 @@ namespace io {
 
     template<typename T>
     void prt_vec(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
             cout << v[i];
@@ -84,7 +84,7 @@ namespace io {
 
     template<typename T>
     void rd_vec(vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
     }
@@ -97,49 +97,53 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
+    int n;
+    rd(n);
     string s;
     rd(s);
 
-    int n = s.size();
-    int open = 0, cnt = 0;
-    for (char c: s) {
-        if (c == '(')
-            open++;
-        else if (c == '?')
-            cnt++;
-    }
-    int need = n / 2 - open;
-    vector<int> pos;
-    for (int i = 0; i < n; i++)
-        if (s[i] == '?')
-            pos.push_back(i);
-
-    string t = s;
-    for (int i = 0; i < pos.size(); i++)
-        t[pos[i]] = (i < need ? '(' : ')');
-
-    if (need == 0 || need == cnt) {
-        prt("YES");
-        return;
+    vector<int> cnt;
+    vector<int> id;
+    int i = 0;
+    int ts = 0;
+    while (i < n) {
+        int j = i + 1;
+        while (j < n && s[j] == s[i]) {
+            j++;
+        }
+        cnt.push_back(j - i);
+        i = j;
+        id.push_back(ts);
+        ts++;
     }
 
-    string tt = t;
-    tt[pos[need - 1]] = ')';
-    tt[pos[need]] = '(';
-
-    int left = 0;
-    bool ok = true;
-    for (int i = 0; i < n; i++) {
-        left += (tt[i] == '(' ? 1 : -1);
-        if (left < 0) {
-            ok = false;
+    int ans = 0;
+    i = 0;
+    int m = cnt.size();
+    while (i < m) {
+        while (i < m && cnt[i] % 2 == 0) {
+            i++;
+        }
+        if (i == m) {
             break;
         }
+        int j = i + 1;
+        while (j < m && cnt[j] % 2 == 0) {
+            j++;
+        }
+
+        int id1 = id[i];
+        int id2 = id[j];
+        if (id1 + 1 == id2) {
+            ans++;
+            i = j + 1;
+        } else {
+            ans += id2 - id1;
+            i = j + 1;
+        }
     }
-    if (ok)
-        prt("NO");
-    else
-        prt("YES");
+
+    prt(ans);
 }
 
 signed main() {

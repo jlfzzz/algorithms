@@ -39,7 +39,7 @@ namespace io {
 
     template<typename T>
     void prt_vec(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
             cout << v[i];
@@ -84,7 +84,7 @@ namespace io {
 
     template<typename T>
     void rd_vec(vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
     }
@@ -97,49 +97,45 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    int n, c;
+    rd(n, c);
 
-    int n = s.size();
-    int open = 0, cnt = 0;
-    for (char c: s) {
-        if (c == '(')
-            open++;
-        else if (c == '?')
-            cnt++;
-    }
-    int need = n / 2 - open;
-    vector<int> pos;
-    for (int i = 0; i < n; i++)
-        if (s[i] == '?')
-            pos.push_back(i);
+    vector<int> a(n);
+    rd_vec(a);
 
-    string t = s;
-    for (int i = 0; i < pos.size(); i++)
-        t[pos[i]] = (i < need ? '(' : ')');
+    ranges::sort(a);
+    a.erase(unique(a.begin(), a.end()), a.end());
 
-    if (need == 0 || need == cnt) {
-        prt("YES");
-        return;
+    vector<char> bucket(c + 1);
+    for (int x: a) {
+        bucket[x] = 1;
     }
 
-    string tt = t;
-    tt[pos[need - 1]] = ')';
-    tt[pos[need]] = '(';
+    vector<int> pre(c + 1);
+    for (int i = 1; i <= c; i++) {
+        pre[i] = pre[i - 1] + bucket[i];
+        // if (c == 5) {
+        //     debug("i", i, "pre", pre[i]);
+        // }
+    }
 
-    int left = 0;
-    bool ok = true;
-    for (int i = 0; i < n; i++) {
-        left += (tt[i] == '(' ? 1 : -1);
-        if (left < 0) {
-            ok = false;
-            break;
+    for (int x: a) {
+        if (x == 1) {
+            continue;
+        }
+        for (int j = x; j <= c; j += x) {
+            if ((pre[min(c, j + x - 1)] - pre[j - 1] > 0) && !bucket[j / x]) {
+                // if (c == 5) {
+                //     debug("j", j, "x", x);
+                //     debug("j + x - 1", j + x - 1, "j - 1", j - 1, "pre1", pre[j + x - 1], "pre2", pre[j - 1]);
+                // }
+                prt("No");
+                return;
+            }
         }
     }
-    if (ok)
-        prt("NO");
-    else
-        prt("YES");
+
+    prt("Yes");
 }
 
 signed main() {

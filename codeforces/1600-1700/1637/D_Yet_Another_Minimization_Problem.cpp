@@ -39,7 +39,7 @@ namespace io {
 
     template<typename T>
     void prt_vec(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
             cout << v[i];
@@ -84,7 +84,7 @@ namespace io {
 
     template<typename T>
     void rd_vec(vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
     }
@@ -97,49 +97,39 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    int n;
+    rd(n);
+    vector<int> a(n), b(n);
+    rd_vec(a);
+    rd_vec(b);
 
-    int n = s.size();
-    int open = 0, cnt = 0;
-    for (char c: s) {
-        if (c == '(')
-            open++;
-        else if (c == '?')
-            cnt++;
-    }
-    int need = n / 2 - open;
-    vector<int> pos;
-    for (int i = 0; i < n; i++)
-        if (s[i] == '?')
-            pos.push_back(i);
+    vector<int> pre(n + 1);
+    For(i, n) { pre[i + 1] = pre[i] + a[i] + b[i]; }
 
-    string t = s;
-    for (int i = 0; i < pos.size(); i++)
-        t[pos[i]] = (i < need ? '(' : ')');
-
-    if (need == 0 || need == cnt) {
-        prt("YES");
-        return;
-    }
-
-    string tt = t;
-    tt[pos[need - 1]] = ')';
-    tt[pos[need]] = '(';
-
-    int left = 0;
-    bool ok = true;
+    vector<int> dp(pre[n] + 1, inf);
+    dp[0] = 0;
     for (int i = 0; i < n; i++) {
-        left += (tt[i] == '(' ? 1 : -1);
-        if (left < 0) {
-            ok = false;
-            break;
+        int A = a[i];
+        int B = b[i];
+        vector<int> ndp(pre[n] + 1, inf);
+        for (int j = 0; j <= pre[n]; j++) {
+            if (dp[j] == inf)
+                continue;
+            if (j + A <= pre[n])
+                ndp[j + A] = min(ndp[j + A], dp[j] + A * j + B * (pre[i] - j));
+            if (j + B <= pre[n])
+                ndp[j + B] = min(ndp[j + B], dp[j] + B * j + A * (pre[i] - j));
+        }
+        dp.swap(ndp);
+    }
+
+    int ans = ranges::min(dp) * 2;
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            ans += a[i] * a[i] + a[j] * a[j] + b[i] * b[i] + b[j] * b[j];
         }
     }
-    if (ok)
-        prt("NO");
-    else
-        prt("YES");
+    prt(ans);
 }
 
 signed main() {

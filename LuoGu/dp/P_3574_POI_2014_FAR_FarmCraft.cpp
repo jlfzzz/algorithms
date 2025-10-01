@@ -39,7 +39,7 @@ namespace io {
 
     template<typename T>
     void prt_vec(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
             cout << v[i];
@@ -84,7 +84,7 @@ namespace io {
 
     template<typename T>
     void rd_vec(vector<T> &v, int start_index) {
-        for (int i = start_index; i < v.size(); i++) {
+        for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
     }
@@ -92,54 +92,59 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    int n;
+    rd(n);
 
-    int n = s.size();
-    int open = 0, cnt = 0;
-    for (char c: s) {
-        if (c == '(')
-            open++;
-        else if (c == '?')
-            cnt++;
-    }
-    int need = n / 2 - open;
-    vector<int> pos;
-    for (int i = 0; i < n; i++)
-        if (s[i] == '?')
-            pos.push_back(i);
+    vector<int> costs(n + 1);
+    rd_vec(costs, 1);
 
-    string t = s;
-    for (int i = 0; i < pos.size(); i++)
-        t[pos[i]] = (i < need ? '(' : ')');
+    vector<vector<int>> g(n + 1);
+    For(i, n - 1) {
+        int u, v;
+        rd(u, v);
 
-    if (need == 0 || need == cnt) {
-        prt("YES");
-        return;
+        g[u].push_back(v);
+        g[v].push_back(u);
     }
 
-    string tt = t;
-    tt[pos[need - 1]] = ')';
-    tt[pos[need]] = '(';
+    vector<int> dp(n + 1);
+    vector<int> subtree_size(n + 1);
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> int {
+        int sz = 1;
 
-    int left = 0;
-    bool ok = true;
-    for (int i = 0; i < n; i++) {
-        left += (tt[i] == '(' ? 1 : -1);
-        if (left < 0) {
-            ok = false;
-            break;
+        vector<int> children;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+            int child_sz = dfs(v, u);
+            sz += child_sz;
+            children.push_back(v);
         }
-    }
-    if (ok)
-        prt("NO");
-    else
-        prt("YES");
+
+        ranges::sort(children,
+                     [&](int a, int b) { return (dp[a] - 2 * subtree_size[a]) > (dp[b] - 2 * subtree_size[b]); });
+
+        int cost = 0;
+        int total = 0;
+        for (int v: children) {
+            total = max(total, 1 + cost + dp[v]);
+            cost += subtree_size[v] * 2;
+        }
+
+        dp[u] = max(total, costs[u]);
+        subtree_size[u] = sz;
+        return sz;
+    };
+
+    dfs(1, -1);
+    int answer = max(dp[1], 2 * (n - 1) + costs[1]);
+    prt(answer);
 }
 
 signed main() {
