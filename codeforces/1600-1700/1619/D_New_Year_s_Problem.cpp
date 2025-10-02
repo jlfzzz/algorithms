@@ -8,7 +8,6 @@ using pll = pair<ll, ll>;
 #define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 namespace io {
@@ -98,7 +97,55 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int m, n;
+    rd(m, n);
+
+    vector<vector<int>> grid(m, vector<int>(n));
+    For(i, m) {
+        For(j, n) {
+            int t;
+            rd(t);
+            grid[i][j] = t;
+        }
+    }
+
+    int lo = 1;
+    int hi = 1e9 + 5;
+    int ans = -1;
+
+    while (lo < hi) {
+        int mid = (lo + hi) / 2;
+
+        auto check = [&](int target) -> bool {
+            vector<int> covered(n, 0);
+            bool flag = false;
+            For(i, m) {
+                int cnt = 0;
+                For(j, n) {
+                    if (grid[i][j] >= target) {
+                        covered[j] = 1;
+                        cnt++;
+                    }
+                }
+                if (cnt >= 2)
+                    flag = true;
+            }
+
+            if (!flag)
+                return false;
+            For(j, n) if (!covered[j]) return false;
+            return true;
+        };
+
+        if (check(mid)) {
+            ans = mid;
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+
+    prt(ans);
 }
 
 signed main() {

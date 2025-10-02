@@ -8,7 +8,6 @@ using pll = pair<ll, ll>;
 #define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 namespace io {
@@ -98,7 +97,59 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, k, x;
+    rd(n, k, x);
+    string s;
+    rd(s);
+
+    vector<int> groups;
+    int i = 0;
+    while (i < n) {
+        if (s[i] == '*') {
+            int j = i;
+            while (j < n && s[j] == '*')
+                j++;
+            groups.push_back((j - i) * k);
+            i = j;
+        } else {
+            i++;
+        }
+    }
+
+    x--;
+    vector<int> digits(groups.size());
+    for (int idx = (int) groups.size() - 1; idx >= 0; idx--) {
+
+        int old = x;
+        int base = groups[idx] + 1;
+
+        digits[idx] = x % base;
+        x /= base;
+        if (n == 6)
+            debug("idx", idx, "base", base, "old x", old, "x", x);
+    }
+
+    string ans;
+    ans.reserve(n);
+    i = 0;
+    int gidx = 0;
+    while (i < n) {
+        if (s[i] == 'a') {
+            ans.push_back('a');
+            i++;
+        } else {
+            int j = i;
+            while (j < n && s[j] == '*')
+                j++;
+            if (!groups.empty()) {
+                ans += string(digits[gidx], 'b');
+                gidx++;
+            }
+            i = j;
+        }
+    }
+
+    cout << ans << "\n";
 }
 
 signed main() {

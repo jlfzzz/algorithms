@@ -8,7 +8,6 @@ using pll = pair<ll, ll>;
 #define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 namespace io {
@@ -98,7 +97,60 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    auto ask = [&](int a, int b, int c) -> int {
+        cout << "? " << a << ' ' << b << ' ' << c << endl;
+        int res;
+        cin >> res;
+        return res;
+    };
+
+    int pre = -1;
+    int x, y;
+    for (int i = 1; i + 2 <= n; i++) {
+        int a = i, b = i + 1, c = i + 2;
+        int t = ask(a, b, c);
+        if (pre == -1) {
+            pre = t;
+        } else {
+            if (t != pre) {
+                x = a, y = b;
+                break;
+            }
+        }
+    }
+
+    vector<int> ans;
+    int good, bad;
+    for (int i = 1; i <= n; i++) {
+        if (i == x || i == y) {
+            continue;
+        }
+
+        int t = ask(i, x, y);
+        if (t == 0) {
+            ans.push_back(i);
+            bad = i;
+        } else {
+            good = i;
+        }
+    }
+
+    int t = ask(good, bad, x);
+    if (t == 0) {
+        ans.push_back(x);
+    }
+    t = ask(good, bad, y);
+    if (t == 0) {
+        ans.push_back(y);
+    }
+
+    cout << "! " << ans.size();
+    for (auto &v: ans)
+        cout << ' ' << v;
+    cout << endl;
 }
 
 signed main() {

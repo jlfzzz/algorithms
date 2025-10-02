@@ -8,7 +8,6 @@ using pll = pair<ll, ll>;
 #define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 namespace io {
@@ -93,12 +92,61 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    auto ask = [&](vector<int> &v) -> int {
+        cout << "? ";
+        for (int x: v) {
+            cout << x << ' ';
+        }
+        cout << endl;
+
+        int t;
+        rd(t);
+        return t;
+    };
+
+    int last = -1;
+    for (int i = n; i >= 2; i--) {
+        vector<int> temp(n, 1);
+        temp[n - 1] = i;
+
+        int t = ask(temp);
+
+        if (t != 0) {
+            last = n - i + 1;
+            break;
+        }
+    }
+
+    if (last == -1) {
+        last = n;
+    }
+
+    vector<int> ans(n + 1);
+    ans[n] = last;
+    for (int i = 1; i <= n; i++) {
+        if (i == last) {
+            continue;
+        }
+
+        vector<int> temp(n, last);
+        temp[n - 1] = i;
+        int t = ask(temp);
+        ans[t] = i;
+    }
+
+    cout << "! ";
+    for (int i = 1; i <= n; i++) {
+        cout << ans[i] << ' ';
+    }
+    cout << endl;
 }
 
 signed main() {

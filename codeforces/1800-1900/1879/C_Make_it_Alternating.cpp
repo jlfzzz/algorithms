@@ -1,13 +1,13 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
+#define i128 __int128_t
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
-#define i128 __int128_t
 #define ull unsigned long long
-constexpr int inf = 0x3f3f3f3f / 2;
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+constexpr int MOD = int(998244353);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 namespace io {
     void debug() { cerr << "\n"; }
@@ -59,83 +59,37 @@ namespace io {
     }
 
     template<typename T>
-    void read(T &x) {
+    void rd(T &x) {
         cin >> x;
     }
 
     template<typename T, typename... Args>
-    void read(T &x, Args &...args) {
+    void rd(T &x, Args &...args) {
         cin >> x;
-        read(args...);
+        rd(args...);
     }
 
     template<typename A, typename B>
-    void read(pair<A, B> &p) {
+    void rd(pair<A, B> &p) {
         cin >> p.first >> p.second;
     }
 
     template<typename T>
-    void read_vec(vector<T> &v) {
+    void rd_vec(vector<T> &v) {
         for (auto &x: v) {
-            read(x);
+            rd(x);
         }
     }
 
     template<typename T>
-    void read_vec(vector<T> &v, int start_index) {
+    void rd_vec(vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
-            read(v[i]);
+            rd(v[i]);
         }
     }
 } // namespace io
 
-namespace helpers {
-    // 随机数组
-    vector<int> random_array(int n, int lo, int hi) {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<int> dist(lo, hi);
-
-        vector<int> arr(n);
-        for (int i = 0; i < n; i++) {
-            arr[i] = dist(gen);
-        }
-        return arr;
-    }
-
-    // 打印整数的二进制表示
-    template<typename T>
-    void prt_bin(T x, int width = -1, char fill = '0') {
-        static_assert(is_integral_v<T>, "prt_bin only supports integral types");
-
-        string s;
-        if (x == 0) {
-            s = "0";
-        } else {
-            while (x != 0) {
-                s.push_back((x & 1) ? '1' : '0');
-                x >>= 1;
-            }
-            reverse(s.begin(), s.end());
-        }
-
-        // 如果指定了宽度，则填充
-        if (width > 0 && (int) s.size() < width) {
-            s = string(width - s.size(), fill) + s;
-        }
-
-        cout << s << "\n";
-    }
-
-    // 打印向量vector的二进制
-    template<typename T>
-    void prt_vec_bin(const vector<T> &v, int width = -1, char fill = '0') {
-        for (size_t i = 0; i < v.size(); i++) {
-            prt_bin(v[i], width, fill);
-        }
-    }
-
-} // namespace helpers
+using namespace io;
 
 namespace atcoder {
 
@@ -674,143 +628,48 @@ namespace atcoder {
 
 using Z = atcoder::static_modint<MOD>;
 
-Z q_pow(Z base, long long exp) {
-    Z result(1);
-    while (exp > 0) {
-        if (exp & 1)
-            result *= base;
-        base *= base;
-        exp >>= 1;
+
+int Multitest = 1;
+
+void init() {}
+
+void solve() {
+    string s;
+    rd(s);
+
+    int n = s.size();
+
+    int i = 0;
+    int cnt = 0;
+    Z ans = 1;
+    while (i < n) {
+        int j = i + 1;
+        while (j < n && s[j] == s[i]) {
+            j++;
+        }
+
+        int d = j - i;
+        cnt += d - 1;
+        ans *= d;
+        i = j;
     }
-    return result;
+
+    Z fact = 1;
+    for (int i = 1; i <= cnt; i++)
+        fact *= i;
+    ans *= fact;
+    prt(cnt, ans.val());
 }
 
-namespace math {
-    // 组合数
-    struct Comb {
-        int n;
-        std::vector<Z> _fac;
-        std::vector<Z> _invfac;
-        std::vector<Z> _inv;
-
-        Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
-        explicit Comb(int n) : Comb() { init(n); }
-
-        void init(int m) {
-            if (m <= n) {
-                return;
-            }
-            _fac.resize(m + 1);
-            _invfac.resize(m + 1);
-            _inv.resize(m + 1);
-
-            for (int i = n + 1; i <= m; i++) {
-                _fac[i] = _fac[i - 1] * i;
-            }
-            _invfac[m] = _fac[m].inv();
-            for (int i = m; i > n; i--) {
-                _invfac[i - 1] = _invfac[i] * i;
-                _inv[i] = _invfac[i] * _fac[i - 1];
-            }
-            n = m;
-        }
-
-        Z fac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _fac[m];
-        }
-        Z invfac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _invfac[m];
-        }
-        Z inv(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _inv[m];
-        }
-        Z C(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(m) * invfac(n - m);
-        }
-        Z A(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(n - m);
-        }
-    } comb(100'005);
-
-    // 质因数分解
-    vector<int> decompose(int x) {
-        vector<int> primes;
-        for (int i = 2; i * i <= x; i++) {
-            if (x % i == 0) {
-                primes.push_back(i);
-                while (x % i == 0) {
-                    x /= i;
-                }
-            }
-        }
-        if (x > 1) {
-            primes.push_back(x);
-        }
-        return primes;
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-} // namespace math
-
-using namespace io;
-using namespace helpers;
-using namespace math;
-
-void func1() {
-    int n = 10000;
-
-    vector<int> arr = {1, 2, 3, 4, 5};
-    vector<int> random_arr = random_array(n, 1, 1e9);
-
-    // random_arr = {5, 10};
-    prt_vec(random_arr);
-
-    n = random_arr.size();
-
-    ll mx = 0;
-    pii mx_p{-1, -1};
-    for (int i = 0; i < n; i++) {
-        ll sum = 0;
-        int xors = 0;
-        for (int j = i; j < n; j++) {
-            sum += random_arr[j];
-            xors ^= random_arr[j];
-            if (mx_p.first == -1) {
-                mx = sum - xors;
-                mx_p = {i, j};
-            } else if (sum - xors >= mx) {
-                if (j - i < mx_p.second - mx_p.first) {
-                    mx = sum - xors;
-                    mx_p = {i, j};
-                }
-            }
-        }
-    }
-
-    ll sum = accumulate(random_arr.begin(), random_arr.end(), 0ll);
-    prt("sum is", sum);
-
-    sum = 0;
-    for (int x: random_arr) {
-        sum ^= x;
-    }
-    prt("xors is", sum);
-
-    prt(mx_p.first + 1, mx_p.second + 1);
-    prt("mx is:", mx);
+    while (T--)
+        solve();
+    return 0;
 }
-
-int main() { func1(); }

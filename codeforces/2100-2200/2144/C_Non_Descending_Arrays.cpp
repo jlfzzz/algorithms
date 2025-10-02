@@ -14,57 +14,29 @@ void init() {}
 
 void solve() {
     int n;
-    cin >> n;
-    vector<int> a(n), b(n);
-    For(i, n) cin >> a[i];
-    For(i, n) cin >> b[i];
+    rd(n);
+    vector<int> a(n + 1), b(n + 1);
+    rd_vec(a, 1);
+    rd_vec(b, 1);
 
-    // map<pii, int> memo;
-    // auto dfs = [&](this auto &&dfs, int i, int mn) -> int {
-    //     if (i == n) {
-    //         return 1;
-    //     }
+    Z f1 = 1;
+    Z f2 = 0;
 
-    //     if (memo.contains({i, mn})) {
-    //         return memo[{i, mn}];
-    //     }
-
-    //     int x = a[i];
-    //     int y = b[i];
-    //     int res = 0;
-    //     if (x >= mn && y >= mn) {
-    //         res = (dfs(i + 1, x) + dfs(i + 1, y)) % MOD;
-    //     } else if (x >= mn) {
-    //         res = dfs(i + 1, x);
-    //     } else if (y >= mn) {
-    //         res = dfs(i + 1, y);
-    //     }
-
-    //     memo[{i, mn}] = res;
-    //     return res;
-    // };
-
-    // int ans = dfs(0, -1);
-
-    array<int, 2> dp = {1, 1};
-    for (int i = 1; i < n; i++) {
-        array<int, 2> ndp = {0, 0};
-        int a0 = a[i - 1], b0 = b[i - 1];
-        int a1 = a[i], b1 = b[i];
-        if (a0 <= a1 && b0 <= b1) {
-            ndp[0] = (ndp[0] + dp[0]) % MOD;
-        }
-        if (b0 <= a1 && a0 <= b1) {
-            ndp[0] = (ndp[0] + dp[1]) % MOD;
-            ndp[1] = (ndp[1] + dp[0]) % MOD;
-        }
-        if (b0 <= b1 && a0 <= a1) {
-            ndp[1] = (ndp[1] + dp[1]) % MOD;
-        }
-        dp = ndp;
+    for (int i = 1; i <= n; i++) {
+        Z n1 = 0, n2 = 0;
+        if (a[i] >= a[i - 1] && b[i] >= b[i - 1])
+            n1 += f1;
+        if (a[i] >= b[i - 1] && b[i] >= a[i - 1])
+            n1 += f2;
+        if (b[i] >= a[i - 1] && a[i] >= b[i - 1])
+            n2 += f1;
+        if (b[i] >= b[i - 1] && a[i] >= a[i - 1])
+            n2 += f2;
+        f1 = n1;
+        f2 = n2;
     }
-    int ans = (dp[0] + dp[1]) % MOD;
-    cout << ans << '\n';
+
+    prt(f1.val() + f2.val());
 }
 
 signed main() {

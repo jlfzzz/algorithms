@@ -8,7 +8,6 @@ using pll = pair<ll, ll>;
 #define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 namespace io {
@@ -93,12 +92,37 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+    vector<int> B(n + 1), S(n + 1);
+    rd_vec(B, 1);
+    rd_vec(S, 1);
+    int sumw = 0;
+    For(i, n - 1) {
+        int a, b;
+        rd(a, b);
+        sumw += b;
+    }
+    vector<pii> v;
+    v.reserve(n);
+    For(i, n) v.emplace_back(B[i + 1], S[i + 1]);
+    sort(v.begin(), v.end(), [](const pii &x, const pii &y) {
+        if ((x.first - x.second) != (y.first - y.second))
+            return (x.first - x.second) > (y.first - y.second);
+        return x.first > y.first;
+    });
+    int prefS = 0, peak = 0;
+    for (auto &p: v) {
+        peak = max(peak, prefS + p.first);
+        prefS += p.second;
+    }
+    int manpower = max(peak, prefS);
+    cout << (sumw * 2) << " " << manpower << "\n";
 }
 
 signed main() {

@@ -8,7 +8,6 @@ using pll = pair<ll, ll>;
 #define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 namespace io {
@@ -98,7 +97,48 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, s;
+    rd(n, s);
+
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
+
+    multiset<int> window;
+    int l = 1;
+    int L = -1, R = -1;
+
+    int d = 0;
+    int pre = s;
+    vector<int> pref(n + 1);
+    for (int r = 1; r <= n; r++) {
+        int cur = a[r];
+        pre += cur;
+        window.insert(pre);
+        pref[r] = pre;
+
+        while (!window.empty() && *window.begin() + d < 0) {
+            int left = a[l];
+            d -= left;
+            window.erase(window.find(pref[l]));
+            l++;
+        }
+
+        if (!window.empty() && *window.begin() + d >= 0) {
+            if (L == -1) {
+                L = l, R = r;
+            } else {
+                if (r - l > R - L) {
+                    L = l, R = r;
+                }
+            }
+        }
+    }
+
+    if (L == -1) {
+        prt(-1);
+    } else {
+        prt(L, R);
+    }
 }
 
 signed main() {

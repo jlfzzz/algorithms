@@ -8,7 +8,6 @@ using pll = pair<ll, ll>;
 #define ull unsigned long long
 #define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 namespace io {
@@ -98,7 +97,57 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, k;
+    rd(n, k);
+    int u = n - 1;
+    if (n == 4 && k == n - 1) {
+        prt(-1);
+        return;
+    }
+
+    auto rev = [&](int x) -> int { return x ^ u; };
+
+    vector<pii> ans;
+    vector<int> used(n, 0);
+
+    if (k == 0) {
+        for (int i = 0; i < n; i++) {
+            if (used[i]) {
+                continue;
+            }
+            ans.emplace_back(i, rev(i));
+            used[i] = 1;
+            used[rev(i)] = 1;
+        }
+    } else if (k == u) {
+        ans.emplace_back(u, u - 1);
+        ans.emplace_back(1, 3);
+        ans.emplace_back(0, u - 3);
+        used[u] = used[u - 1] = used[1] = used[3] = used[0] = used[u - 3] = 1;
+        for (int i = 0; i < n; i++) {
+            if (used[i]) {
+                continue;
+            }
+            ans.emplace_back(i, rev(i));
+            used[i] = 1;
+            used[rev(i)] = 1;
+        }
+    } else {
+        ans.emplace_back(u, k);
+        ans.emplace_back(0, rev(k));
+        used[u] = used[k] = used[0] = used[rev(k)] = 1;
+        for (int i = 0; i < n; i++) {
+            if (used[i]) {
+                continue;
+            }
+            ans.emplace_back(i, rev(i));
+            used[i] = 1;
+            used[rev(i)] = 1;
+        }
+    }
+
+    for (auto &p: ans)
+        prt(p.first, p.second);
 }
 
 signed main() {
