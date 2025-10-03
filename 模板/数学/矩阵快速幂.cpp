@@ -125,7 +125,7 @@ Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
     return ret;
 }
 
-Matrix quick_mul(Matrix mat, int n) {
+Matrix quick_mul(Matrix mat, long long n) {
     int m = mat.size();
     Matrix unit(m, vector<Z>(m, 0));
     for (int i = 0; i < m; ++i) {
@@ -142,6 +142,18 @@ Matrix quick_mul(Matrix mat, int n) {
     return unit;
 }
 
+
+// 斐波那契，1 - index。 f1 = f2 = 1, f3 = 2, f4 = 3...
+void fib(int n) {
+    auto mat1 = Matrix(1, vector<Z>(2, 0));
+    mat1[0][0] = 1;
+    auto mat2 = Matrix{{1, 1}, {1, 0}};
+
+    auto mat_pow = quick_mul(mat2, n - 1);
+    auto mat3 = mat_mul(mat1, mat_pow);
+
+    Z ans = mat3[0][0];
+}
 
 
 // lc3337 调用示例

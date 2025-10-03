@@ -428,9 +428,8 @@ void solve() {
         }
     }
 
-    for (int i = 0; i < (int) pos.size(); i++) {
-        int cur = pos[i];
-        int left = L[cur];
+    for (int cur : pos) {
+         int left = L[cur];
         int right = R[cur];
 
         ll mx = seg.prod(cur, right).mx;
