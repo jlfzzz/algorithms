@@ -772,45 +772,16 @@ using namespace math;
 void func1() {
     int n = 10000;
 
-    vector<int> arr = {1, 2, 3, 4, 5};
+     vector<int> arr = {1, 2, 3, 4, 5};
     vector<int> random_arr = random_array(n, 1, 1e9);
 
-    // random_arr = {5, 10};
-    prt_vec(random_arr);
+    int l = 11;
+    int r = 100;
 
-    n = random_arr.size();
-
-    ll mx = 0;
-    pii mx_p{-1, -1};
-    for (int i = 0; i < n; i++) {
-        ll sum = 0;
-        int xors = 0;
-        for (int j = i; j < n; j++) {
-            sum += random_arr[j];
-            xors ^= random_arr[j];
-            if (mx_p.first == -1) {
-                mx = sum - xors;
-                mx_p = {i, j};
-            } else if (sum - xors >= mx) {
-                if (j - i < mx_p.second - mx_p.first) {
-                    mx = sum - xors;
-                    mx_p = {i, j};
-                }
-            }
-        }
+    for (int i = 1; i <= r; i++) {
+        int have = r / i - (l - 1) / i;
+        debug("i", i,"have", r / i);
     }
-
-    ll sum = accumulate(random_arr.begin(), random_arr.end(), 0ll);
-    prt("sum is", sum);
-
-    sum = 0;
-    for (int x: random_arr) {
-        sum ^= x;
-    }
-    prt("xors is", sum);
-
-    prt(mx_p.first + 1, mx_p.second + 1);
-    prt("mx is:", mx);
 }
 
 int main() { func1(); }

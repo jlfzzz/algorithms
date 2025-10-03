@@ -672,6 +672,8 @@ int Multitest = 0;
 
 void init() {}
 
+using ll = long long;
+
 void solve() {
     int m;
     long long l, r, k;
@@ -679,42 +681,31 @@ void solve() {
 
     Z::set_mod(m);
 
-    // 分块枚举候选 d：d = floor(r / t) 与 d = floor((l-1) / t)
-    vector<long long> cand;
-    cand.reserve(2000000);
-    for (long long i = 1; i <= r;) {
-        long long v = r / i;
-        cand.push_back(v);
-        i = r / v + 1;
-    }
-    long long x = l - 1;
-    if (x > 0) {
-        for (long long i = 1; i <= x;) {
-            long long v = x / i;
-            cand.push_back(v);
-            i = x / v + 1;
+    ll ans = 1;
+    for (ll i = 1; i * i <= r; i++) {
+        ll have = r / i - (l - 1) / i;
+        if (have >= k) {
+            ans = i;
         }
     }
-    sort(cand.begin(), cand.end());
-    cand.erase(unique(cand.begin(), cand.end()), cand.end());
 
-    long long best_d = 1;
-    for (long long d: cand) {
-        if (d <= 0)
-            continue;
-        long long cnt = r / d - x / d;
-        if (cnt >= k)
-            best_d = max(best_d, d);
+    for (ll d = (ll) sqrt(r); d >= 1; d--) {
+        ll i = r / d;
+
+        ll have = d - (l - 1) / i;
+        if (have >= k) {
+            ans = max(ans, i);
+        }
     }
 
     auto mat1 = Matrix(1, vector<Z>(2, 0));
     mat1[0][0] = 1; // [F1, F0]
     auto mat2 = Matrix{{1, 1}, {1, 0}};
-    auto mat_pow = quick_mul(mat2, best_d - 1);
+    // debug("ans", ans);
+    auto mat_pow = quick_mul(mat2, ans - 1);
     auto mat3 = mat_mul(mat1, mat_pow);
-    Z ans = mat3[0][0];
 
-    prt(ans.val());
+    prt(mat3[0][0].val());
 }
 
 signed main() {
