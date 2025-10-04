@@ -105,39 +105,25 @@ void solve() {
     rd_vec(a, 1);
 
     int ans = 0;
-    vector<int> diff(n + 1);
-    for (int i = 2; i <= n; i += 2) {
-        int pre = a[i - 1];
-        int cur = a[i];
-
-
-        if (cur > pre) {
-            ans *= 2;
-            ans += pre;
-            int have = cur - pre;
-
-            for (int j = i - 2; j >= 1; j -= 2) {
-                if (diff[j] > 0) {
-                    continue;
-                }
-
-                if (have + diff[j] > 0) {
-                    ans += -diff[j];
-                    have += diff[j];
-                } else {
-                    ans += have;
-                    break;
-                }
+    for (int l = 1; l <= n; l += 2) {
+        int sum = 0;
+        int mn = 0;
+        for (int r = l + 1; r <= n; ++r) {
+            if (r % 2 == 1) {
+                sum += a[r];
+                if (mn > sum)
+                    mn = sum;
+            } else {
+                int lb = max(1ll, -mn);
+                int ub = min(a[l], a[r] - sum);
+                if (ub >= lb)
+                    ans += (ub - lb + 1);
+                sum -= a[r];
+                if (mn > sum)
+                    mn = sum;
             }
-        } else if (cur == pre) {
-            ans *= 2;
-            ans += cur;
-        } else {
-            ans += pre;
         }
-        diff[i] = diff[i - 2] + cur - pre;
     }
-
     prt(ans);
 }
 
