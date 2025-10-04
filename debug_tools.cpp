@@ -10,6 +10,27 @@ constexpr int MOD2 = int(998244353);
 constexpr int inf = 0x3f3f3f3f / 2;
 
 namespace io {
+    inline ostream &operator<<(ostream &os, i128 value) {
+        if (value == 0) {
+            os << 0;
+            return os;
+        }
+        bool is_negative = value < 0;
+        if (is_negative)
+            value = -value;
+        string digits;
+        while (value > 0) {
+            int digit = value % 10;
+            digits.push_back(char('0' + digit));
+            value /= 10;
+        }
+        if (is_negative)
+            os << '-';
+        for (int i = (int) digits.size() - 1; i >= 0; --i)
+            os << digits[i];
+        return os;
+    }
+
     void debug() { cerr << "\n"; }
 
     template<typename T, typename... Args>
@@ -770,18 +791,16 @@ using namespace helpers;
 using namespace math;
 
 void func1() {
-    int n = 10000;
+    int n = 123456;
 
-     vector<int> arr = {1, 2, 3, 4, 5};
+    vector<int> arr = {1, 2, 3, 4, 5};
     vector<int> random_arr = random_array(n, 1, 1e9);
 
-    int l = 11;
-    int r = 100;
+    int m = 654321;
 
-    for (int i = 1; i <= r; i++) {
-        int have = r / i - (l - 1) / i;
-        debug("i", i,"have", r / i);
-    }
+    prt_bin(n, 30);
+    prt_bin(m, 30);
+    prt_bin(530866, 30);
 }
 
 int main() { func1(); }
