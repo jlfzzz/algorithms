@@ -95,10 +95,35 @@ using namespace io;
 
 int Multitest = 1;
 
-void init() {}
+i128 pow2[65];
+
+void init() {
+    pow2[0] = 1;
+    for (int i = 1; i < 65; i++) {
+        pow2[i] = pow2[i - 1] * 2;
+    }
+}
 
 void solve() {
-    
+    int n, k;
+    rd(n, k);
+
+    vector<int> a(n);
+    rd_vec(a);
+
+    int g = 0;
+    for (int i = 1; i < n; i++) {
+        g = gcd(g, a[i] - a[i - 1]);
+    }
+
+    for (int x: a) {
+        if ((k - x) % g == 0) {
+            prt("YES");
+            return;
+        }
+    }
+
+    prt("NO");
 }
 
 signed main() {

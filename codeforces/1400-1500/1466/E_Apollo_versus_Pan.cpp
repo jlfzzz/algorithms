@@ -1,36 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
+#define i128 __int128_t
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
-#define i128 __int128_t
-#define ull unsigned long long
-constexpr int inf = 0x3f3f3f3f / 2;
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 namespace io {
-    inline ostream &operator<<(ostream &os, i128 value) {
-        if (value == 0) {
-            os << 0;
-            return os;
-        }
-        bool is_negative = value < 0;
-        if (is_negative)
-            value = -value;
-        string digits;
-        while (value > 0) {
-            int digit = value % 10;
-            digits.push_back(char('0' + digit));
-            value /= 10;
-        }
-        if (is_negative)
-            os << '-';
-        for (int i = (int) digits.size() - 1; i >= 0; --i)
-            os << digits[i];
-        return os;
-    }
-
     void debug() { cerr << "\n"; }
 
     template<typename T, typename... Args>
@@ -80,97 +60,37 @@ namespace io {
     }
 
     template<typename T>
-    void read(T &x) {
+    void rd(T &x) {
         cin >> x;
     }
 
     template<typename T, typename... Args>
-    void read(T &x, Args &...args) {
+    void rd(T &x, Args &...args) {
         cin >> x;
-        read(args...);
+        rd(args...);
     }
 
     template<typename A, typename B>
-    void read(pair<A, B> &p) {
+    void rd(pair<A, B> &p) {
         cin >> p.first >> p.second;
     }
 
     template<typename T>
-    void read_vec(vector<T> &v) {
+    void rd_vec(vector<T> &v) {
         for (auto &x: v) {
-            read(x);
+            rd(x);
         }
     }
 
     template<typename T>
-    void read_vec(vector<T> &v, int start_index) {
+    void rd_vec(vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
-            read(v[i]);
+            rd(v[i]);
         }
     }
 } // namespace io
 
-namespace helpers {
-    // 随机数组
-    vector<int> random_array(int n, int lo, int hi) {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<int> dist(lo, hi);
-
-        vector<int> arr(n);
-        for (int i = 0; i < n; i++) {
-            arr[i] = dist(gen);
-        }
-        return arr;
-    }
-
-    // 打印整数的二进制表示
-    template<typename T>
-    void prt_bin(T x, int width = -1, char fill = '0') {
-        static_assert(is_integral_v<T>, "prt_bin only supports integral types");
-
-        string s;
-        if (x == 0) {
-            s = "0";
-        } else {
-            while (x != 0) {
-                s.push_back((x & 1) ? '1' : '0');
-                x >>= 1;
-            }
-            reverse(s.begin(), s.end());
-        }
-
-        // 如果指定了宽度，则填充
-        if (width > 0 && (int) s.size() < width) {
-            s = string(width - s.size(), fill) + s;
-        }
-
-        cout << s << "\n";
-    }
-
-    // 打印向量vector的二进制
-    template<typename T>
-    void prt_vec_bin(const vector<T> &v, int width = -1, char fill = '0') {
-        for (size_t i = 0; i < v.size(); i++) {
-            prt_bin(v[i], width, fill);
-        }
-    }
-
-    // 输入二进制字符串打印整数
-    template<typename T = long long>
-    void prt_int(const string &s) {
-        static_assert(is_integral_v<T>, "prt_int only supports integral types");
-        T x = 0;
-        for (char c: s) {
-            if (c != '0' && c != '1') {
-                throw invalid_argument("Input string must be binary (0/1 only)");
-            }
-            x = (x << 1) | (c - '0');
-        }
-        cout << x << "\n";
-    }
-
-} // namespace helpers
+using namespace io;
 
 namespace atcoder {
 
@@ -720,101 +640,58 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
-namespace math {
-    // 组合数
-    struct Comb {
-        int n;
-        std::vector<Z> _fac;
-        std::vector<Z> _invfac;
-        std::vector<Z> _inv;
 
-        Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
-        explicit Comb(int n) : Comb() { init(n); }
+int Multitest = 1;
 
-        void init(int m) {
-            if (m <= n) {
-                return;
-            }
-            _fac.resize(m + 1);
-            _invfac.resize(m + 1);
-            _inv.resize(m + 1);
+void init() {}
 
-            for (int i = n + 1; i <= m; i++) {
-                _fac[i] = _fac[i - 1] * i;
-            }
-            _invfac[m] = _fac[m].inv();
-            for (int i = m; i > n; i--) {
-                _invfac[i - 1] = _invfac[i] * i;
-                _inv[i] = _invfac[i] * _fac[i - 1];
-            }
-            n = m;
-        }
+void solve() {
+    int n;
+    rd(n);
 
-        Z fac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _fac[m];
-        }
-        Z invfac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _invfac[m];
-        }
-        Z inv(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _inv[m];
-        }
-        Z C(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(m) * invfac(n - m);
-        }
-        Z A(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(n - m);
-        }
-    } comb(100'005);
+    vector<long long> a(n);
+    rd_vec(a);
 
-    // 质因数分解
-    vector<int> decompose(int x) {
-        vector<int> primes;
-        for (int i = 2; i * i <= x; i++) {
-            if (x % i == 0) {
-                primes.push_back(i);
-                while (x % i == 0) {
-                    x /= i;
-                }
-            }
+    vector<int> bit(61, 0);
+    for (int idx = 0; idx < n; idx++) {
+        long long x = a[idx];
+        for (int b = 0; b <= 60; b++) {
+            if ((x >> b) & 1LL)
+                bit[b]++;
         }
-        if (x > 1) {
-            primes.push_back(x);
-        }
-        return primes;
     }
-} // namespace math
+    vector<Z> pow2(61);
+    pow2[0] = Z(1);
+    for (int b = 1; b <= 60; b++)
+        pow2[b] = pow2[b - 1] * 2;
 
-using namespace io;
-using namespace helpers;
-using namespace math;
+    Z ans = 0;
+    for (int idx = 0; idx < n; idx++) {
+        long long x = a[idx];
+        Z sumAnd = 0, sumOr = 0;
+        for (int b = 0; b <= 60; b++) {
+            if ((x >> b) & 1LL) {
+                sumAnd += Z(bit[b]) * pow2[b];
+                sumOr += Z(n) * pow2[b];
+            } else {
+                sumOr += Z(bit[b]) * pow2[b];
+            }
+        }
+        ans += sumAnd * sumOr;
+    }
 
-void func1() {
-    int n = 123456;
-
-    vector<int> arr = {1, 2, 3, 4, 5};
-    vector<int> random_arr = random_array(n, 1, 1e9);
-
-    int m = 654321;
-
-    prt_int("100110");
-    prt_int("000110");
-    prt_bin(44, 10);
+    prt(ans.val());
 }
 
-int main() { func1(); }
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--)
+        solve();
+    return 0;
+}
