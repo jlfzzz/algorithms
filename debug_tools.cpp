@@ -805,16 +805,16 @@ using namespace helpers;
 using namespace math;
 
 void func1() {
-    int n = 123456;
+    int n = 10;
 
     vector<int> arr = {1, 2, 3, 4, 5};
     vector<int> random_arr = random_array(n, 1, 1e9);
 
-    int m = 654321;
+    int k = 5;
 
-    prt_int("100110");
-    prt_int("000110");
-    prt_bin(44, 10);
+    for (int i = 1; i <= n; i++) {
+        prt("i is", i, "k % i is", k % i);
+    }
 }
 
 int main() { func1(); }

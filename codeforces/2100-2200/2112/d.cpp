@@ -44,25 +44,6 @@ void solve() {
         return;
     }
 
-
-    // int leaf = -1;
-    // for (int i = 0; i < t.size(); i++) {
-    //     int v = graph[t[i]][0];
-    //     if (deg[v] == 2) {
-    //         find = true;
-    //         for (int r: graph[v]) {
-    //             if (r != t[i]) {
-    //                 root = r;
-    //             }
-    //         }
-    //         leaf = t[i];
-    //         break;
-    //     }
-    // }
-    // if (!find) {
-    //     cout << "NO\n";
-    //     return;
-    // }
     cout << "YES\n";
 
     vector<pii> ans;
@@ -94,12 +75,6 @@ void solve() {
         f = !f;
     }
 
-
-    // for (auto &[a, b]: ans) {
-    //     if (a == leaf or b == leaf) {
-    //         swap(a, b);
-    //     }
-    // }
     for (auto &[a, b]: ans) {
         cout << a << ' ' << b << '\n';
     }
