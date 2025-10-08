@@ -93,67 +93,23 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll n;
+    cin >> n;
+    ll a1, a2, a3;
+    ll b1, b2, b3;
+    cin >> a1 >> a2 >> a3;
+    cin >> b1 >> b2 >> b3;
 
-    vector<int> a(n);
-    rd_vec(a);
+    ll maxWin = min(a1, b2) + min(a2, b3) + min(a3, b1);
 
-    int pos;
-    for (int i = 0; i < n; i++) {
-        if (a[i] == -1) {
-            pos = i;
-            break;
-        }
-    }
+    ll minWin = n - (min(a1, b1 + b3) + min(a2, b2 + b1) + min(a3, b3 + b2));
 
-    int mx = ranges::max(a);
-
-    vector<vector<int>> before(mx + 1), after(mx + 1);
-    for (int i = 0; i < n; i++) {
-        if (i < pos) {
-            before[a[i]].push_back(i);
-        } else if (i > pos) {
-            after[a[i]].push_back(i);
-        }
-    }
-
-    int l = 1, r = n;
-    vector<int> ans(n);
-
-    for (int i = 1; i <= mx; i++) {
-        auto &v1 = before[i];
-        auto &v2 = after[i];
-        if (i & 1) {
-            for (int x: v1) {
-                ans[x] = r;
-                r--;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = r;
-                r--;
-            }
-        } else {
-            for (int x: v1) {
-                ans[x] = l;
-                l++;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = l;
-                l++;
-            }
-        }
-    }
-
-    ans[pos] = l;
-    prt_vec(ans);
+    cout << minWin << " " << maxWin << "\n";
 }
 
 signed main() {

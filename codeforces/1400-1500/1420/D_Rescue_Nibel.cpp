@@ -1,7 +1,96 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+#define i128 __int128_t
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
+namespace io {
+    void debug() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void debug(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        debug(args...);
+    }
+
+    template<typename... Args>
+    void prt(const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename End, typename... Args>
+    void prt_end(const End &end, const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << end;
+    }
+
+    template<typename... Args>
+    void prt_endl(const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << endl;
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace io
+
+using namespace io;
 
 namespace atcoder {
 
@@ -72,6 +161,10 @@ namespace atcoder {
         using to_unsigned_t = typename to_unsigned<T>::type;
 
     } // namespace internal
+
+} // namespace atcoder
+
+namespace atcoder {
 
     namespace internal {
 
@@ -286,6 +379,10 @@ namespace atcoder {
         }
 
     } // namespace internal
+
+} // namespace atcoder
+
+namespace atcoder {
 
     namespace internal {
 
@@ -538,7 +635,7 @@ namespace atcoder {
 
 } // namespace atcoder
 
-using Z = atcoder::static_modint<MOD>;
+using Z = atcoder::static_modint<MOD2>;
 
 Z q_pow(Z base, long long exp) {
     Z result(1);
@@ -613,19 +710,50 @@ struct Comb {
     }
 } comb(N);
 
-using Z = atcoder::modint;
-Z::set_mod(M);
+int Multitest = 0;
 
-// 模数不是质数的时候用 欧拉定理或者扩展lucas
+void init() {}
 
-constexpr int N = 5005;
-Z C[N][N];
+void solve() {
+    int n, k;
+    rd(n, k);
 
-void init() {
-    for (int i = 0; i < N; i++) {
-        C[i][0] = C[i][i] = 1;
-        for (int j = 1; j < i; j++) {
-            C[i][j] = C[i - 1][j - 1] + C[i - 1][j];
-        }
+    vector<pii> segs(n);
+    For(i, n) {
+        int l, r;
+        rd(l, r);
+        segs[i] = {l, r};
     }
+
+    ranges::sort(segs);
+
+    multiset<int> window;
+    Z ans = 0;
+
+    for (auto &[l, r]: segs) {
+        while (!window.empty() && *window.begin() < l) {
+            window.erase(window.begin());
+        }
+
+        if (window.size() >= k - 1) {
+            ans += comb.C((int) window.size(), k - 1);
+        }
+
+        window.insert(r);
+    }
+
+    prt(ans.val());
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--)
+        solve();
+    return 0;
 }

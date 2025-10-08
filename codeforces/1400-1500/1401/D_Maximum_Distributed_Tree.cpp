@@ -97,63 +97,83 @@ int Multitest = 1;
 
 void init() {}
 
+const int N = 1e5 + 5;
+
+vector<int> g[N];
+int sz[N];
+
+void dfs(int u, int parent) {
+    sz[u] = 1;
+    for (int v: g[u]) {
+        if (v == parent)
+            continue;
+        dfs(v, u);
+        sz[u] += sz[v];
+    }
+}
+
 void solve() {
     int n;
-    rd(n);
+    cin >> n;
 
-    vector<int> a(n);
-    rd_vec(a);
+    for (int i = 1; i <= n; i++)
+        g[i].clear();
 
-    int pos;
-    for (int i = 0; i < n; i++) {
-        if (a[i] == -1) {
-            pos = i;
-            break;
+    vector<pair<int, int>> edges(n - 1);
+    for (int i = 0; i < n - 1; i++) {
+        int u, v;
+        cin >> u >> v;
+        g[u].push_back(v);
+        g[v].push_back(u);
+        edges[i] = {u, v};
+    }
+
+    dfs(1, 0);
+
+    vector<int> contrib;
+    for (auto [u, v]: edges) {
+        if (sz[u] < sz[v])
+            swap(u, v);
+        contrib.push_back(sz[v] * (n - sz[v]));
+    }
+
+    int m;
+    cin >> m;
+    vector<int> primes(m);
+    for (int i = 0; i < m; i++)
+        cin >> primes[i];
+
+    sort(contrib.rbegin(), contrib.rend());
+    sort(primes.rbegin(), primes.rend());
+
+    vector<int> edge_val(n - 1, 1);
+
+    int idx = 0;
+    if (m >= n - 1) {
+        int extra = m - (n - 1) + 1;
+        for (int i = 0; i < extra; i++) {
+            edge_val[0] = (edge_val[0] * primes[idx]) % MOD;
+            idx++;
+        }
+        for (int i = 1; i < n - 1; i++) {
+            if (idx < m) {
+                edge_val[i] = (edge_val[i] * primes[idx]) % MOD;
+                idx++;
+            }
+        }
+    } else {
+        for (int i = 0; i < m; i++) {
+            edge_val[i] = (edge_val[i] * primes[idx]) % MOD;
+            idx++;
         }
     }
 
-    int mx = ranges::max(a);
-
-    vector<vector<int>> before(mx + 1), after(mx + 1);
-    for (int i = 0; i < n; i++) {
-        if (i < pos) {
-            before[a[i]].push_back(i);
-        } else if (i > pos) {
-            after[a[i]].push_back(i);
-        }
+    int ans = 0;
+    for (int i = 0; i < n - 1; i++) {
+        ans = (ans + contrib[i] % MOD * edge_val[i] % MOD) % MOD;
     }
 
-    int l = 1, r = n;
-    vector<int> ans(n);
-
-    for (int i = 1; i <= mx; i++) {
-        auto &v1 = before[i];
-        auto &v2 = after[i];
-        if (i & 1) {
-            for (int x: v1) {
-                ans[x] = r;
-                r--;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = r;
-                r--;
-            }
-        } else {
-            for (int x: v1) {
-                ans[x] = l;
-                l++;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = l;
-                l++;
-            }
-        }
-    }
-
-    ans[pos] = l;
-    prt_vec(ans);
+    cout << ans << "\n";
 }
 
 signed main() {

@@ -93,67 +93,23 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-
-    vector<int> a(n);
-    rd_vec(a);
-
-    int pos;
-    for (int i = 0; i < n; i++) {
-        if (a[i] == -1) {
-            pos = i;
-            break;
-        }
+    ll n, k;
+    scanf("%lld%lld", &n, &k);
+    ll ans = n * k;
+    for (ll l = 1, r; l <= n; l = r + 1) {
+        if (k / l != 0)
+            r = min(k / (k / l), n);
+        else
+            r = n;
+        // debug("l", l, "r", r);
+        ans -= (k / l) * (r - l + 1) * (l + r) / 2;
     }
-
-    int mx = ranges::max(a);
-
-    vector<vector<int>> before(mx + 1), after(mx + 1);
-    for (int i = 0; i < n; i++) {
-        if (i < pos) {
-            before[a[i]].push_back(i);
-        } else if (i > pos) {
-            after[a[i]].push_back(i);
-        }
-    }
-
-    int l = 1, r = n;
-    vector<int> ans(n);
-
-    for (int i = 1; i <= mx; i++) {
-        auto &v1 = before[i];
-        auto &v2 = after[i];
-        if (i & 1) {
-            for (int x: v1) {
-                ans[x] = r;
-                r--;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = r;
-                r--;
-            }
-        } else {
-            for (int x: v1) {
-                ans[x] = l;
-                l++;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = l;
-                l++;
-            }
-        }
-    }
-
-    ans[pos] = l;
-    prt_vec(ans);
+    printf("%lld", ans);
 }
 
 signed main() {

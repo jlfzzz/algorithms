@@ -805,15 +805,25 @@ using namespace helpers;
 using namespace math;
 
 void func1() {
-    int n = 10;
+    int n = 5000;
 
     vector<int> arr = {1, 2, 3, 4, 5};
-    vector<int> random_arr = random_array(n, 1, 1e9);
+    vector<int> random_arr1 = random_array(n, 1, 1e7);
+    vector<int> random_arr2 = random_array(n, 1, 1e7);
 
-    int k = 5;
+    string s = "1011001";
+    prt("old");
 
-    for (int i = 1; i <= n; i++) {
-        prt("i is", i, "k % i is", k % i);
+    for (int i = 0; i < s.size(); i++) {
+        prt(s);
+    }
+
+    prt("new");
+
+    for (int i = 0; i < s.size(); i++) {
+        s[i] ^= 1;
+        prt(s);
+        s[i] ^= 1;
     }
 }
 

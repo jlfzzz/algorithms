@@ -93,7 +93,7 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
@@ -104,58 +104,30 @@ void solve() {
     vector<int> a(n);
     rd_vec(a);
 
-    int pos;
-    for (int i = 0; i < n; i++) {
-        if (a[i] == -1) {
-            pos = i;
-            break;
-        }
-    }
+    vector<int> queue;
+    queue.push_back(-1e9); // -inf
+    vector<int> sz{0};
 
-    int mx = ranges::max(a);
-
-    vector<vector<int>> before(mx + 1), after(mx + 1);
-    for (int i = 0; i < n; i++) {
-        if (i < pos) {
-            before[a[i]].push_back(i);
-        } else if (i > pos) {
-            after[a[i]].push_back(i);
-        }
-    }
-
-    int l = 1, r = n;
-    vector<int> ans(n);
-
-    for (int i = 1; i <= mx; i++) {
-        auto &v1 = before[i];
-        auto &v2 = after[i];
-        if (i & 1) {
-            for (int x: v1) {
-                ans[x] = r;
-                r--;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = r;
-                r--;
-            }
+    ranges::sort(a);
+    for (int x: a) {
+        auto it = upper_bound(queue.begin(), queue.end(), x - 1);
+        int j = it - queue.begin() - 1;
+        if (j >= 0 && queue[j] == x - 1) {
+            queue[j] = x;
+            sz[j]++;
         } else {
-            for (int x: v1) {
-                ans[x] = l;
-                l++;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = l;
-                l++;
-            }
+            queue.push_back(x);
+            sz.push_back(1);
         }
     }
 
-    ans[pos] = l;
-    prt_vec(ans);
-}
+    int ans = 1e9; // inf
+    for (int i = 1; i < sz.size(); i++) {
+        ans = min(ans, sz[i]);
+    }
 
+    prt(ans);
+}
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

@@ -104,56 +104,23 @@ void solve() {
     vector<int> a(n);
     rd_vec(a);
 
-    int pos;
-    for (int i = 0; i < n; i++) {
-        if (a[i] == -1) {
-            pos = i;
-            break;
-        }
+    int sum = 0;
+    int mx = 0;
+    for (int x: a) {
+        mx = max(x, mx);
+        sum += x;
     }
 
-    int mx = ranges::max(a);
-
-    vector<vector<int>> before(mx + 1), after(mx + 1);
-    for (int i = 0; i < n; i++) {
-        if (i < pos) {
-            before[a[i]].push_back(i);
-        } else if (i > pos) {
-            after[a[i]].push_back(i);
-        }
+    if (mx > sum - mx) {
+        prt("T");
+        return;
     }
 
-    int l = 1, r = n;
-    vector<int> ans(n);
-
-    for (int i = 1; i <= mx; i++) {
-        auto &v1 = before[i];
-        auto &v2 = after[i];
-        if (i & 1) {
-            for (int x: v1) {
-                ans[x] = r;
-                r--;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = r;
-                r--;
-            }
-        } else {
-            for (int x: v1) {
-                ans[x] = l;
-                l++;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = l;
-                l++;
-            }
-        }
+    if (sum & 1) {
+        prt("T");
+    } else {
+        prt("HL");
     }
-
-    ans[pos] = l;
-    prt_vec(ans);
 }
 
 signed main() {

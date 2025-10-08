@@ -93,67 +93,47 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int r, g, b;
+    rd(r, g, b);
 
-    vector<int> a(n);
-    rd_vec(a);
+    vector<int> R(r), G(g), B(b);
+    rd_vec(R), rd_vec(G), rd_vec(B);
 
-    int pos;
-    for (int i = 0; i < n; i++) {
-        if (a[i] == -1) {
-            pos = i;
-            break;
+    vector memo(r + 1, vector(g + 1, vector<int>(b + 1, -1)));
+
+    ranges::sort(R), ranges::sort(G), ranges::sort(B);
+
+    auto dfs = [&](this auto &&dfs, int i, int j, int k) -> int {
+        if ((i == 0 && j == 0) || (i == 0 && k == 0) || (j == 0 && k == 0)) {
+            return 0;
         }
-    }
 
-    int mx = ranges::max(a);
-
-    vector<vector<int>> before(mx + 1), after(mx + 1);
-    for (int i = 0; i < n; i++) {
-        if (i < pos) {
-            before[a[i]].push_back(i);
-        } else if (i > pos) {
-            after[a[i]].push_back(i);
+        int &x = memo[i][j][k];
+        if (x != -1) {
+            return x;
         }
-    }
 
-    int l = 1, r = n;
-    vector<int> ans(n);
-
-    for (int i = 1; i <= mx; i++) {
-        auto &v1 = before[i];
-        auto &v2 = after[i];
-        if (i & 1) {
-            for (int x: v1) {
-                ans[x] = r;
-                r--;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = r;
-                r--;
-            }
-        } else {
-            for (int x: v1) {
-                ans[x] = l;
-                l++;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = l;
-                l++;
-            }
+        int res = 0;
+        if (i && j) {
+            res = max(res, dfs(i - 1, j - 1, k) + R[i - 1] * G[j - 1]);
         }
-    }
+        if (i && k) {
+            res = max(res, dfs(i - 1, j, k - 1) + R[i - 1] * B[k - 1]);
+        }
+        if (j && k) {
+            res = max(res, dfs(i, j - 1, k - 1) + G[j - 1] * B[k - 1]);
+        }
 
-    ans[pos] = l;
-    prt_vec(ans);
+        return x = res;
+    };
+
+    int ans = dfs(r, g, b);
+    prt(ans);
 }
 
 signed main() {

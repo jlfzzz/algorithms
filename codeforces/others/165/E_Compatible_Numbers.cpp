@@ -93,66 +93,48 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
     int n;
     rd(n);
-
     vector<int> a(n);
     rd_vec(a);
 
-    int pos;
-    for (int i = 0; i < n; i++) {
-        if (a[i] == -1) {
-            pos = i;
-            break;
-        }
-    }
-
     int mx = ranges::max(a);
+    int m = bit_width((ull) mx);
+    int u = 1 << m;
 
-    vector<vector<int>> before(mx + 1), after(mx + 1);
-    for (int i = 0; i < n; i++) {
-        if (i < pos) {
-            before[a[i]].push_back(i);
-        } else if (i > pos) {
-            after[a[i]].push_back(i);
+    vector<int> dp(u, -1);
+    for (int x: a) {
+        dp[x] = x;
+    }
+
+    for (int mask = 1; mask < u; mask++) {
+        if (dp[mask] == -1) {
+            continue;
+        }
+
+
+        for (int i = 0; i < m; i++) {
+            if ((mask >> i & 1) == 0) {
+                dp[mask | (1 << i)] = dp[mask];
+            }
         }
     }
 
-    int l = 1, r = n;
-    vector<int> ans(n);
-
-    for (int i = 1; i <= mx; i++) {
-        auto &v1 = before[i];
-        auto &v2 = after[i];
-        if (i & 1) {
-            for (int x: v1) {
-                ans[x] = r;
-                r--;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = r;
-                r--;
-            }
+    vector<int> ans;
+    int allOne = u - 1;
+    for (int x: a) {
+        if (dp[x ^ allOne] == -1) {
+            ans.push_back(-1);
         } else {
-            for (int x: v1) {
-                ans[x] = l;
-                l++;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = l;
-                l++;
-            }
+            ans.push_back(dp[x ^ allOne]);
         }
     }
 
-    ans[pos] = l;
     prt_vec(ans);
 }
 

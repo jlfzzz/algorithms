@@ -58,13 +58,13 @@ for (int i = 2; i <= N; i++) {
 // --- 线性筛模板开始 ---
 // 筛质因子数量和不同的质因子数量
 
-const int N = 1e7 + 5;
+constexpr int N = 1e7 + 5;
 
 struct Sieve {
-    bool is_not_prime[N + 1];
+    bool is_not_prime[N + 1]{};
     std::vector<int> primes;
-    int min_prime_factor[N + 1];
-    int distinct_factors_count[N + 1];
+    int min_prime_factor[N + 1]{};
+    int distinct_factors_count[N + 1]{};
 
     Sieve() { init(N); }
 
@@ -96,12 +96,12 @@ struct Sieve {
         }
     }
 
-    bool is_prime(int x) const {
+    [[nodiscard]] bool is_prime(int x) const {
         if (x <= 1 || x > N)
             return false;
         return !is_not_prime[x];
     }
-};
+} sieve;
 
 
 // --- 线性筛模板结束 ---

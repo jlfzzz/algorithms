@@ -93,67 +93,36 @@ namespace io {
 
 using namespace io;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-
-    vector<int> a(n);
-    rd_vec(a);
-
-    int pos;
-    for (int i = 0; i < n; i++) {
-        if (a[i] == -1) {
-            pos = i;
-            break;
-        }
-    }
-
-    int mx = ranges::max(a);
-
-    vector<vector<int>> before(mx + 1), after(mx + 1);
-    for (int i = 0; i < n; i++) {
-        if (i < pos) {
-            before[a[i]].push_back(i);
-        } else if (i > pos) {
-            after[a[i]].push_back(i);
-        }
-    }
-
-    int l = 1, r = n;
-    vector<int> ans(n);
-
-    for (int i = 1; i <= mx; i++) {
-        auto &v1 = before[i];
-        auto &v2 = after[i];
-        if (i & 1) {
-            for (int x: v1) {
-                ans[x] = r;
-                r--;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = r;
-                r--;
-            }
+    int d, n, m;
+    std::cin >> n >> d >> m;
+    int64_t ans = 0;
+    std::vector<int> a, b;
+    for (int i = 0; i < n; ++i) {
+        int x;
+        std::cin >> x;
+        if (x <= m) {
+            a.push_back(x);
         } else {
-            for (int x: v1) {
-                ans[x] = l;
-                l++;
-            }
-
-            for (int j = v2.size() - 1; j >= 0; j--) {
-                ans[v2[j]] = l;
-                l++;
-            }
+            b.push_back(x);
         }
     }
-
-    ans[pos] = l;
-    prt_vec(ans);
+    std::sort(a.begin(), a.end(), std::greater<>());
+    std::sort(b.begin(), b.end(), std::greater<>());
+    std::vector<int64_t> sa(a.size() + 1), sb(b.size() + 1);
+    for (int i = 0; i < int(a.size()); ++i)
+        sa[i + 1] = sa[i] + a[i];
+    for (int i = 0; i < int(b.size()); ++i)
+        sb[i + 1] = sb[i] + b[i];
+    for (int x = 0; x <= int(a.size()); ++x) {
+        int y = (n - x + d) / (d + 1);
+        ans = std::max(ans, sa[x] + (y <= int(b.size()) ? sb[y] : sb.back()));
+    }
+    std::cout << ans << "\n";
 }
 
 signed main() {
