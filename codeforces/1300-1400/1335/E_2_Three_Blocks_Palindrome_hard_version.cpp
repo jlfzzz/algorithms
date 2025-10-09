@@ -5,7 +5,6 @@ using ll = long long;
 #define pb push_back
 #define pf push_front
 #define eb emplace_back
-#define all(x) (x).begin(), (x).end()
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
@@ -14,7 +13,7 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-namespace utils {
+namespace io {
     void debug() { cerr << "\n"; }
 
     template<typename T, typename... Args>
@@ -98,52 +97,63 @@ namespace utils {
             rd(v[i]);
         }
     }
+} // namespace io
 
-    struct range : ranges::view_base {
-        struct Iterator {
-            using iterator_category = random_access_iterator_tag;
-            using value_type = long long;
-            using difference_type = ptrdiff_t;
-            ll val, d;
-            Iterator() = default;
-            Iterator(ll val, ll d) : val(val), d(d) {};
-            value_type operator*() const { return val; }
-            Iterator &operator++() { return val += d, *this; }
-            Iterator operator++(int) {
-                Iterator tmp = *this;
-                ++(*this);
-                return tmp;
-            }
-            Iterator &operator--() { return val -= d, *this; }
-            Iterator operator--(int) {
-                Iterator tmp = *this;
-                --(*this);
-                return tmp;
-            }
-            difference_type operator-(const Iterator &other) const { return (val - other.val) / d; }
-            bool operator==(const Iterator &other) const { return val == other.val; }
-        };
-        Iterator Begin, End;
-        explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
-        range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
-            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
-            End.val = a + max(cnt, ll(0)) * d;
-        };
-        [[nodiscard]] Iterator begin() const { return Begin; }
-        [[nodiscard]] Iterator end() const { return End; };
-        [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
-    };
-} // namespace utils
-
-using namespace utils;
-
-#define int ll
+using namespace io;
 
 int Multitest = 1;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n;
+    rd(n);
+
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
+
+    int mx = ranges::max(a);
+
+    vector<vector<int>> pre(n + 1, vector<int>(mx + 1));
+
+    for (int i = 1; i <= n; i++) {
+        pre[i] = pre[i - 1];
+        pre[i][a[i]]++;
+    }
+
+    auto calc = [&](vector<int> &a, int target) -> vector<int> {
+        vector<int> res;
+        for (int i = 1; i <= n; i++) {
+            if (a[i] == target) {
+                res.push_back(i);
+            }
+        }
+        return res;
+    };
+
+    int ans = 0;
+
+    for (int i = 1; i <= mx; i++) {
+        auto pos = calc(a, i);
+        int m = pos.size();
+
+        for (int k = 0; k <= m / 2; k++) {
+            int left = k == 0 ? 0 : pos[k - 1];
+            int right = k == 0 ? n + 1 : pos[m - k];
+
+            if (left >= right)
+                break;
+
+            int mxx = 0;
+            for (int j = 1; j <= mx; j++) {
+                mxx = max(mxx, pre[right - 1][j] - pre[left][j]);
+            }
+
+            ans = max(ans, 2 * k + mxx);
+        }
+    }
+    prt(ans);
+}
 
 signed main() {
     ios::sync_with_stdio(false);

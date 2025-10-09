@@ -5,7 +5,6 @@ using ll = long long;
 #define pb push_back
 #define pf push_front
 #define eb emplace_back
-#define all(x) (x).begin(), (x).end()
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
@@ -14,7 +13,7 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-namespace utils {
+namespace io {
     void debug() { cerr << "\n"; }
 
     template<typename T, typename... Args>
@@ -25,16 +24,10 @@ namespace utils {
         debug(args...);
     }
 
-    template<typename T>
-    void prt(const T &x) {
-        cout << x << '\n';
-    }
-
-    template<typename T, typename... Args>
-    void prt(const T &first, const Args &...rest) {
-        cout << first;
-        ((cout << ' ' << rest), ...);
-        cout << '\n';
+    template<typename... Args>
+    void prt(const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << "\n";
     }
 
     template<typename T>
@@ -98,106 +91,9 @@ namespace utils {
             rd(v[i]);
         }
     }
+} // namespace io
 
-    struct range : ranges::view_base {
-        struct Iterator {
-            using iterator_category = random_access_iterator_tag;
-            using value_type = long long;
-            using difference_type = ptrdiff_t;
-            ll val, d;
-            Iterator() = default;
-            Iterator(ll val, ll d) : val(val), d(d) {};
-            value_type operator*() const { return val; }
-            Iterator &operator++() { return val += d, *this; }
-            Iterator operator++(int) {
-                Iterator tmp = *this;
-                ++(*this);
-                return tmp;
-            }
-            Iterator &operator--() { return val -= d, *this; }
-            Iterator operator--(int) {
-                Iterator tmp = *this;
-                --(*this);
-                return tmp;
-            }
-            difference_type operator-(const Iterator &other) const { return (val - other.val) / d; }
-            bool operator==(const Iterator &other) const { return val == other.val; }
-        };
-        Iterator Begin, End;
-        explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
-        range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
-            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
-            End.val = a + max(cnt, ll(0)) * d;
-        };
-        [[nodiscard]] Iterator begin() const { return Begin; }
-        [[nodiscard]] Iterator end() const { return End; };
-        [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
-    };
-} // namespace utils
-
-using namespace utils;
-
-namespace helpers {
-    // 随机数组
-    vector<int> random_array(int n, int lo, int hi) {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<int> dist(lo, hi);
-
-        vector<int> arr(n);
-        for (int i = 0; i < n; i++) {
-            arr[i] = dist(gen);
-        }
-        return arr;
-    }
-
-    // 打印整数的二进制表示
-    template<typename T>
-    void prt_bin(T x, int width = -1, char fill = '0') {
-        static_assert(is_integral_v<T>, "prt_bin only supports integral types");
-
-        string s;
-        if (x == 0) {
-            s = "0";
-        } else {
-            while (x != 0) {
-                s.push_back((x & 1) ? '1' : '0');
-                x >>= 1;
-            }
-            reverse(s.begin(), s.end());
-        }
-
-        // 如果指定了宽度，则填充
-        if (width > 0 && (int) s.size() < width) {
-            s = string(width - s.size(), fill) + s;
-        }
-
-        cout << s << "\n";
-    }
-
-    // 打印向量vector的二进制
-    template<typename T>
-    void prt_vec_bin(const vector<T> &v, int width = -1, char fill = '0') {
-        for (size_t i = 0; i < v.size(); i++) {
-            prt_bin(v[i], width, fill);
-        }
-    }
-
-    // 输入二进制字符串打印整数
-    template<typename T = long long>
-    void prt_int(const string &s) {
-        static_assert(is_integral_v<T>, "prt_int only supports integral types");
-        T x = 0;
-        for (char c: s) {
-            if (c != '0' && c != '1') {
-                throw invalid_argument("Input string must be binary (0/1 only)");
-            }
-            x = (x << 1) | (c - '0');
-        }
-        cout << x << "\n";
-    }
-
-} // namespace helpers
+using namespace io;
 
 namespace atcoder {
 
@@ -736,114 +632,85 @@ namespace atcoder {
 
 using Z = atcoder::static_modint<MOD>;
 
-Z q_pow(Z base, long long exp) {
-    Z result(1);
-    while (exp > 0) {
-        if (exp & 1)
-            result *= base;
-        base *= base;
-        exp >>= 1;
+using Matrix = vector<vector<Z>>;
+
+Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
+    int n = m1.size();
+    int p = m1[0].size();
+    int m = m2[0].size();
+
+    Matrix ret(n, vector<Z>(m, 0));
+    for (int i = 0; i < n; ++i) {
+        for (int k = 0; k < p; ++k) {
+            if (m1[i][k] == 0) {
+                continue;
+            }
+            for (int j = 0; j < m; ++j) {
+                ret[i][j] = ret[i][j] + m1[i][k] * m2[k][j];
+            }
+        }
     }
-    return result;
+    return ret;
 }
 
-namespace math {
-    // 组合数
-    struct Comb {
-        int n;
-        std::vector<Z> _fac;
-        std::vector<Z> _invfac;
-        std::vector<Z> _inv;
-
-        Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
-        explicit Comb(int n) : Comb() { init(n); }
-
-        void init(int m) {
-            if (m <= n) {
-                return;
-            }
-            _fac.resize(m + 1);
-            _invfac.resize(m + 1);
-            _inv.resize(m + 1);
-
-            for (int i = n + 1; i <= m; i++) {
-                _fac[i] = _fac[i - 1] * i;
-            }
-            _invfac[m] = _fac[m].inv();
-            for (int i = m; i > n; i--) {
-                _invfac[i - 1] = _invfac[i] * i;
-                _inv[i] = _invfac[i] * _fac[i - 1];
-            }
-            n = m;
-        }
-
-        Z fac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _fac[m];
-        }
-        Z invfac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _invfac[m];
-        }
-        Z inv(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _inv[m];
-        }
-        Z C(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(m) * invfac(n - m);
-        }
-        Z A(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(n - m);
-        }
-    } comb(100'005);
-
-    // 质因数分解
-    vector<int> decompose(int x) {
-        vector<int> primes;
-        for (int i = 2; i * i <= x; i++) {
-            if (x % i == 0) {
-                primes.push_back(i);
-                while (x % i == 0) {
-                    x /= i;
-                }
-            }
-        }
-        if (x > 1) {
-            primes.push_back(x);
-        }
-        return primes;
+Matrix quick_mul(Matrix mat, long long n) {
+    int m = mat.size();
+    Matrix unit(m, vector<Z>(m, 0));
+    for (int i = 0; i < m; ++i) {
+        unit[i][i] = 1;
     }
-} // namespace math
 
-using namespace utils;
-using namespace helpers;
-using namespace math;
-
-#define int ll
-
-void func1() {
-    int n = 5000;
-
-    vector<int> arr = {1, 2, 3, 4, 5};
-    auto random_arr1 = random_array(n, 1, 1e7);
-    auto random_arr2 = random_array(n, 1, 1e7);
-
-    vector<int> tempppp{2, 8, 4, 7};
-    for (int x: tempppp) {
-        prt_bin(x, 30);
+    while (n) {
+        if (n & 1) {
+            unit = mat_mul(unit, mat);
+        }
+        mat = mat_mul(mat, mat);
+        n >>= 1;
     }
+    return unit;
 }
 
-signed main() { func1(); }
+int Multitest = 0;
+
+void init() {}
+
+void solve() {
+    int n;
+    long long k;
+    rd(n, k);
+
+    vector<ull> a(n);
+    rd_vec(a);
+
+    Matrix start(1, vector<Z>(n, 1));
+
+    Matrix M(n, vector<Z>(n));
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (__builtin_popcountll(a[i] ^ a[j]) % 3 == 0) {
+                M[i][j] = 1;
+            }
+        }
+    }
+
+    Matrix mat = quick_mul(M, k - 1);
+    Matrix result = mat_mul(start, mat);
+
+    Z ans = 0;
+    for (int j = 0; j < n; j++)
+        ans += result[0][j];
+    prt(ans.val());
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--)
+        solve();
+    return 0;
+}

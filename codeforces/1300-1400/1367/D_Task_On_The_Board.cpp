@@ -2,10 +2,10 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
+#define int ll
 #define pb push_back
 #define pf push_front
 #define eb emplace_back
-#define all(x) (x).begin(), (x).end()
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
@@ -14,7 +14,7 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-namespace utils {
+namespace io {
     void debug() { cerr << "\n"; }
 
     template<typename T, typename... Args>
@@ -98,52 +98,100 @@ namespace utils {
             rd(v[i]);
         }
     }
+} // namespace io
 
-    struct range : ranges::view_base {
-        struct Iterator {
-            using iterator_category = random_access_iterator_tag;
-            using value_type = long long;
-            using difference_type = ptrdiff_t;
-            ll val, d;
-            Iterator() = default;
-            Iterator(ll val, ll d) : val(val), d(d) {};
-            value_type operator*() const { return val; }
-            Iterator &operator++() { return val += d, *this; }
-            Iterator operator++(int) {
-                Iterator tmp = *this;
-                ++(*this);
-                return tmp;
-            }
-            Iterator &operator--() { return val -= d, *this; }
-            Iterator operator--(int) {
-                Iterator tmp = *this;
-                --(*this);
-                return tmp;
-            }
-            difference_type operator-(const Iterator &other) const { return (val - other.val) / d; }
-            bool operator==(const Iterator &other) const { return val == other.val; }
-        };
-        Iterator Begin, End;
-        explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
-        range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
-            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
-            End.val = a + max(cnt, ll(0)) * d;
-        };
-        [[nodiscard]] Iterator begin() const { return Begin; }
-        [[nodiscard]] Iterator end() const { return End; };
-        [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
-    };
-} // namespace utils
-
-using namespace utils;
-
-#define int ll
+using namespace io;
 
 int Multitest = 1;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    string s;
+    rd(s);
+
+    int n = s.size();
+    int m;
+    rd(m);
+    vector<int> diff(m);
+    rd_vec(diff);
+
+    vector<int> cnt(26);
+    for (char c: s) {
+        cnt[c - 'a']++;
+    }
+
+    int bigger = 0;
+
+    auto check = [&](char mx) -> string {
+        string temp(m, '0');
+        set<int> pos;
+        for (int i = 0; i < m; i++) {
+            if (diff[i] == 0) {
+                temp[i] = mx;
+                pos.insert(i);
+            }
+        }
+
+        int idx = mx - 'a';
+
+        if (cnt[idx] < pos.size()) {
+            return "";
+        }
+
+        int accu = cnt[idx] - pos.size() + bigger;
+        for (int i = idx - 1; i >= 0; i--) {
+            vector<int> now;
+            for (int j = 0; j < m; j++) {
+                if (pos.contains(j)) {
+                    continue;
+                }
+
+                int d = 0;
+                for (int x: pos) {
+                    d += abs(x - j);
+                }
+
+                if (d == diff[j]) {
+                    now.pb(j);
+                }
+            }
+
+            if (now.size() <= cnt[i]) {
+                for (int j: now) {
+                    temp[j] = char('a' + i);
+                    pos.insert(j);
+                }
+                accu += cnt[i] - now.size();
+            } else {
+                accu += cnt[i];
+            }
+
+            if (accu > n - m) {
+                return "";
+            }
+        }
+
+        return temp;
+    };
+
+    for (int i = 25; i >= 0; i--) {
+        if (cnt[i]) {
+            auto t = check(char(i + 'a'));
+            if (t.size()) {
+                prt(t);
+                return;
+            }
+        }
+        bigger += cnt[i];
+
+        if (bigger > n - m) {
+            break;
+        }
+    }
+
+    prt("NO");
+}
 
 signed main() {
     ios::sync_with_stdio(false);

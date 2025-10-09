@@ -118,22 +118,17 @@ using ll = long long;
 
 class Solution {
 public:
-    long long maxProduct(vector<int> &nums) {
-        int mx = ranges::max(nums);
+    int numTrees(int n) {
+        vector<int> dp(n + 1, 0);
+        dp[0] = 1;
+        dp[1] = 1;
 
-        int m = bit_width((unsigned) mx);
-        int u = 1 << m;
-        vector<int> dp(u);
-
-        for (int x: nums) {
-            dp[x] = x;
-        }
-
-        for (int bit = 0; bit < m; bit++) {
-            for (int mask = 0; mask < u; mask++) {
-                if ()
+        for (int i = 2; i <= n; ++i) {
+            for (int j = 1; j <= i; ++j) {
+                dp[i] += dp[j - 1] * dp[i - j];
             }
         }
+        return dp[n];
     }
 };
 
