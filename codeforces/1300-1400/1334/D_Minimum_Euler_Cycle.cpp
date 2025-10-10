@@ -144,7 +144,70 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, l, r;
+    rd(n, l, r);
+
+    int sum = 0;
+
+    for (int i = 1; i <= n; i++) {
+        int cur = 2 * n - 2 - 2 * (i - 1);
+        if (i == n) {
+            cur++;
+        }
+        if (sum + cur < l) {
+            sum += cur;
+            continue;
+        }
+
+        int p1 = i;
+        int offset = 1;
+        int cnt = 0;
+
+        vector<int> ans;
+        for (int j = sum + 1; j <= r; j++) {
+            if (j < l) {
+                if (cnt % 2 == 1) {
+                    offset++;
+                    if (offset == n) {
+                        p1++;
+                        offset = 1;
+                    }
+                }
+            } else {
+                if (cnt % 2 == 0) {
+                    // if (n == 99995) {
+                    //     debug("p1", p1, "j", j);
+                    // }
+
+                    if (p1 == n) {
+                        p1 = 1;
+                    }
+                    ans.pb(p1);
+                } else {
+                    ans.pb(p1 + offset);
+                    if (p1 + offset == n) {
+                        p1++;
+                        offset = 1;
+                        if (p1 == n) {
+                            p1 = 1;
+                        }
+                    } else {
+                        offset++;
+                    }
+
+
+                    if (offset == n + 1) {
+                        // debug("p1", p1, "j", j);
+                    }
+                }
+            }
+
+            cnt++;
+        }
+
+        prt_vec(ans);
+        break;
+    }
 }
 
 signed main() {

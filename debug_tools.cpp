@@ -138,6 +138,57 @@ namespace utils {
 using namespace utils;
 
 namespace helpers {
+    // 辅助函数：递归打印树的子节点
+    void printTreeHelper(int u, int parent, const vector<vector<int>> &adj, string prefix, bool isLast) {
+        cout << prefix;
+        cout << (isLast ? "└── " : "├── ");
+        cout << u << endl;
+
+        // 获取子节点
+        vector<int> children;
+        for (int v: adj[u]) {
+            if (v != parent) {
+                children.push_back(v);
+            }
+        }
+
+        // 递归打印子节点
+        for (int i = 0; i < children.size(); i++) {
+            bool last = (i == children.size() - 1);
+            string newPrefix = prefix + (isLast ? "    " : "│   ");
+            printTreeHelper(children[i], u, adj, newPrefix, last);
+        }
+    }
+
+    // 封装的打印树函数
+    // 参数：n - 节点数，edges - 边的列表，root - 根节点（默认为1）
+    void printTree(int n, const vector<pair<int, int>> &edges, int root = 1) {
+        // 构建邻接表
+        vector<vector<int>> adj(n + 1);
+        for (const auto &edge: edges) {
+            int u = edge.first;
+            int v = edge.second;
+            adj[u].push_back(v);
+            adj[v].push_back(u);
+        }
+
+        // 打印树结构
+        cout << "Tree structure (root = " << root << "):" << endl;
+        cout << root << endl;
+
+        // 获取根节点的所有子节点
+        vector<int> children;
+        for (int v: adj[root]) {
+            children.push_back(v);
+        }
+
+        // 打印所有子树
+        for (int i = 0; i < children.size(); i++) {
+            bool last = (i == children.size() - 1);
+            printTreeHelper(children[i], root, adj, "", last);
+        }
+    }
+
     // 随机数组
     vector<int> random_array(int n, int lo, int hi) {
         random_device rd;
@@ -840,10 +891,16 @@ void func1() {
     auto random_arr1 = random_array(n, 1, 1e7);
     auto random_arr2 = random_array(n, 1, 1e7);
 
-    vector<int> tempppp{2, 8, 4, 7};
-    for (int x: tempppp) {
-        prt_bin(x, 30);
+    rd(n);
+    vector<pii> edges;
+    For(i, n - 1) {
+        int u, v;
+        rd(u, v);
+        edges.eb(u, v);
     }
+
+    printTree(n, edges);
+
 }
 
 signed main() { func1(); }

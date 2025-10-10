@@ -1,10 +1,141 @@
 #include <bits/stdc++.h>
 using namespace std;
-vector<vector<int>> DIRS = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
 using ll = long long;
+#define i128 __int128_t
+#define pb push_back
+#define pf push_front
+#define eb emplace_back
+#define all(x) (x).begin(), (x).end()
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+#define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-// 矩阵乘法，缓存友好版本。先算一整行的
+namespace utils {
+    void debug() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void debug(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        debug(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename End, typename... Args>
+    void prt_end(const End &end, const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << end;
+    }
+
+    template<typename... Args>
+    void prt_endl(const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << endl;
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+
+    struct range : ranges::view_base {
+        struct Iterator {
+            using iterator_category = random_access_iterator_tag;
+            using value_type = long long;
+            using difference_type = ptrdiff_t;
+            ll val, d;
+            Iterator() = default;
+            Iterator(ll val, ll d) : val(val), d(d) {};
+            value_type operator*() const { return val; }
+            Iterator &operator++() { return val += d, *this; }
+            Iterator operator++(int) {
+                Iterator tmp = *this;
+                ++(*this);
+                return tmp;
+            }
+            Iterator &operator--() { return val -= d, *this; }
+            Iterator operator--(int) {
+                Iterator tmp = *this;
+                --(*this);
+                return tmp;
+            }
+            difference_type operator-(const Iterator &other) const { return (val - other.val) / d; }
+            bool operator==(const Iterator &other) const { return val == other.val; }
+        };
+        Iterator Begin, End;
+        explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
+        range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
+            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
+            End.val = a + max(cnt, ll(0)) * d;
+        };
+        [[nodiscard]] Iterator begin() const { return Begin; }
+        [[nodiscard]] Iterator end() const { return End; };
+        [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
+    };
+} // namespace utils
+
+using namespace utils;
 
 namespace atcoder {
 
@@ -541,7 +672,7 @@ namespace atcoder {
 
 } // namespace atcoder
 
-using Z = atcoder::static_modint<MOD>;
+using Z = atcoder::modint;
 
 using Matrix = vector<vector<Z>>;
 
@@ -581,47 +712,84 @@ Matrix quick_mul(Matrix mat, long long n) {
     return unit;
 }
 
+int Multitest = 0;
 
-// 斐波那契，1 - index。 f1 = f2 = 1, f3 = 2, f4 = 3...
-void fib(int n) {
+void init() {}
+
+Z fib(long long n, int an, int an_1) {
+    if (n == 0)
+        return Z(an);
     auto mat1 = Matrix(1, vector<Z>(2, 0));
-    mat1[0][0] = 1;
+    mat1[0][0] = an;
+    mat1[0][1] = an_1;
+
     auto mat2 = Matrix{{1, 1}, {1, 0}};
 
     auto mat_pow = quick_mul(mat2, n - 1);
     auto mat3 = mat_mul(mat1, mat_pow);
 
-    Z ans = mat3[0][0];
+    Z ans = mat3[0][0] + mat3[0][1];
+
+    return ans;
 }
 
+void solve() {
+    int n, p;
+    long long x, y;
+    rd(n, x, y, p);
 
-// lc3337 调用示例
-class Solution {
-public:
-    int lengthAfterTransformations(string s, int t, vector<int> &nums) {
-        int SIZE = 26;
-        Matrix mat(SIZE, vector<Z>(SIZE, 0));
-        int n = nums.size();
-        for (int i = 0; i < n; ++i) {
-            int m = nums[i];
-            for (int j = 0; j < m; ++j) {
-                mat[(i + j + 1) % SIZE][i] += 1;
-            }
-        }
+    Z::set_mod(p);
 
-        mat = quick_mul(mat, t);
+    vector<int> a(n);
+    rd_vec(a);
 
-        Matrix mat2(SIZE, vector<Z>(1, 0));
-        for (char c: s) {
-            mat2[c - 'a'][0] += 1;
-        }
-
-        mat = mat_mul(mat, mat2);
-
-        Z total = 0;
-        for (int i = 0; i < SIZE; ++i) {
-            total += mat[i][0];
-        }
-        return (int) total;
+    if (n == 1) {
+        prt(a[0] % p);
+        return;
     }
-};
+
+    Z s1 = 0;
+    for (int x: a) {
+        s1 += x;
+    }
+
+    int a1 = a[0];
+    int an = a[n - 1];
+
+    auto mat0 = Matrix(1, vector<Z>(2));
+    mat0[0][0] = s1;
+    mat0[0][1] = 1;
+
+    auto unit = Matrix(2, vector<Z>(2));
+    unit[0][0] = 3;
+    unit[0][1] = 0;
+    unit[1][0] = -(a1 + an);
+    unit[1][1] = 1;
+
+    auto mat1 = quick_mul(unit, x);
+    mat1 = mat_mul(mat0, mat1);
+
+    Z mx = fib(x, an, a[n - 2]);
+
+    unit[1][0] = -(Z(a1) + mx);
+
+    auto mat2 = quick_mul(unit, y);
+    auto mat3 = mat_mul(mat1, mat2);
+
+    Z ans = mat3[0][0];
+
+    prt(ans.val());
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--)
+        solve();
+    return 0;
+}

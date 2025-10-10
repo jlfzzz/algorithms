@@ -20,8 +20,7 @@ MOD = int(1e9 + 7)
 
 
 def main():
-    n = eval(input("Enter a number: "))
-    print("{:*^30}".format(n))
+    print(99995 * 99994 + 1)
 
 
 if __name__ == "__main__":

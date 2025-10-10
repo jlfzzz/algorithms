@@ -144,7 +144,40 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, m, k;
+    rd(n, m, k);
+
+    vector<vector<int>> grid(n + 1, vector<int>(m + 1));
+    For(i, n) { rd_vec(grid[i + 1], 1); }
+
+    vector<int> dp_prev(m + 1, inf);
+    for (int i = 1; i <= n; i++) {
+        vector<int> dp_best(m + 1, inf);
+        for (int s = 0; s < m; s++) {
+            vector<int> v(m + 1, 0);
+            for (int j = 1; j <= m; j++) {
+                int idx = j + s;
+                if (idx > m)
+                    idx -= m;
+                v[j] = grid[i][idx];
+            }
+            vector<int> dp_cur(m + 1, inf);
+            if (i == 1) {
+                dp_cur[1] = v[1];
+                for (int j = 2; j <= m; j++)
+                    dp_cur[j] = dp_cur[j - 1] + v[j];
+            } else {
+                dp_cur[1] = v[1] + dp_prev[1];
+                for (int j = 2; j <= m; j++)
+                    dp_cur[j] = v[j] + min(dp_cur[j - 1], dp_prev[j]);
+            }
+            int add = k * s;
+            for (int j = 1; j <= m; j++)
+                dp_best[j] = min(dp_best[j], dp_cur[j] + add);
+        }
+        dp_prev.swap(dp_best);
+    }
+    prt(dp_prev[m]);
 }
 
 signed main() {

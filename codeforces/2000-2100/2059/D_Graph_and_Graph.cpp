@@ -144,7 +144,156 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, s1, s2;
+    rd(n, s1, s2);
+
+    vector<vector<int>> g1(n + 1), g2(n + 1);
+
+    int m1;
+    rd(m1);
+    For(i, m1) {
+        int u, v;
+        rd(u, v);
+        g1[u].pb(v);
+        g1[v].pb(u);
+    }
+
+    int m2;
+    rd(m2);
+    For(i, m2) {
+        int u, v;
+        rd(u, v);
+        g2[u].pb(v);
+        g2[v].pb(u);
+    }
+
+    auto bfs1 = [&](vector<vector<int>> &g, int start) -> vector<vector<int>> {
+        vector<vector<int>> dis(n + 1, vector<int>(2, -1));
+
+        struct Info {
+            int u, d, flag;
+        };
+
+        deque<Info> dq;
+        dq.emplace_back(start, 0, 0);
+        while (!dq.empty()) {
+            auto [u, d, flag] = dq.front();
+            dq.pop_front();
+
+            for (int v: g[u]) {
+                int nflag = !flag;
+                if (dis[v][nflag] == -1) {
+                    dis[v][nflag] = d + 1;
+                    dq.emplace_back(v, d + 1, nflag);
+                }
+            }
+        }
+
+        return dis;
+    };
+
+    auto dis1 = bfs1(g1, s1);
+    auto dis2 = bfs1(g2, s2);
+
+    vector<char> good(n + 1, 0);
+    for (int i: range(1, n + 1)) {
+        set<int> have;
+        for (int v: g1[i]) {
+            have.insert(v);
+        }
+        for (int v: g2[i]) {
+            if (have.contains(v)) {
+                good[i] = 1;
+                break;
+            }
+        }
+    }
+
+    vector<vector<int>> dis(n + 1, vector<int>(n + 1, -inf));
+    int ans = -inf;
+    auto dij = [&]() -> void {
+        vector<vector<int>> dist(n + 1, vector<int>(n + 1, inf));
+        priority_queue<tuple<int, int, int>, vector<tuple<int, int, int>>, greater<>> pq;
+        dist[s1][s2] = 0;
+        pq.emplace(0, s1, s2);
+
+        while (!pq.empty()) {
+            auto [d, x, y] = pq.top();
+            pq.pop();
+            if (d != dist[x][y])
+                continue;
+
+            if (x == y && good[x]) {
+                ans = d;
+                return;
+            }
+
+            for (int u: g1[x]) {
+                for (int v: g2[y]) {
+                    int nd = d + llabs(u - v);
+                    if (nd < dist[u][v]) {
+                        dist[u][v] = nd;
+                        pq.emplace(nd, u, v);
+                    }
+                }
+            }
+        }
+    };
+
+    bool needDij = false;
+    for (int i: range(1, n + 1)) {
+        if (i == s1) {
+            continue;
+        }
+
+        if (dis1[i][0] != -1 && dis2[i][0] != -1) {
+            set<int> have;
+            for (int v: g1[i]) {
+                have.insert(v);
+            }
+
+            bool flag = false;
+            for (int v: g2[i]) {
+                if (have.contains(v)) {
+                    flag = true;
+                    break;
+                }
+            }
+
+            if (flag) {
+                needDij = true;
+            }
+        }
+
+        if (dis1[i][1] != -1 && dis2[i][1] != -1) {
+            set<int> have;
+            for (int v: g1[i]) {
+                have.insert(v);
+            }
+
+            bool flag = false;
+            for (int v: g2[i]) {
+                if (have.contains(v)) {
+                    flag = true;
+                    break;
+                }
+            }
+
+            if (flag) {
+                needDij = true;
+            }
+        }
+    }
+
+    if (needDij) {
+        dij();
+    }
+
+    if (ans == -inf) {
+        ans = -1;
+    }
+
+    prt(ans);
 }
 
 signed main() {

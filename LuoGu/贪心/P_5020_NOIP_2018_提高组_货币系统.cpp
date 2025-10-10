@@ -143,19 +143,37 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {
-    
+
+int a[105], dp[25005], n, T;
+int solve(int a[], int n) {
+    int ans = n;
+    sort(a + 1, a + n + 1);
+    int p = 1;
+    for (int i = 1; i <= a[n]; i++)
+        dp[i] = 0;
+    for (int i = 1; i <= a[n]; i++) {
+        for (int j = 1; a[j] < i; j++) {
+            if (dp[i - a[j]])
+                dp[i] = 1;
+        }
+        if (dp[i] == 0) {
+            if (i == a[p])
+                ++p, dp[i] = 1;
+        } else if (i == a[p])
+            ++p, --ans;
+    }
+    return ans;
 }
 
+
 signed main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
+    cin >> T;
+    while (T--) {
+        cin >> n;
+        for (int i = 1; i <= n; i++)
+            cin >> a[i];
+        cout << solve(a, n) << endl;
     }
-    while (T--)
-        solve();
     return 0;
 }
+

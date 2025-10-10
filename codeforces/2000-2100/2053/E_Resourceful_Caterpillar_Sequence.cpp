@@ -144,7 +144,72 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    vector<vector<int>> g(n + 1);
+    For(i, n - 1) {
+        int u, v;
+        rd(u, v);
+
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+
+    // 参考思路实现：vis 标记 + 子树和 + 子/父方向统计
+    vector<int> deg(n + 1), vis(n + 1);
+    for (int i = 1; i <= n; i++)
+        deg[i] = (int) g[i].size();
+    int leaf_cnt = 0;
+    for (int i = 1; i <= n; i++)
+        if (deg[i] == 1) {
+            leaf_cnt++;
+            vis[i] = 1; // 叶子本身标 1
+        }
+    for (int i = 1; i <= n; i++)
+        if (deg[i] == 1) {
+            for (int v: g[i])
+                vis[v] = 1; // 邻居也标 1
+        }
+
+    long long ans = leaf_cnt * (n - leaf_cnt);
+
+    vector<int> parent(n + 1), sz(n + 1), sum(n + 1);
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        parent[u] = fa;
+        sz[u] = 1;
+        sum[u] = vis[u];
+        for (int v: g[u])
+            if (v != fa) {
+                dfs(v, u);
+                sum[u] += sum[v];
+                sz[u] += sz[v];
+            }
+    };
+    dfs(1, 0);
+
+    for (int i = 1; i <= n; i++) {
+        if (deg[i] == 1)
+            continue; // 情况1已经计过
+        long long tot1 = 0, tot2 = 0;
+        // 子方向：挑子节点 k，要求 k 与叶子相邻、且 k 不是叶子
+        for (int j: g[i]) {
+            if (j == parent[i])
+                continue;
+            if (vis[j] == 0)
+                continue;
+            if (deg[j] == 1)
+                continue;
+            tot1 += (sz[j] - sum[j]);
+        }
+        // 父方向：父亲满足要求
+        if (i != 1 && vis[parent[i]] && deg[parent[i]] > 1) {
+            tot2 += (n - sz[i]) - (sum[1] - sum[i]);
+        }
+        ans += tot1 + tot2;
+    }
+
+    prt(ans);
 }
 
 signed main() {

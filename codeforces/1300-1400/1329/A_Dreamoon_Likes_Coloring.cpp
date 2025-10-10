@@ -139,12 +139,33 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+
+    std::vector<int> l(m);
+    std::vector<long long> suf(m + 1);
+    for (int i = 0; i < m; ++i) {
+        std::cin >> l[i];
+        if (i + l[i] > n) {
+            std::cout << -1 << "\n";
+            return;
+        }
+    }
+    for (int i = m; i--;)
+        suf[i] = suf[i + 1] + l[i];
+    if (suf[0] < n) {
+        std::cout << -1 << "\n";
+        return;
+    }
+    for (int i = 0; i < m; ++i) {
+        int r = i + suf[i] >= n ? i : n - suf[i];
+        std::cout << r + 1 << " \n"[i == m - 1];
+    }
 }
 
 signed main() {

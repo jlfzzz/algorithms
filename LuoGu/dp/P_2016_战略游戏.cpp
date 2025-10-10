@@ -139,12 +139,50 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    vector<vector<int>> g(n + 1);
+    For(i, n) {
+        int u, k;
+        rd(u, k);
+
+        For(j, k) {
+            int v;
+            rd(v);
+            g[u + 1].pb(v + 1);
+            g[v + 1].pb(u + 1);
+        }
+    }
+
+    int ans = inf;
+
+    auto dfs = [&](this auto &&dfs, int u, int fa, vector<vector<int>> &dp) -> void {
+        dp[u][0] = 0; // 不选u
+        dp[u][1] = 1; // 选u
+
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            dfs(v, u, dp);
+            dp[u][1] += min(dp[v][0], dp[v][1]);
+            dp[u][0] += dp[v][1];
+        }
+    };
+
+    // 任选一个根（1）进行一次树形 DP 即可
+    int root = 1;
+    vector<vector<int>> dp(n + 1, vector<int>(2, inf));
+    dfs(root, 0, dp);
+    ans = min(dp[root][0], dp[root][1]);
+    prt(ans);
 }
 
 signed main() {

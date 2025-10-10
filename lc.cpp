@@ -131,9 +131,20 @@ public:
 
         for (int bit = 0; bit < m; bit++) {
             for (int mask = 0; mask < u; mask++) {
-                if ()
+                if (!(mask >> bit & 1)) {
+                    dp[mask | (1 << bit)] = max(dp[mask | (1 << bit)], dp[mask]);
+                }
             }
         }
+
+        long long ans = 0;
+        int mask = u - 1;
+        for (int x: nums) {
+            int t = x ^ mask;
+            ans = max(ans, 1ll * x * dp[t]);
+        }
+
+        return ans;
     }
 };
 
