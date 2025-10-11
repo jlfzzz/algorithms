@@ -137,41 +137,89 @@ namespace utils {
 
 using namespace utils;
 
+#define int ll
+
 int Multitest = 1;
 
 void init() {}
 
-typedef tuple<ll, ll, ll> tp;
-ll T, n;
-int main() {
-    cin >> T;
-    while (T--) {
-        priority_queue<tp, vector<tp>, greater<tp>> pq;
-        ll x = 1, y = 1, dis = 2; // 位置和步数
-        cin >> n;
-        vector<pair<ll, ll>> ans(n + 1);
-        for (ll i = 1, xx; i <= n; i++) {
-            cin >> xx;
-            if (xx && pq.size() && get<0>(pq.top()) < dis) {
-                // 需要空位置，堆不为空，距离小于 dis
-                auto p = pq.top();
-                pq.pop();
-                ans[i] = {get<1>(p), get<2>(p)};
-            } else {
-                ans[i] = {x, y};
-                pq.push({x + y + 1, x + 1, y});
-                pq.push({x + y + 1, x, y + 1});
-                pq.push({x + y + 4, x + 1, y + 1});
-                // 把这个桌子其他三个位置放入堆
-                (y - 1) ? (x += 3, y -= 3) : (swap(x, y), y += 3);
-                // 这里如果 y=1 需要特判
-                dis = x + y;
+void solve() {
+    int l, r, bit, k;
+    rd(l, r, bit, k);
 
-                debug("x", x, "y", y);
-            }
+    int m = 1LL << bit;
+
+    const int MAXB = 61;
+
+    auto f0 = [&](int x) -> int {
+        switch (x & 3) {
+            case 0:
+                return x;
+            case 1:
+                return 1;
+            case 2:
+                return x + 1;
+            default:
+                return 0;
         }
-        for (ll i = 1; i <= n; i++) {
-            cout << ans[i].first << " " << ans[i].second << endl;
+    };
+
+    auto f1 = [&](int x) -> vector<int> {
+        vector<int> res(MAXB);
+        int v = f0(x);
+        for (int i: range(MAXB)) {
+            res[i] = (v >> i) & 1;
         }
+        return res;
+    };
+
+    auto L = f1(l - 1);
+    auto R = f1(r);
+
+    auto f2 = [&](int x) -> vector<int> {
+        vector<int> res(MAXB);
+        if (x < k)
+            return res;
+        int cnt = (x - k) / m + 1;
+        if (cnt <= 0)
+            return res;
+
+        for (int i: range(bit)) {
+            int t = (k >> i) & 1;
+            res[i] = (cnt & 1) ? t : 0;
+        }
+
+        int t = f0(cnt - 1);
+        for (int i = bit; i < MAXB; ++i) {
+            int b = i - bit;
+            res[i] = (t >> b) & 1;
+        }
+
+        return res;
+    };
+
+    auto L1 = f2(l - 1);
+    auto R1 = f2(r);
+
+    int ans = 0;
+    for (int i: range(MAXB)) {
+        int t = (R[i] - L[i] + R1[i] - L1[i] + 100) & 1;
+        if (t)
+            ans |= (1LL << i);
     }
+
+    prt(ans);
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--)
+        solve();
+    return 0;
 }

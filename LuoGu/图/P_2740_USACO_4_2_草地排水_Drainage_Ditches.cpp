@@ -137,41 +137,115 @@ namespace utils {
 
 using namespace utils;
 
-int Multitest = 1;
+#define int ll
+
+using Flow = long long;
+
+struct Edge {
+    int to, rev;
+    Flow cap;
+};
+
+// Dinic
+struct Dinic {
+    int n;
+    vector<vector<Edge>> g;
+    vector<int> level;
+    vector<int> it;
+    Dinic(int n = 0) { init(n + 5); }
+
+    void init(int _n) {
+        n = _n;
+        g.assign(n, {});
+        level.assign(n, -1);
+        it.assign(n, 0);
+    }
+
+    void add(int u, int v, Flow c) {
+        g[u].emplace_back(v, (int) g[v].size(), c);
+        g[v].emplace_back(u, (int) g[u].size() - 1, 0);
+    }
+
+    bool bfs(int s, int t) {
+        fill(level.begin(), level.end(), -1);
+        queue<int> q;
+        level[s] = 0;
+        q.push(s);
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+            for (const Edge &e: g[u]) {
+                if (level[e.to] < 0 && e.cap > 0) {
+                    level[e.to] = level[u] + 1;
+                    q.push(e.to);
+                }
+            }
+        }
+        return level[t] >= 0;
+    }
+
+    Flow dfs(int u, int t, Flow f) {
+        if (u == t)
+            return f;
+        for (int &i = it[u]; i < (int) g[u].size(); ++i) {
+            Edge &e = g[u][i];
+            if (e.cap > 0 && level[e.to] == level[u] + 1) {
+                Flow pushed = dfs(e.to, t, min(f, e.cap));
+                if (pushed > 0) {
+                    e.cap -= pushed;
+                    g[e.to][e.rev].cap += pushed;
+                    return pushed;
+                }
+            }
+        }
+        return 0;
+    }
+
+    Flow maxFlow(int s, int t) {
+        Flow flow = 0;
+        while (bfs(s, t)) {
+            fill(it.begin(), it.end(), 0);
+            while (true) {
+                Flow pushed = dfs(s, t, numeric_limits<Flow>::max());
+                if (pushed == 0)
+                    break;
+                flow += pushed;
+            }
+        }
+        return flow;
+    }
+};
+
+int Multitest = 0;
 
 void init() {}
 
-typedef tuple<ll, ll, ll> tp;
-ll T, n;
-int main() {
-    cin >> T;
-    while (T--) {
-        priority_queue<tp, vector<tp>, greater<tp>> pq;
-        ll x = 1, y = 1, dis = 2; // 位置和步数
-        cin >> n;
-        vector<pair<ll, ll>> ans(n + 1);
-        for (ll i = 1, xx; i <= n; i++) {
-            cin >> xx;
-            if (xx && pq.size() && get<0>(pq.top()) < dis) {
-                // 需要空位置，堆不为空，距离小于 dis
-                auto p = pq.top();
-                pq.pop();
-                ans[i] = {get<1>(p), get<2>(p)};
-            } else {
-                ans[i] = {x, y};
-                pq.push({x + y + 1, x + 1, y});
-                pq.push({x + y + 1, x, y + 1});
-                pq.push({x + y + 4, x + 1, y + 1});
-                // 把这个桌子其他三个位置放入堆
-                (y - 1) ? (x += 3, y -= 3) : (swap(x, y), y += 3);
-                // 这里如果 y=1 需要特判
-                dis = x + y;
+void solve() {
+    int n, m;
+    rd(n, m);
 
-                debug("x", x, "y", y);
-            }
-        }
-        for (ll i = 1; i <= n; i++) {
-            cout << ans[i].first << " " << ans[i].second << endl;
-        }
+    Dinic dinic(m);
+
+    For(i, n) {
+        int s, e, c;
+        rd(s, e, c);
+        dinic.add(s, e, c);
     }
+
+    auto ans = dinic.maxFlow(1, m);
+
+    prt(ans);
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--)
+        solve();
+    return 0;
 }

@@ -137,41 +137,108 @@ namespace utils {
 
 using namespace utils;
 
+constexpr int N = 5e5 + 5;
+
+struct Sieve {
+    bool is_not_prime[N + 1]{};
+    std::vector<int> primes;
+    int min_prime_factor[N + 1]{};
+    int distinct_factors_count[N + 1]{};
+
+    Sieve() { init(N); }
+
+    void init(int n) {
+        is_not_prime[0] = is_not_prime[1] = true;
+        min_prime_factor[0] = min_prime_factor[1] = 0;
+        distinct_factors_count[1] = 0;
+
+        for (int i = 2; i <= n; ++i) {
+            if (!is_not_prime[i]) {
+                primes.push_back(i);
+                min_prime_factor[i] = i;
+                distinct_factors_count[i] = 1;
+            }
+
+            for (int p: primes) {
+                if ((long long) i * p > n)
+                    break;
+                is_not_prime[i * p] = true;
+                min_prime_factor[i * p] = p;
+
+                if (i % p == 0) {
+                    distinct_factors_count[i * p] = distinct_factors_count[i];
+                    break;
+                } else {
+                    distinct_factors_count[i * p] = distinct_factors_count[i] + 1;
+                }
+            }
+        }
+    }
+
+    [[nodiscard]] bool is_prime(int x) const {
+        if (x <= 1 || x > N)
+            return false;
+        return !is_not_prime[x];
+    }
+} sieve;
+
+
+#define int ll
+
 int Multitest = 1;
 
 void init() {}
 
-typedef tuple<ll, ll, ll> tp;
-ll T, n;
-int main() {
-    cin >> T;
-    while (T--) {
-        priority_queue<tp, vector<tp>, greater<tp>> pq;
-        ll x = 1, y = 1, dis = 2; // 位置和步数
-        cin >> n;
-        vector<pair<ll, ll>> ans(n + 1);
-        for (ll i = 1, xx; i <= n; i++) {
-            cin >> xx;
-            if (xx && pq.size() && get<0>(pq.top()) < dis) {
-                // 需要空位置，堆不为空，距离小于 dis
-                auto p = pq.top();
-                pq.pop();
-                ans[i] = {get<1>(p), get<2>(p)};
-            } else {
-                ans[i] = {x, y};
-                pq.push({x + y + 1, x + 1, y});
-                pq.push({x + y + 1, x, y + 1});
-                pq.push({x + y + 4, x + 1, y + 1});
-                // 把这个桌子其他三个位置放入堆
-                (y - 1) ? (x += 3, y -= 3) : (swap(x, y), y += 3);
-                // 这里如果 y=1 需要特判
-                dis = x + y;
+void solve() {
+    int n;
+    rd(n);
 
-                debug("x", x, "y", y);
-            }
-        }
-        for (ll i = 1; i <= n; i++) {
-            cout << ans[i].first << " " << ans[i].second << endl;
-        }
+    vector<vector<int>> g(n + 1);
+    For(i, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
+
+    int counter = 0;
+
+    vector<int> ans(n + 1);
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        counter++;
+
+        if (counter - ans[fa] == 1) {
+            ans[u] = counter;
+        } else {
+            while (sieve.is_prime(counter - ans[fa])) {
+                counter++;
+            }
+            ans[u] = counter;
+        }
+
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            dfs(v, u);
+        }
+    };
+
+    dfs(1, 0);
+
+    prt_vec(ans, 1);
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--)
+        solve();
+    return 0;
 }

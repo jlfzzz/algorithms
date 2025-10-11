@@ -137,41 +137,65 @@ namespace utils {
 
 using namespace utils;
 
+#define int ll
+
 int Multitest = 1;
 
 void init() {}
 
-typedef tuple<ll, ll, ll> tp;
-ll T, n;
-int main() {
-    cin >> T;
-    while (T--) {
-        priority_queue<tp, vector<tp>, greater<tp>> pq;
-        ll x = 1, y = 1, dis = 2; // 位置和步数
-        cin >> n;
-        vector<pair<ll, ll>> ans(n + 1);
-        for (ll i = 1, xx; i <= n; i++) {
-            cin >> xx;
-            if (xx && pq.size() && get<0>(pq.top()) < dis) {
-                // 需要空位置，堆不为空，距离小于 dis
-                auto p = pq.top();
-                pq.pop();
-                ans[i] = {get<1>(p), get<2>(p)};
-            } else {
-                ans[i] = {x, y};
-                pq.push({x + y + 1, x + 1, y});
-                pq.push({x + y + 1, x, y + 1});
-                pq.push({x + y + 4, x + 1, y + 1});
-                // 把这个桌子其他三个位置放入堆
-                (y - 1) ? (x += 3, y -= 3) : (swap(x, y), y += 3);
-                // 这里如果 y=1 需要特判
-                dis = x + y;
+void solve() {
+    int n;
+    rd(n);
 
-                debug("x", x, "y", y);
+    vector<vector<int>> g(n + 1);
+    For(i, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+
+    vector<int> w(n + 1);
+    for (int u = 1; u <= n; u++)
+        w[u] = g[u].size() - 2;
+
+    int best = -inf;
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> int {
+        int top1 = 0, top2 = 0;
+        for (int v: g[u]) {
+            if (v == fa)
+                continue;
+            int d = dfs(v, u);
+            if (d > 0) {
+                if (d >= top1) {
+                    top2 = top1;
+                    top1 = d;
+                } else if (d > top2) {
+                    top2 = d;
+                }
             }
         }
-        for (ll i = 1; i <= n; i++) {
-            cout << ans[i].first << " " << ans[i].second << endl;
-        }
+        int down = w[u] + top1;
+        int t = w[u] + top1 + top2;
+        best = max(best, max(t, w[u]));
+        return max(w[u], down);
+    };
+
+    dfs(1, 0);
+    int ans = best + 2;
+
+    prt(ans);
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
+    while (T--)
+        solve();
+    return 0;
 }

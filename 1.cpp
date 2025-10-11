@@ -1,96 +1,217 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// 题意摘要：非黑色共有 k 种，计数 c_i，黑色 b 个，总 n。把花瓣依次入栈；
-// 遇到黑色：若栈非空则弹掉栈顶（相当于消去一个彩色），否则什么也不弹。
-// 问最终可能的栈序列个数。
-// 推导：最终长度 L ∈ [max(m-b,0), m]，其中 m = sum c_i。
-// 对固定 L，答案为 L! * [x^L] Π_i Σ_{t=0}^{c_i} x^t / t!。
-// 为了只求接近总度数 m 的最高 b+1 个系数，做“总度数反转”：
-// 令 P(x) = Π_i Σ_{t=0}^{c_i} x^t / t!，总度数 m；R(y) = y^m P(1/y) = Π_i Q_i(y)。
-// 则 [x^{m-t}]P(x) = [y^t]R(y)。
-// 而 Q_i(y) = Σ_{t=0}^{c_i} y^{c_i - t} / t! = Σ_{r=0}^{c_i} y^r / (c_i - r)!
-// 只需 R(y) 的 0..b 次项，因此每个 Q_i 只取前 min(b, c_i)+1 项即可，
-// 用长度 b+1 的 DP 做多项式卷积，复杂度 O(k * b^2)。
+// Potion Seller
+// 目标：(S_t, D_t)。可任意比例混合已购药水，结果是二维点的凸组合。
+// 关键：二维下若可达，最多 3 瓶即可（Carathéodory）。
+// 优化方案：三瓶情况用极角排序 + 区间最小值在 O(n^2) 解决（而不是 O(n^3) 穷举）。
 
-static const int MOD = 1000000007;
+struct Potion {
+    long long s, d, cost;
+};
 
-long long modPow(long long a, long long e) {
-    long long r = 1 % MOD;
-    while (e > 0) {
-        if (e & 1)
-            r = r * a % MOD;
-        a = a * a % MOD;
-        e >>= 1;
-    }
-    return r;
+static inline __int128 cross_ll(long long ax, long long ay, long long bx, long long by) {
+    return (__int128) ax * by - (__int128) ay * bx;
 }
+
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
 
-    long long n;
-    int k, b;
-    if (!(cin >> n >> k >> b))
+    int n;
+    long long S_t, D_t;
+    if (!(cin >> n >> S_t >> D_t))
         return 0;
-    vector<int> c(k);
-    long long m = 0;
-    for (int i = 0; i < k; i++) {
-        cin >> c[i];
-        m += c[i];
+
+    vector<Potion> all(n);
+    for (int i = 0; i < n; i++)
+        cin >> all[i].s >> all[i].d >> all[i].cost;
+
+    // 重复点只保留成本最低者，能显著减少规模
+    {
+        map<pair<long long, long long>, long long> best;
+        for (const auto &p: all) {
+            pair<long long, long long> key = {p.s, p.d};
+            auto it = best.find(key);
+            if (it == best.end())
+                best[key] = p.cost;
+            else
+                it->second = min(it->second, p.cost);
+        }
+        vector<Potion> comp;
+        comp.reserve(best.size());
+        for (auto &kv: best)
+            comp.push_back({kv.first.first, kv.first.second, kv.second});
+        all.swap(comp);
+        n = (int) all.size();
     }
 
-    // 预处理阶乘与逆阶乘到 m（m ≤ 1e5）
-    vector<long long> fact(m + 1), invfact(m + 1);
-    fact[0] = 1;
-    for (long long i = 1; i <= m; i++)
-        fact[i] = fact[i - 1] * i % MOD;
-    invfact[m] = modPow(fact[m], MOD - 2);
-    for (long long i = m - 1; i >= 0; i--)
-        invfact[i] = invfact[i + 1] * (i + 1) % MOD;
+    const pair<long long, long long> T = {S_t, D_t};
 
-    int B = (int) min<long long>(b, m); // 只需要 0..B 的 R(y) 系数
+    long long bestCost = (long long) 4e18;
+    vector<pair<long long, long long>> bestPick;
 
-    // dp[i] 代表被黑色抵消/删除了i个
-    // dp[0]就是一个没删。所以最后求答案的时候，L=m-t,t=0时候就是L=m，所以再乘L的阶乘
-    // 内层的两个for
-    // r代表当前或者说最新的dp，代表已经选了r个去被黑色删除
-    // 枚举t，t<=min(ci,B)代表当前选t个去被黑色的删
-    // 所以是当前选了t被删，剩下的排列数也就是系数就是ci-t的阶乘，除掉这个玩意的逆元就是系数转移
-    // 所以最后答案循环，对于dp[i]代表选了i个被黑色删，剩下的所有其它的就是m - t，就是再乘这个的阶乘就是答案
+    // 1 瓶：必须完全等于目标
+    for (int i = 0; i < n; i++) {
+        if (all[i].s == S_t && all[i].d == D_t) {
+            if (all[i].cost < bestCost) {
+                bestCost = all[i].cost;
+                bestPick = {{all[i].s, all[i].d}};
+            }
+        }
+    }
 
-    vector<long long> dp(B + 1, 0), ndp(B + 1, 0);
-    dp[0] = 1; // R(y) 初始为 1
-    int curMax = 0; // 当前已知的最高次数（≤ B）
-
-    // 关键转移循环
-    for (int i = 0; i < k; i++) {
-        int ci = c[i];
-        int take = min(B, ci); // Q_i 只需 0..take 次项
-        fill(ndp.begin(), ndp.end(), 0);
-        for (int r = 0; r <= curMax; r++)
-            if (dp[r]) {
-                for (int t = 0; t <= take && r + t <= B; t++) {
-                    // Q_i 的 y^t 系数 = 1 / (ci - t)!
-                    long long coef = invfact[ci - t];
-                    ndp[r + t] = (ndp[r + t] + dp[r] * coef) % MOD;
+    // 2 瓶：通过“无向方向”分组，在每个方向上各取正/负半射线最小成本
+    {
+        struct PairMin {
+            long long pos = (long long) 4e18, neg = (long long) 4e18;
+            int ip = -1, in = -1;
+        };
+        map<pair<long long, long long>, PairMin> bucket; // key: 规范化方向（x>0 或 x=0,y>0）
+        auto norm = [](long long x, long long y) {
+            long long g = std::gcd(std::llabs(x), std::llabs(y));
+            x /= g;
+            y /= g;
+            if (x < 0 || (x == 0 && y < 0)) {
+                x = -x;
+                y = -y;
+            }
+            return make_pair(x, y);
+        };
+        auto sideDot = [](long long vx, long long vy, long long nx, long long ny) {
+            long long dot = vx * nx + vy * ny;
+            return (dot > 0) ? 1 : -1; // vx,vy 非零向量
+        };
+        for (int i = 0; i < n; i++) {
+            long long vx = all[i].s - S_t, vy = all[i].d - D_t;
+            if (vx == 0 && vy == 0)
+                continue; // 已在 1 瓶处理
+            auto k = norm(vx, vy);
+            auto &pm = bucket[k];
+            int sg = sideDot(vx, vy, k.first, k.second);
+            if (sg > 0) {
+                if (all[i].cost < pm.pos) {
+                    pm.pos = all[i].cost;
+                    pm.ip = i;
+                }
+            } else {
+                if (all[i].cost < pm.neg) {
+                    pm.neg = all[i].cost;
+                    pm.in = i;
                 }
             }
-        dp.swap(ndp);
-        curMax = min(B, curMax + take);
+        }
+        for (auto &kv: bucket)
+            if (kv.second.ip != -1 && kv.second.in != -1) {
+                long long sum = kv.second.pos + kv.second.neg;
+                if (sum < bestCost) {
+                    bestCost = sum;
+                    auto A = all[kv.second.ip];
+                    auto B = all[kv.second.in];
+                    bestPick = {{A.s, A.d}, {B.s, B.d}};
+                }
+            }
     }
 
-    long long ans = 0;
-    // t = m - L，L 从 max(m-b,0) 到 m，对应 t 从 0 到 B
-    for (int t = 0; t <= B; t++) {
-        long long L = m - t;
-        // 保护：若 L < 0（理论不会发生）则跳过
-        if (L < 0)
-            continue;
-        ans = (ans + fact[L] * dp[t]) % MOD;
+    // 3 瓶：极角排序 + 区间最小值（O(n^2)）
+    {
+        struct Vec {
+            long long x, y, cost;
+            int idx;
+        };
+        vector<Vec> v;
+        v.reserve(n);
+        for (int i = 0; i < n; i++) {
+            long long x = all[i].s - S_t, y = all[i].d - D_t;
+            if (x == 0 && y == 0)
+                continue;
+            v.push_back({x, y, all[i].cost, i});
+        }
+        int m = (int) v.size();
+        if (m >= 3) {
+            auto upper = [](const Vec &a) { return a.y > 0 || (a.y == 0 && a.x > 0); };
+            auto cmp = [&](const Vec &a, const Vec &b) {
+                bool ua = upper(a), ub = upper(b);
+                if (ua != ub)
+                    return ua > ub;
+                __int128 cr = cross_ll(a.x, a.y, b.x, b.y);
+                if (cr != 0)
+                    return cr > 0;
+                if (a.cost != b.cost)
+                    return a.cost < b.cost;
+                return a.idx < b.idx;
+            };
+            sort(v.begin(), v.end(), cmp);
+
+            vector<Vec> arr(2 * m);
+            for (int i = 0; i < 2 * m; i++)
+                arr[i] = v[i % m];
+
+            int N = 2 * m;
+            vector<int> lg(N + 1, 0);
+            for (int i = 2; i <= N; i++)
+                lg[i] = lg[i >> 1] + 1;
+            int K = lg[N] + 1;
+            auto better = [&](int p, int q) {
+                if (p == -1)
+                    return q;
+                if (q == -1)
+                    return p;
+                if (arr[p].cost != arr[q].cost)
+                    return arr[p].cost < arr[q].cost ? p : q;
+                return (arr[p].idx < arr[q].idx) ? p : q;
+            };
+            vector<vector<int>> st(K, vector<int>(N, -1));
+            for (int i = 0; i < N; i++)
+                st[0][i] = i;
+            for (int k = 1; k < K; k++) {
+                int len = 1 << k, half = len >> 1;
+                for (int i = 0; i + len <= N; i++)
+                    st[k][i] = better(st[k - 1][i], st[k - 1][i + half]);
+            }
+            auto queryPos = [&](int L, int R) {
+                if (L > R)
+                    return -1;
+                int k = lg[R - L + 1];
+                return better(st[k][L], st[k][R - (1 << k) + 1]);
+            };
+
+            auto crossv = [](const Vec &a, const Vec &b) { return cross_ll(a.x, a.y, b.x, b.y); };
+
+            int r = 0;
+            for (int i = 0; i < m; i++) {
+                if (r < i)
+                    r = i;
+                while (r + 1 < i + m && crossv(arr[i], arr[r + 1]) > 0)
+                    r++;
+                for (int j = i + 1; j <= r; j++) {
+                    int L = r + 1, R = i + m - 1;
+                    if (L > R)
+                        continue;
+                    int pos = queryPos(L, R);
+                    if (pos == -1)
+                        continue;
+                    long long sum = arr[i].cost + arr[j].cost + arr[pos].cost;
+                    if (sum < bestCost) {
+                        bestCost = sum;
+                        auto A = all[arr[i].idx];
+                        auto B = all[arr[j].idx];
+                        auto C = all[arr[pos].idx];
+                        bestPick = {{A.s, A.d}, {B.s, B.d}, {C.s, C.d}};
+                    }
+                }
+            }
+        }
     }
 
-    cout << ans % MOD << "\n";
+    if (bestPick.empty()) {
+        cout << "IMPOSSIBLE\n";
+        return 0;
+    }
+
+    cout << (int) bestPick.size() << "\n";
+    for (auto &p: bestPick)
+        cout << p.first << ' ' << p.second << "\n";
     return 0;
 }
