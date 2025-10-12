@@ -57,6 +57,18 @@ namespace utils {
         cout << "\n";
     }
 
+    template<typename End, typename... Args>
+    void prt_end(const End &end, const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << end;
+    }
+
+    template<typename... Args>
+    void prt_endl(const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << endl;
+    }
+
     template<typename T>
     void rd(T &x) {
         cin >> x;
@@ -131,7 +143,40 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n;
+    rd(n);
+
+    auto ask = [&](int x, int y) {
+        cout << "? " << x << " " << y << endl;
+        int t;
+        cin >> t;
+        return t;
+    };
+
+    int ans = -1;
+    for (int i = 2; i <= n; i += 2) {
+        if (ask(i, i - 1) != ask(i - 1, i)) {
+            if (i != 2) {
+                if (ask(i, 1) != ask(1, i)) {
+                    ans = i;
+                }
+            } else if (ask(i, n) != ask(n, i))
+                ans = i;
+            if (i != 2) {
+                if (ask(i - 1, 1) != ask(1, i - 1))
+                    ans = i - 1;
+            } else if (ask(i - 1, n) != ask(n, i - 1))
+                ans = i - 1;
+            break;
+        }
+    }
+    if (ans == -1) {
+        ans = n;
+    }
+
+    cout << "! " << ans << endl;
+}
 
 signed main() {
     ios::sync_with_stdio(false);

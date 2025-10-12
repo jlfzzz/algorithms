@@ -57,6 +57,18 @@ namespace utils {
         cout << "\n";
     }
 
+    template<typename End, typename... Args>
+    void prt_end(const End &end, const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << end;
+    }
+
+    template<typename... Args>
+    void prt_endl(const Args &...args) {
+        ((cout << args << " "), ...);
+        cout << endl;
+    }
+
     template<typename T>
     void rd(T &x) {
         cin >> x;
@@ -114,8 +126,8 @@ namespace utils {
         Iterator Begin, End;
         explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
         range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
-            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
-            End.val = a + max(cnt, ll(0)) * d;
+            ll sz = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
+            End.val = a + max(sz, ll(0)) * d;
         };
         [[nodiscard]] Iterator begin() const { return Begin; }
         [[nodiscard]] Iterator end() const { return End; };
@@ -127,11 +139,88 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n;
+    rd(n);
+
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
+
+    vector<int> pref(n + 1), pref2(n + 1);
+    for (int i: range(1, n + 1)) {
+        pref[i] = pref[i - 1] + a[i];
+        pref2[i] = pref2[i - 1] + a[i] * i;
+    }
+
+    int sum = 0;
+    for (int i: range(n, 0, -1)) {
+        sum += a[i] * (n - i + 1);
+    }
+
+    vector<int> groups(n + 1), sz(n + 1);
+    int pre = 0;
+    for (int i: range(1, n + 1)) {
+        groups[i] = sum - pre;
+        pre += a[i] * (n - i + 1);
+
+        sz[i] = n - i + 1;
+    }
+
+    vector<int> groupSum(n + 1), szSum(n + 1);
+    for (int i: range(1, n + 1)) {
+        groupSum[i] = groupSum[i - 1] + groups[i];
+        szSum[i] = szSum[i - 1] + sz[i];
+    }
+
+    auto calc1 = [&](int i, int k) -> int {
+        if (k <= 0)
+            return 0;
+        int r = min(n, i + k - 1);
+        k = r - i + 1;
+        int sumA = pref[r] - pref[i - 1];
+        int sumAi = pref2[r] - pref2[i - 1];
+        return (i + k) * sumA - sumAi;
+    };
+
+    auto calc2 = [&](int i, int k) -> int {
+        if (k <= 0)
+            return 0;
+        int m = sz[i];
+        if (k >= m)
+            return groups[i];
+        return groups[i] - calc1(i, m - k);
+    };
+
+    int q;
+    rd(q);
+
+    while (q--) {
+        int l, r;
+        rd(l, r);
+
+        int L = ranges::lower_bound(szSum, l) - szSum.begin();
+        int R = ranges::upper_bound(szSum, r) - szSum.begin();
+
+        int ans = 0;
+        if (L < R)
+            ans = groupSum[R - 1] - groupSum[L];
+
+        int takeLeft = szSum[L] - l + 1;
+        int takeRight = r - szSum[R - 1];
+
+        ans += calc2(L, takeLeft);
+        ans += calc1(R, takeRight);
+
+        if (L == R)
+            ans -= groups[L];
+
+        prt(ans);
+    }
+}
 
 signed main() {
     ios::sync_with_stdio(false);

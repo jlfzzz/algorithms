@@ -118,35 +118,20 @@ using ll = long long;
 
 class Solution {
 public:
-    long long maxProduct(vector<int> &nums) {
-        int mx = ranges::max(nums);
+    int magicalSum(int m, int k, vector<int> &nums) {
+        int n = nums.size();
 
-        int m = bit_width((unsigned) mx);
-        int u = 1 << m;
-        vector<int> dp(u);
+        int half = n;
+        vector<vector<int>> dp1(half, vector<int>(1 << half)), dp2(n - half, vector<int>(1 << (n - half)));
 
-        for (int x: nums) {
-            dp[x] = x;
-        }
-
-        for (int bit = 0; bit < m; bit++) {
-            for (int mask = 0; mask < u; mask++) {
-                if (!(mask >> bit & 1)) {
-                    dp[mask | (1 << bit)] = max(dp[mask | (1 << bit)], dp[mask]);
-                }
+        for (int i = 0; i < half; i++) {
+            for (int j = 0; j < half; j++) {
+                
             }
         }
-
-        long long ans = 0;
-        int mask = u - 1;
-        for (int x: nums) {
-            int t = x ^ mask;
-            ans = max(ans, 1ll * x * dp[t]);
-        }
-
-        return ans;
     }
 };
+
 
 
 int main() {

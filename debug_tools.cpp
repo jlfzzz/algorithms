@@ -882,6 +882,8 @@ using namespace utils;
 using namespace helpers;
 using namespace math;
 
+vector<pii> readTree(int n);
+
 #define int ll
 
 void func1() {
@@ -891,16 +893,21 @@ void func1() {
     auto random_arr1 = random_array(n, 1, 1e7);
     auto random_arr2 = random_array(n, 1, 1e7);
 
-    rd(n);
+    int sum = 0;
+    for (int i = 1; i <= n; i++) {
+        sum ^= i;
+        prt(sum, i);
+    }
+}
+
+vector<pii> readTree(int n) {
     vector<pii> edges;
     For(i, n - 1) {
         int u, v;
         rd(u, v);
         edges.eb(u, v);
     }
-
-    printTree(n, edges);
-
+    return edges;
 }
 
 signed main() { func1(); }

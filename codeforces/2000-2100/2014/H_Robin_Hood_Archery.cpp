@@ -129,9 +129,34 @@ using namespace utils;
 
 int Multitest = 1;
 
-void init() {}
 
-void solve() {}
+
+std::mt19937_64 gen(std::random_device{}());
+int nmsl[1'000'005];
+void init() {
+    for (int i: range(1, 1'000'005)) {
+        nmsl[i] = gen();
+    }
+}
+
+void solve() {
+    int n, q;
+    rd(n, q);
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
+
+    vector<int> pre(n + 1);
+    for (int i: range(1, n + 1)) {
+        pre[i] = pre[i - 1] ^ nmsl[a[i]];
+    }
+
+    while (q--) {
+        int l, r;
+        rd(l, r);
+
+        prt(((pre[r] ^ pre[l - 1]) == 0) ? "YES" : "NO");
+    }
+}
 
 signed main() {
     ios::sync_with_stdio(false);

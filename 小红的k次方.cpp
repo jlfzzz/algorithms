@@ -127,11 +127,36 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n;
+    rd(n);
+
+    vector<int> a(n);
+    rd_vec(a);
+
+    int ans = 0;
+    int c2 = 0, c3 = 0, c5 = 0;
+    for (int x: a) {
+        while (x % 2 == 0) {
+            x /= 2;
+            c2++;
+        }
+        while (x % 3 == 0) {
+            x /= 3;
+            c3++;
+        }
+        while (x % 5 == 0) {
+            x /= 5;
+            c5++;
+        }
+    }
+
+    prt(min({c2, c3, c5}));
+}
 
 signed main() {
     ios::sync_with_stdio(false);

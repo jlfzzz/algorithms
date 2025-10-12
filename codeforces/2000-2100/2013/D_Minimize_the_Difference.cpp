@@ -131,7 +131,38 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n;
+    rd(n);
+
+    vector<int> a(n);
+    rd_vec(a);
+
+    vector<pll> stk;
+
+    for (int i: range(n)) {
+        int sum = a[i];
+        int c = 1;
+        while (!stk.empty()) {
+            auto [val, cnt] = stk.back();
+            if (val < sum / c) {
+                break;
+            }
+            sum += val * cnt;
+            c += cnt;
+            stk.pop_back();
+        }
+
+        stk.eb(sum / c, c - sum % c);
+        if (sum % c) {
+            stk.eb(sum / c + 1, sum % c);
+        }
+    }
+
+    int mx = stk.back().first;
+    int mn = stk.front().first;
+    prt(mx - mn);
+}
 
 signed main() {
     ios::sync_with_stdio(false);
