@@ -9,6 +9,7 @@ using ll = long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -130,7 +131,53 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n, k;
+    rd(n, k);
+
+    vector<int> a(n), b(n);
+    rd_vec(a);
+    rd_vec(b);
+
+    int lo = 0;
+    int hi = 1e9 + 5;
+    int ans = 0;
+
+    while (lo < hi) {
+        int mid = (lo + hi) / 2;
+
+        auto check = [&](int x) {
+            ll cnt = 0;
+            for (int i = 0; i < n; i++) {
+                if (a[i] < x)
+                    continue;
+                cnt += (a[i] - x) / b[i] + 1;
+            }
+            return cnt;
+        };
+
+        if (check(mid) <= k) {
+            hi = mid;
+        } else {
+            ans = mid;
+            lo = mid + 1;
+        }
+    }
+
+    int cnt = 0;
+    int sum = 0;
+    for (int i: range(n)) {
+        if (a[i] < ans) {
+            continue;
+        }
+        int t = (a[i] - ans) / b[i] + 1;
+        cnt += t;
+        sum += t * a[i] - t * (t - 1) / 2 * b[i];
+    }
+    sum -= (cnt - k) * ans;
+
+    prt(sum);
+}
 
 signed main() {
     ios::sync_with_stdio(false);

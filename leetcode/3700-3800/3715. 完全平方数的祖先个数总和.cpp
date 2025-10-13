@@ -116,56 +116,70 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
+constexpr int N = int(1e5 + 5);
+
+ll val[N];
+int init = [] {
+    for (ll &i: val) {
+        i = 1;
+    }
+
+    for (int i = 2; i < N; i++) {
+        int t = i;
+        for (int j = 2; j * j <= t; j++) {
+            if (t % j == 0) {
+                int cnt = 0;
+                while (t % j == 0) {
+                    cnt++;
+                    t /= j;
+                }
+
+                cnt &= 1;
+                if (cnt) {
+                    val[i] *= j;
+                }
+            }
+        }
+
+        if (t) {
+            val[i] *= t;
+        }
+    }
+
+    return 0;
+}();
+
 class Solution {
 public:
-    int maxPartitionFactor(vector<vector<int>> &points) {
-        int n = points.size();
-        if (n == 2) {
-            return 0;
+    using ll = long long;
+    long long sumOfAncestors(int n, vector<vector<int>> &edges, vector<int> &nums) {
+        vector<vector<int>> g(n);
+        for (auto &e: edges) {
+            int x = e[0], y = e[1];
+            g[x].push_back(y);
+            g[y].push_back(x);
         }
 
-        // 原理见 785. 判断二分图
-        auto check = [&](int low) -> bool {
-            vector<int8_t> colors(n);
+        unordered_map<int, int> cnt;
+        long long ans = 0;
 
-            auto dfs = [&](this auto &&dfs, int x, int8_t c) -> bool {
-                colors[x] = c;
-                auto &p = points[x];
-                for (int y = 0; y < n; y++) {
-                    auto &q = points[y];
-                    if (y == x || abs(p[0] - q[0]) + abs(p[1] - q[1]) >= low) { // 符合要求
-                        continue;
-                    }
-                    if (colors[y] == c || colors[y] == 0 && !dfs(y, -c)) {
-                        return false; // 不是二分图
-                    }
-                }
-                return true;
-            };
-
-            for (int i = 0; i < n; i++) {
-                if (colors[i] == 0 && !dfs(i, 1)) {
-                    return false;
+        auto dfs = [&](this auto &&dfs, int x, int fa) -> void {
+            int c = val[nums[x]];
+            ans += cnt[c];
+            cnt[c]++;
+            for (int y: g[x]) {
+                if (y != fa) {
+                    dfs(y, x);
                 }
             }
-            return true;
+            cnt[c]--;
         };
 
-        int max_dis = 0;
-        for (int i = 0; i < n; i++) {
-            for (int j = i + 1; j < n; j++) {
-                max_dis = max(max_dis, abs(points[i][0] - points[j][0]) + abs(points[i][1] - points[j][1]));
-            }
-        }
-
-        int left = 0, right = max_dis + 1;
-        while (left + 1 < right) {
-            int mid = left + (right - left) / 2;
-            (check(mid) ? left : right) = mid;
-        }
-        return left;
+        dfs(0, -1);
+        return ans;
     }
 };
+
 
 int main() {
     ios::sync_with_stdio(false);

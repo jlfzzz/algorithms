@@ -126,11 +126,36 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n;
+    rd(n);
+    vector<int> a(n);
+    rd_vec(a);
+
+    priority_queue<int> pq;
+    int ans = 0;
+    for (int i: range(n - 1, -1, -1)) {
+        int x = a[i];
+        if (pq.empty()) {
+            pq.push(x);
+        } else {
+            if (x >= pq.top()) {
+                pq.push(x);
+            } else {
+                ans += pq.top() - x;
+                pq.pop();
+                pq.push(x);
+                pq.push(x);
+            }
+        }
+    }
+
+    prt(ans);
+}
 
 signed main() {
     ios::sync_with_stdio(false);

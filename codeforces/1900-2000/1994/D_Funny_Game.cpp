@@ -9,6 +9,7 @@ using ll = long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -124,13 +125,87 @@ namespace utils {
 
 using namespace utils;
 
+class UnionFind {
+public:
+    vector<int> parent;
+    vector<int> rank;
+    int count;
+
+    explicit UnionFind(const int n) : count(n) {
+        parent.resize(n);
+        rank.resize(n);
+        ranges::fill(rank, 1);
+        iota(parent.begin(), parent.end(), 0);
+    }
+
+    int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
+        }
+        return parent[x];
+    }
+
+    bool unite(int x, int y) {
+        int root_x = find(x);
+        int root_y = find(y);
+
+        if (root_x == root_y) {
+            return false;
+        }
+
+        if (rank[root_x] == rank[root_y]) {
+            parent[root_x] = root_y;
+            rank[root_y] += 1;
+        } else if (rank[root_x] > rank[root_y]) {
+            parent[root_y] = root_x;
+        } else {
+            parent[root_x] = root_y;
+        }
+        count--;
+        return true;
+    }
+};
+
+
 #define int ll
 
 int Multitest = 1;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n;
+    rd(n);
+
+    vector<pll> ans;
+    vector<int> a(n);
+    rd_vec(a);
+
+    UnionFind uf(n);
+
+    for (int i: range(n - 1, 0, -1)) {
+        vector<int> temp(i, -1);
+        for (int j: range(0, n)) {
+            int rootj = uf.find(j);
+            if (rootj != j)
+                continue;
+            int t = a[j] % i;
+            if (temp[t] == -1) {
+                temp[t] = j;
+            } else {
+                int other = temp[t];
+                uf.unite(other, j);
+                ans.eb(other, j);
+                break;
+            }
+        }
+    }
+
+    prt("YES");
+    for (int idx = ans.size() - 1; idx >= 0; --idx) {
+        prt(ans[idx].first + 1, ans[idx].second + 1);
+    }
+}
 
 signed main() {
     ios::sync_with_stdio(false);

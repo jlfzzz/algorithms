@@ -9,6 +9,7 @@ using ll = long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -130,7 +131,52 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n, k, q;
+    rd(n, k, q);
+
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
+
+    vector<int> b(n + 1);
+    for (int i = 1; i <= n; i++) {
+        b[i] = a[i] - i;
+    }
+
+    vector<int> cnt(n + 1, 0);
+    map<int, int> freq;
+    multiset<int> freqs;
+
+    for (int r: range(1, n + 1)) {
+        int val = b[r];
+        int old = freq[val];
+        freq[val]++;
+        if (old > 0)
+            freqs.erase(freqs.find(old));
+        freqs.insert(freq[val]);
+
+        if (r >= k) {
+            cnt[r - k + 1] = *freqs.rbegin();
+
+            int left_val = b[r - k + 1];
+            int oldL = freq[left_val];
+            freq[left_val]--;
+            freqs.erase(freqs.find(oldL));
+            if (freq[left_val] > 0) {
+                freqs.insert(freq[left_val]);
+            } else {
+                freq.erase(left_val);
+            }
+        }
+    }
+
+    while (q--) {
+        int l, r;
+        rd(l, r);
+        int ans = r - l + 1 - cnt[l];
+        prt(ans);
+    }
+}
 
 signed main() {
     ios::sync_with_stdio(false);

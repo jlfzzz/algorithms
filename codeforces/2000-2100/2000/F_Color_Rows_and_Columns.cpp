@@ -9,6 +9,7 @@ using ll = long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
+#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -130,8 +131,46 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n, k;
+    rd(n, k);
 
+    vector<int> dp(k + 1, inf);
+    dp[0] = 0;
+
+    For(i, n) {
+        int a, b;
+        rd(a, b);
+
+        auto ndp = dp;
+        for (int j: range(k + 1)) {
+            int cost = 0;
+            int ta = a, tb = b;
+            for (int choose: range(a + b + 1)) {
+                if (j + choose <= k) {
+                    ndp[j + choose] = min(ndp[j + choose], dp[j] + cost);
+                }
+
+                if (ta >= tb) {
+                    cost += tb;
+                    ta--;
+                } else {
+                    cost += ta;
+                    tb--;
+                }
+            }
+        }
+
+        dp.swap(ndp);
+    }
+
+    int ans = dp[k];
+    if (ans == inf) {
+        ans = -1;
+    }
+
+    prt(ans);
+}
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
