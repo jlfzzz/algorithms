@@ -893,10 +893,10 @@ void func1() {
     auto random_arr1 = random_array(n, 1, 1e7);
     auto random_arr2 = random_array(n, 1, 1e7);
 
-    int sum = 0;
-    for (int i = 1; i <= n; i++) {
-        sum ^= i;
-        prt(sum, i);
+    int x = 495;
+    auto arrr = decompose(x);
+    for (int i: arrr) {
+        prt(i);
     }
 }
 
