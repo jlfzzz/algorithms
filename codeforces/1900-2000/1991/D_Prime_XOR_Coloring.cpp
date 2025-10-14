@@ -131,7 +131,48 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    if (n == 1) {
+        prt(1);
+        prt(1);
+        return;
+    }
+
+    if (n == 2) {
+        prt(2);
+        prt(1, 2);
+        return;
+    }
+
+    if (n == 3) {
+        prt(2);
+        prt(1, 2, 2);
+        return;
+    }
+
+    if (n == 4) {
+        prt(3);
+        prt(1, 2, 2, 3);
+        return;
+    }
+
+    if (n == 5) {
+        prt(3);
+        prt(1, 2, 2, 3, 3);
+        return;
+    }
+
+    prt(4);
+    vector<int> v;
+    for (int i: range(1, n + 1)) {
+        int t = i % 4;
+        if (t == 0)
+            t = 4;
+        v.pb(t);
+    }
+    prt_vec(v);
 }
 
 signed main() {

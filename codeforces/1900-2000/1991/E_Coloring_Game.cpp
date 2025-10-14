@@ -9,7 +9,6 @@ using ll = long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
-#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -132,97 +131,95 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, k, q;
-    rd(n, k, q);
+    int n, m;
+    rd(n, m);
 
-    vector<int> a(n + 1);
-    rd_vec(a, 1);
-
-    vector<int> b(n + 1);
-    for (int i = 1; i <= n; i++) {
-        b[i] = a[i] - i;
+    vector<vector<int>> g(n + 1);
+    for (auto _: range(m)) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
 
-    vector<int> cnt(n + 1, 0);
-    map<int, int> freq;
-    multiset<int> freqs;
+    bool bob = false;
 
-    for (int r: range(1, n + 1)) {
-        int val = b[r];
-        int old = freq[val];
-        freq[val]++;
-        if (old > 0)
-            freqs.erase(freqs.find(old));
-        freqs.insert(freq[val]);
 
-        if (r >= k) {
-            cnt[r - k + 1] = *freqs.rbegin();
+    vector<int> colors(n + 1, -1);
+    auto dfs = [&](this auto &&dfs, int u, int c, int fa) -> bool {
+        if (bob) {
+            return false;
+        }
+        colors[u] = c;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
 
-            int left_val = b[r - k + 1];
-            int oldL = freq[left_val];
-            freq[left_val]--;
-            freqs.erase(freqs.find(oldL));
-            if (freq[left_val] > 0) {
-                freqs.insert(freq[left_val]);
+            if (colors[v] != -1) {
+                if (colors[v] == c) {
+                    bob = true;
+                    return false;
+                }
+                continue;
+            }
+
+            if (!dfs(v, c ^ 1, u)) {
+                bob = true;
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    dfs(1, 0, 0);
+
+
+    if (bob) {
+        cout << "Alice" << endl;
+
+        for (int _: range(n)) {
+            cout << 1 << ' ' << 2 << endl;
+            int i, c;
+            rd(i, c);
+        }
+    } else {
+        cout << "Bob" << endl;
+
+        vector<int> odd, even;
+
+        for (int i: range(1, n + 1)) {
+            if (colors[i]) {
+                odd.pb(i);
             } else {
-                freq.erase(left_val);
+                even.pb(i);
             }
         }
-    }
+        int p_even = 0, p_odd = 0;
+        for (int _: range(n)) {
+            int a, b;
+            rd(a, b);
 
-    int m = n - k + 1;
-    if (m <= 0) {
-        for (int _ = 0; _ < q; _++) {
-            int l, r;
-            rd(l, r);
-            prt(0);
-        }
-        return;
-    }
+            auto has = [&](int c) -> bool { return a == c || b == c; };
 
-    // c[i] = f([a_i..a_{i+k-1}]) = k - maxFreq(b in window)
-    vector<int> c(m + 2, 0);
-    for (int i = 1; i <= m; i++)
-        c[i] = k - cnt[i];
+            bool even_left = p_even < even.size();
+            bool odd_left = p_odd < odd.size();
 
-    // next strictly smaller for c: up[i][0], and block sum contribution sum[i][0]
-    const int LOG = 20;
-    vector<array<int, 20>> up(m + 2);
-    vector<array<long long, 20>> acc(m + 2);
-    for (int j = 0; j < LOG; j++)
-        up[m + 1][j] = m + 1, acc[m + 1][j] = 0;
-
-    vector<int> st;
-    st.reserve(m);
-    for (int i = m; i >= 1; i--) {
-        while (!st.empty() && c[st.back()] >= c[i])
-            st.pop_back();
-        int nxt = st.empty() ? (m + 1) : st.back();
-        up[i][0] = nxt;
-        acc[i][0] = 1LL * (nxt - i) * c[i];
-        st.push_back(i);
-    }
-    for (int j = 1; j < LOG; j++) {
-        for (int i = 1; i <= m + 1; i++) {
-            up[i][j] = up[up[i][j - 1]][j - 1];
-            acc[i][j] = acc[i][j - 1] + acc[up[i][j - 1]][j - 1];
-        }
-    }
-
-    for (int _ = 0; _ < q; _++) {
-        int l, r;
-        rd(l, r);
-        int R = r - k + 1;
-        long long res = 0;
-        int cur = l;
-        for (int j = LOG - 1; j >= 0; j--) {
-            if (up[cur][j] <= R) {
-                res += acc[cur][j];
-                cur = up[cur][j];
+            if (has(1) && even_left && (!has(2) || !odd_left)) {
+                cout << even[p_even++] << ' ' << 1 << endl;
+            } else if (has(2) && odd_left) {
+                cout << odd[p_odd++] << ' ' << 2 << endl;
+            } else if (has(1) && even_left) {
+                cout << even[p_even++] << ' ' << 1 << endl;
+            } else if (even_left) {
+                int c = has(3) ? 3 : 1;
+                cout << even[p_even++] << ' ' << c << endl;
+            } else if (odd_left) {
+                int c = has(2) ? 2 : 3;
+                cout << odd[p_odd++] << ' ' << c << endl;
             }
         }
-        res += 1LL * (R - cur + 1) * c[cur];
-        prt(res);
     }
 }
 

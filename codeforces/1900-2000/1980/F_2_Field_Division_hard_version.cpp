@@ -131,7 +131,124 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, m, k;
+    rd(n, m, k);
+
+    map<int, vector<pll>> items;
+    for (int i: range(k)) {
+        int r, c;
+        rd(r, c);
+        items[c].eb(r, i);
+    }
+
+    for (auto &item: items) {
+        ranges::sort(item.second);
+    }
+
+    int ans = 0;
+    int lo = 0;
+    int pre = 1;
+    if (!items.contains(m)) {
+        items[m] = {};
+    }
+    for (auto [col, v]: items) {
+        int dx = col - pre;
+        if (items[col].empty()) {
+            if (col == m) {
+                ans += (n - lo) * (dx + 1);
+            }
+            continue;
+        }
+
+        int last = v.back().first;
+
+        if (last <= lo) {
+            if (col == m) {
+                ans += (n - lo) * (dx + 1);
+            }
+            continue;
+        }
+
+        ans += (n - lo) * dx;
+        lo = last;
+        pre = col;
+
+        if (col == m) {
+            ans += n - lo;
+        }
+    }
+
+    prt(ans);
+
+    vector<int> res(k);
+    lo = 0;
+
+    set<int> del;
+    pre = 1;
+    for (const auto &it: items) {
+        auto &[col, v] = it;
+        if (v.empty()) {
+            continue;
+        }
+
+        if (del.contains(col)) {
+            continue;
+        }
+
+        for (int i: range(v.size())) {
+            if (i != v.size() - 1) {
+                res[v[i].second] = 0;
+            } else {
+                auto [last, id] = v[i];
+                if (last <= lo) {
+                    res[id] = 0;
+                } else {
+                    auto it2 = items.upper_bound(col);
+
+                    int new_last = 0;
+                    if (v.size() >= 2) {
+                        new_last = v[v.size() - 2].first;
+                    }
+
+                    int lo2 = max(lo, new_last);
+                    int pre2 = col;
+                    int add = 0;
+                    while (true) {
+                        if (it2 == items.end()) {
+                            add += (last - lo2) * (m - pre2 + 1);
+                            break;
+                        }
+                        auto [col2, v2] = *it2;
+
+                        if (v2.empty()) {
+                            add += (last - lo2) * (col2 - pre2 + 1);
+                            break;
+                        }
+
+                        int last2 = v2.back().first;
+                        if (last2 > last) {
+                            add += (last - lo2) * (col2 - pre2);
+                            break;
+                        }
+
+                        add += (last - lo2) * (col2 - pre2);
+
+                        del.insert(col2);
+                        if (last2 > lo2)
+                            lo2 = last2;
+                        pre2 = col2;
+                        ++it2;
+                    }
+
+                    res[id] = add;
+                    lo = last;
+                    pre = col;
+                }
+            }
+        }
+    }
+
+    prt_vec(res);
 }
 
 signed main() {

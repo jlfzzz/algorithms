@@ -126,12 +126,53 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+
+    vector<int> a(n), b(n), c(m);
+    rd_vec(a);
+    rd_vec(b);
+    rd_vec(c);
+
+    int mx = ranges::max(a);
+
+    vector<int> diff(mx + 1, inf);
+    for (int i: range(n)) {
+        int d = a[i] - b[i];
+        diff[a[i]] = min(diff[a[i]], d);
+    }
+
+    vector<int> dp1(mx + 1, inf), dp2(mx + 1);
+    for (int i: range(1, mx + 1)) {
+        dp1[i] = min(diff[i], dp1[i - 1]);
+    }
+
+    for (int i: range(1, mx + 1)) {
+        if (i - dp1[i] >= 0) {
+            dp2[i] = dp2[i - dp1[i]] + 1;
+        }
+    }
+
+    int ans = 0;
+    for (int x: c) {
+        if (x > mx) {
+            int d = dp1[mx];
+            int t = (x - mx + d - 1) / d;
+            ans += t;
+            x -= d * t;
+        }
+
+        if (x) {
+            ans += dp2[x];
+        }
+    }
+
+    prt(ans * 2);
 }
 
 signed main() {

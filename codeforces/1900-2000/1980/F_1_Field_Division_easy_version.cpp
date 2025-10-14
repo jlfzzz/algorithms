@@ -131,7 +131,79 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, m, k;
+    rd(n, m, k);
+
+    map<int, vector<pll>> items;
+    for (int i: range(k)) {
+        int r, c;
+        rd(r, c);
+        items[c].eb(r, i);
+    }
+
+    for (auto &item: items) {
+        ranges::sort(item.second);
+    }
+
+    int ans = 0;
+    int lo = 0;
+    int pre = 1;
+    if (!items.contains(m)) {
+        items[m] = {};
+    }
+    for (auto [col, v]: items) {
+        int dx = col - pre;
+        if (items[col].empty()) {
+            if (col == m) {
+                ans += (n - lo) * (dx + 1);
+            }
+            continue;
+        }
+
+        int last = v.back().first;
+
+        if (last <= lo) {
+            if (col == m) {
+                ans += (n - lo) * (dx + 1);
+            }
+            continue;
+        }
+
+        ans += (n - lo) * dx;
+        lo = last;
+        pre = col;
+
+        if (col == m) {
+            ans += n - lo;
+        }
+    }
+
+    prt(ans);
+
+    vector<int> res(k);
+    lo = 0;
+
+    for (auto &[col, v]: items) {
+        if (v.empty()) {
+            continue;
+        }
+
+        for (int i: range(v.size())) {
+            if (i != v.size() - 1) {
+                res[v[i].second] = 0;
+            } else {
+                auto [last, id] = v[i];
+                if (last <= lo) {
+                    res[id] = 0;
+                } else {
+                    res[id] = 1;
+                    lo = last;
+                }
+            }
+        }
+    }
+
+    prt_vec(res);
 }
 
 signed main() {

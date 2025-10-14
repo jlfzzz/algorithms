@@ -124,14 +124,68 @@ namespace utils {
 
 using namespace utils;
 
-#define int ll
-
 int Multitest = 1;
+
+#define int ll
 
 void init() {}
 
 void solve() {
-    
+    int n, x;
+    rd(n, x);
+
+    vector<int> a(n);
+    rd_vec(a);
+
+    int ans = 0;
+    vector<char> divs(x + 1);
+    for (int i = 1; i * i <= x; i++) {
+        if (x % i) {
+            continue;
+        }
+
+        divs[i] = 1;
+        if (x / i != i) {
+            divs[x / i] = 1;
+        }
+    }
+
+    vector<int> window{1};
+    vector<char> used(x + 1);
+    used[1] = 1;
+    for (int i: range(n)) {
+        int cur = a[i];
+        if (cur > x || !divs[cur]) {
+            continue;
+        }
+
+        bool f = false;
+        auto nxt = window;
+        for (int d: window) {
+            int t = d * cur;
+            if (t <= x && divs[t] && !used[t]) {
+                nxt.pb(t);
+                used[t] = 1;
+            }
+
+            if (t == x) {
+                f = true;
+            }
+        }
+
+        if (!f) {
+            window.swap(nxt);
+        } else {
+            for (int d: nxt) {
+                used[d] = 0;
+            }
+            used[1] = used[cur] = 1;
+            window = {1, cur};
+            ans++;
+        }
+    }
+
+    prt(ans + 1);
 }
 
 signed main() {
