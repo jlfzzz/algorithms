@@ -9,7 +9,6 @@ using ll = long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
-#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -55,18 +54,6 @@ namespace utils {
             cout << v[i];
         }
         cout << "\n";
-    }
-
-    template<typename End, typename... Args>
-    void prt_end(const End &end, const Args &...args) {
-        ((cout << args << " "), ...);
-        cout << end;
-    }
-
-    template<typename... Args>
-    void prt_endl(const Args &...args) {
-        ((cout << args << " "), ...);
-        cout << endl;
     }
 
     template<typename T>
@@ -144,7 +131,58 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, x;
+    rd(n, x);
+    vector<int> a(n);
+    rd_vec(a);
+
+    x++;
+    int ans = -1;
+    vector<int> digits;
+    for (int i: range(30, -1, -1)) {
+        if (x >> i & 1) {
+            digits.pb(i);
+
+            auto calc = [&]() -> int {
+                vector<int> cnt(31, 0);
+                int sum = 0;
+                for (int j = 0; j < n; j++) {
+                    for (int d: digits) {
+                        if (a[j] >> d & 1) {
+                            cnt[d]++;
+                        }
+                    }
+
+                    bool valid = true;
+                    for (int d: digits) {
+                        if (cnt[d] % 2 == 1) {
+                            valid = false;
+                            break;
+                        }
+                    }
+
+                    if (valid) {
+                        fill(cnt.begin(), cnt.end(), 0);
+                        sum++;
+                    }
+                }
+
+                for (int d: digits) {
+                    if (cnt[d] % 2 == 1) {
+                        return -1;
+                    }
+                }
+                return sum;
+            };
+
+            ans = max(ans, calc());
+            digits.pop_back();
+        } else {
+            digits.pb(i);
+        }
+    }
+
+    prt(ans);
 }
 
 signed main() {

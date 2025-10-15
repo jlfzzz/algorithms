@@ -85,8 +85,13 @@ void solve2() {
     vector<int> dfn(n + 1), low(n + 1);
     int ts = 0;
     vector<pii> bridges;
+    vector<int> sz(n + 1), blockId(n + 1);
+    int bid = 0;
+    map<int, int> blockSz;
     auto tarjan = [&](this auto &&tarjan, int u, int pe) -> void {
         dfn[u] = low[u] = ++ts;
+        blockId[u] = bid;
+        sz[u] = 1;
         for (auto e: g[u]) {
             if (e.id == pe)
                 continue;
@@ -94,11 +99,9 @@ void solve2() {
             if (!dfn[v]) {
                 tarjan(v, e.id);
                 low[u] = min(low[u], low[v]);
+                sz[u] += sz[v];
                 if (low[v] > dfn[u]) {
-                    int x = u, y = v;
-                    if (x > y)
-                        swap(x, y);
-                    bridges.emplace_back(x, y);
+                    bridges.emplace_back(u, v);
                 }
             } else {
                 low[u] = min(low[u], dfn[v]);
@@ -109,6 +112,8 @@ void solve2() {
     for (int i = 1; i <= n; i++) {
         if (!dfn[i]) {
             tarjan(i, -1);
+            blockSz[bid] = sz[i];
+            bid++;
         }
     }
 
