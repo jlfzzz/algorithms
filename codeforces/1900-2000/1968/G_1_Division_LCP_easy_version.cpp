@@ -9,7 +9,6 @@ using ll = long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 #define ull unsigned long long
-constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
@@ -124,133 +123,77 @@ namespace utils {
 
 using namespace utils;
 
+mt19937 rng(random_device{}());
+
+int rnd(long long x, long long y) { return uniform_int_distribution<int>(x, y)(rng); }
+
+long long MOD = 1e18 + rnd(0, 1e9);
+int BASE = 233 + rnd(0, 1e3);
+
+struct HashSeq {
+    int n;
+    vector<__int128> P, H, HR;
+
+    HashSeq(string s) {
+        n = s.size();
+        P.resize(n + 1);
+        P[0] = 1;
+        for (int i = 1; i <= n; i++)
+            P[i] = P[i - 1] * BASE % MOD;
+
+        H.resize(n + 1);
+        H[0] = 0;
+        for (int i = 1; i <= n; i++)
+            H[i] = (H[i - 1] * BASE + (s[i - 1] ^ 7)) % MOD;
+
+        HR.resize(n + 1);
+        HR[0] = 0;
+        for (int i = 1; i <= n; i++) {
+            HR[i] = (HR[i - 1] * BASE + (s[n - i] ^ 7)) % MOD;
+        }
+    }
+
+    long long query(int l, int r) const {
+        if (l > r)
+            return 0;
+        __int128 res = (H[r] - (H[l - 1] * P[r - l + 1]) % (__int128) MOD);
+        long long ans = (long long) ((res + (__int128) MOD) % (__int128) MOD);
+        return ans;
+    }
+
+    long long query_rev_on_reversed(int l, int r) const {
+        if (l > r)
+            return 0;
+        __int128 res = (HR[r] - (HR[l - 1] * P[r - l + 1]) % (__int128) MOD);
+        return (long long) ((res + (__int128) MOD) % (__int128) MOD);
+    }
+
+    long long query_rev_sub(int l, int r) const {
+        if (l > r)
+            return 0;
+        int L = n - r + 1;
+        int R = n - l + 1;
+        __int128 res = (HR[R] - (HR[L - 1] * P[R - L + 1]) % (__int128) MOD);
+        return (long long) ((res + (__int128) MOD) % (__int128) MOD);
+    }
+};
+
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n, l, r;
+    rd(n, l, r);
 
-    vector<int> arr1(n / 2), arr2(n - n / 2);
-    rd_vec(arr1);
-    rd_vec(arr2);
+    string s;
+    rd(s);
 
-    auto encode = [&](int x, bool last) -> int { return x << 30 | last; };
+    HashSeq hs(s);
 
-    auto calc1 = [&](vector<int> &a) -> vector<pair<long long, long long>> {
-        int sz = a.size();
-        vector<long long> keys;
-        // estimate independent sets ~ F_{sz+2}
-        size_t f0 = 1, f1 = 1; // F2=1
-        for (int i = 0; i < sz; ++i) {
-            size_t fn = f0 + f1;
-            f0 = f1;
-            f1 = fn;
-        }
-        keys.reserve(f1 + 16);
-        auto dfs = [&](auto &&dfs, int i, int sum, bool pre) -> void {
-            if (i == sz) {
-                keys.push_back(encode(sum, pre));
-                return;
-            }
-
-            if (pre) {
-                dfs(dfs, i + 1, sum, false);
-                return;
-            }
-
-            dfs(dfs, i + 1, sum, false);
-            dfs(dfs, i + 1, (sum + a[i]) % m, true);
-        };
-        dfs(dfs, 0, 0, false);
-
-        sort(keys.begin(), keys.end());
-        vector<pair<long long, long long>> res;
-        res.reserve(keys.size());
-        for (size_t i = 0; i < keys.size();) {
-            size_t j = i + 1;
-            while (j < keys.size() && keys[j] == keys[i])
-                j++;
-            res.emplace_back(keys[i], (long long) (j - i));
-            i = j;
-        }
-        return res;
-    };
-
-    auto calc2 = [&](vector<int> &a) -> vector<pair<long long, long long>> {
-        int sz = a.size();
-        vector<long long> keys;
-        // estimate independent sets ~ F_{sz+2}
-        size_t f0 = 1, f1 = 1; // F2=1
-        for (int i = 0; i < sz; ++i) {
-            size_t fn = f0 + f1;
-            f0 = f1;
-            f1 = fn;
-        }
-        keys.reserve(f1 + 16);
-        auto dfs = [&](auto &&dfs, int i, int sum, bool pre, bool first) -> void {
-            if (i == sz) {
-                keys.push_back(encode(sum, first));
-                return;
-            }
-
-            if (pre) {
-                dfs(dfs, i + 1, sum, false, first);
-                return;
-            }
-
-            bool new_first = (i == 0) ? true : first;
-            dfs(dfs, i + 1, (sum + a[i]) % m, true, new_first);
-            dfs(dfs, i + 1, sum, false, first);
-        };
-        dfs(dfs, 0, 0, false, false);
-
-        sort(keys.begin(), keys.end());
-        vector<pair<long long, long long>> res;
-        res.reserve(keys.size());
-        for (size_t i = 0; i < keys.size();) {
-            size_t j = i + 1;
-            while (j < keys.size() && keys[j] == keys[i])
-                j++;
-            res.emplace_back(keys[i], (long long) (j - i));
-            i = j;
-        }
-        return res;
-    };
-
-    for (auto &x: arr1)
-        x %= m;
-    for (auto &x: arr2)
-        x %= m;
-    auto cntL = calc1(arr1);
-    auto cntR = calc2(arr2);
-
-    auto getCnt = [&](const vector<pair<long long, long long>> &v, long long key) -> long long {
-        auto it = lower_bound(v.begin(), v.end(), make_pair(key, 0LL),
-                              [](const auto &a, const auto &b) { return a.first < b.first; });
-        if (it != v.end() && it->first == key)
-            return it->second;
-        return 0LL;
-    };
-
-    int ans = 0;
-
-    for (auto &p: cntL) {
-        long long key = p.first;
-        long long cnt1 = p.second;
-        long long val1 = key >> 30;
-        long long last = key & 1;
-
-        long long val2 = (m - val1) % m;
-        if (last) {
-            ans += cnt1 * getCnt(cntR, (val2 << 30));
-        } else {
-            ans += cnt1 * (getCnt(cntR, (val2 << 30)) + getCnt(cntR, (val2 << 30 | 1)));
-        }
-    }
+    
 
     prt(ans);
 }

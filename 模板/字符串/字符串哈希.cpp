@@ -22,7 +22,7 @@ H[r] - H[l - 1] * P[r - l + 1]
 // query_rev_on_reversed 就是 区间[l, r]的哈希，不过是正着计算的
 // query_rev_sub 是区间[l, r]的哈希，并且反转了。（可以理解为[r,l])
 
-mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+mt19937 rng(random_device{}());
 
 int rnd(long long x, long long y) { return uniform_int_distribution<int>(x, y)(rng); }
 
