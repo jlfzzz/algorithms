@@ -6,7 +6,8 @@ using ll = long long;
 #define pf push_front
 #define eb emplace_back
 #define all(x) (x).begin(), (x).end()
-using pii = pair<ll, ll>;
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
 #define ull unsigned long long
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
@@ -130,7 +131,43 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    vector<vector<int>> g(n + 1);
+    for (int i: range(2, n + 1)) {
+        int fa;
+        rd(fa);
+        g[i].pb(fa);
+        g[fa].pb(i);
+    }
+
+    string s;
+    rd(s);
+
+    s = '#' + s;
+
+    vector<vector<int>> dp(n + 1, vector<int>(2));
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            dfs(v, u);
+            dp[u][0] += min(dp[v][0], dp[v][1] + 1);
+            dp[u][1] += min(dp[v][1], dp[v][0] + 1);
+        }
+
+        if (s[u] == 'P') {
+            dp[u][1] = inf;
+        } else if (s[u] == 'S') {
+            dp[u][0] = inf;
+        }
+    };
+    dfs(1, 0);
+
+    prt(min(dp[1][0], dp[1][1]));
 }
 
 signed main() {

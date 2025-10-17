@@ -130,7 +130,39 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    string s;
+    rd(s);
+
+    int n = s.size();
+    for (int _: range(n)) {
+        int pos = -1;
+        int sz = s.size();
+
+        for (int j: range(sz - 1)) {
+            if (s[j] == s[j + 1]) {
+                pos = j;
+                break;
+            }
+        }
+
+        if (pos == -1) {
+            break;
+        }
+
+        string nxt = s;
+        nxt.erase(pos + 1);
+        if (pos == 0 && nxt.size() > 1) {
+            nxt[pos] = nxt[pos + 1];
+        } else {
+            if (pos - 1 >= 0) {
+                nxt[pos] = nxt[pos - 1];
+            }
+        }
+
+        s.swap(nxt);
+    }
+
+    prt(s.size());
 }
 
 signed main() {

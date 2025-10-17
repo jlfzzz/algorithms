@@ -130,7 +130,42 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    vector<vector<int>> g(n + 1);
+    for (int i: range(2, n + 1)) {
+        int fa;
+        rd(fa);
+        g[fa].pb(i);
+        g[i].pb(fa);
+    }
+
+    vector<int> dp(n + 1, inf), sz(n + 1, 1), ans(n + 1);
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        int mxi = 0;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            dfs(v, u);
+            sz[u] += sz[v];
+            if (sz[v] > sz[mxi]) {
+                mxi = v;
+            }
+        }
+
+        if (sz[mxi] > (sz[u] - 1) / 2) {
+            ans[u] = min((sz[u] - 1) / 2, ans[mxi] + (sz[u] - 1 - sz[mxi]));
+        } else {
+            ans[u] = (sz[u] - 1) / 2;
+        }
+    };
+
+    dfs(1, 0);
+
+    prt(ans[1]);
 }
 
 signed main() {

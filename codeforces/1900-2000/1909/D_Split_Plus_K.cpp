@@ -130,7 +130,39 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, k;
+    rd(n, k);
+
+    vector<int> a(n);
+    rd_vec(a);
+
+    ranges::sort(a);
+
+    if ((a[0] < k && a[n - 1] >= k) || (a[0] <= k && a[n - 1] > k)) {
+        prt(-1);
+        return;
+    }
+
+    if (a[0] == a[n - 1] && a[0] == k) {
+        prt(0);
+        return;
+    }
+
+    int g = 0;
+    for (int &x: a) {
+        x = abs(x - k);
+    }
+
+    for (int x: a) {
+        g = gcd(g, x);
+    }
+
+    int ans = 0;
+    for (int x: a) {
+        ans += x / g - 1;
+    }
+
+    prt(ans);
 }
 
 signed main() {

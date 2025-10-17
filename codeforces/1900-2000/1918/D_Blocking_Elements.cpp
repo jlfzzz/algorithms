@@ -6,8 +6,7 @@ using ll = long long;
 #define pf push_front
 #define eb emplace_back
 #define all(x) (x).begin(), (x).end()
-using pii = pair<int, int>;
-using pll = pair<ll, ll>;
+using pii = pair<ll, ll>;
 #define ull unsigned long long
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
@@ -134,51 +133,63 @@ void solve() {
     int n;
     rd(n);
 
-    vector<vector<int>> g(n + 1);
-    for (int i: range(2, n + 1)) {
-        int fa;
-        rd(fa);
-        g[i].pb(fa);
-        g[fa].pb(i);
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
+
+    int lo = ranges::max(a);
+    int hi = accumulate(all(a), 0ll) * 2;
+
+    vector<int> pref(n + 1);
+    for (int i: range(1, n + 1)) {
+        pref[i] = pref[i - 1] + a[i];
     }
 
-    string s;
-    rd(s);
+    int ans = lo;
+    while (lo < hi) {
+        int mid = (lo + hi) / 2;
 
-    s = '#' + s;
+        auto check = [&](int lim) -> bool {
+            vector<int> dp(n + 1, inf);
+            dp[0] = 0;
+            deque<int> dq;
+            dq.pb(0);
+            for (int i: range(1, n + 1)) {
+                while (!dq.empty() && pref[i - 1] - pref[dq.front()] > lim) {
+                    dq.pop_front();
+                }
 
-    vector<vector<int>> dp(n + 1, vector<int>(5));
-    // 1 p1,2 p2, 3, s, 4,c
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        int cur = 0;
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+                if (dq.empty()) {
+                    return false;
+                } else {
+                    dp[i] = dp[dq.front()] + a[i];
+                }
+
+                while (!dq.empty() && dp[i] <= dp[dq.back()]) {
+                    dq.pop_back();
+                }
+                dq.pb(i);
             }
 
-            dfs(v, u);
-        }
-
-        for (int v : g[u]) {
-            if (v == fa) {
-                continue;
+            for (int i: range(n, -1, -1)) {
+                if (pref[n] - pref[i] > lim) {
+                    break;
+                }
+                if (dp[i] <= lim) {
+                    return true;
+                }
             }
+            return false;
+        };
 
-            if (s[v] == 'P') {}
-        }
-    };
-    dfs(1, 0);
-
-    for (int i: range(m, m + cc + 1)) {
-        if (dp[i]) {
-            prt(1);
-            return;
+        if (check(mid)) {
+            hi = mid;
+            ans = mid;
+        } else {
+            lo = mid + 1;
         }
     }
 
-
-
-    prt(2);
+    prt(ans);
 }
 
 signed main() {

@@ -6,7 +6,8 @@ using ll = long long;
 #define pf push_front
 #define eb emplace_back
 #define all(x) (x).begin(), (x).end()
-using pii = pair<ll, ll>;
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
 #define ull unsigned long long
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
@@ -129,8 +130,60 @@ int Multitest = 1;
 
 void init() {}
 
+constexpr int LIM = 2e18;
+
 void solve() {
-    
+    int n, q;
+    rd(n, q);
+
+    struct Info {
+        i128 len, segs;
+        vector<int> temp;
+    };
+
+    vector<Info> op2;
+    op2.push_back(Info{0, 0, {}});
+    vector<int> temp;
+    i128 curLen = 0;
+    for (int i: range(n)) {
+        int op, x;
+        rd(op, x);
+
+        if (op == 1) {
+            if (curLen < LIM) {
+                op2.back().temp.pb(x);
+                curLen++;
+            }
+        } else {
+            if (curLen < LIM) {
+                op2.eb(curLen, x);
+                curLen = min(curLen * (i128) (x + 1), (i128) LIM);
+            }
+        }
+    }
+
+    int m = op2.size();
+    vector<int> queries(q);
+    rd_vec(queries);
+    vector<int> ans;
+    for (int pos: queries) {
+        for (int i: range(m - 1, -1, -1)) {
+            auto &[len, segs, v] = op2[i];
+            i128 rep = len * (segs + 1);
+            if ((i128) pos > rep) {
+                ans.pb(v[(int) ((i128) pos - rep - 1)]);
+                break;
+            } else if (len > 0) {
+                i128 p = (i128) pos;
+                p = (p - 1) % len + 1;
+                pos = (int) p;
+            } else {
+                ans.pb(v[(int) ((i128) pos - 1)]);
+                break;
+            }
+        }
+    }
+    prt_vec(ans);
 }
 
 signed main() {
