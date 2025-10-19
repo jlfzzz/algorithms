@@ -106,9 +106,7 @@ using namespace io;
 
 constexpr int N = int(1e5 + 5);
 
-int init = [] {
-    return 0;
-}();
+int INIT = [] { return 0; }();
 
 using pll = pair<long long, long long>;
 #define i128 __int128_t
@@ -121,6 +119,7 @@ using pii = pair<int, int>;
 #define all(x) (x).begin(), (x).end()
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
+
 
 
 

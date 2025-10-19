@@ -125,56 +125,38 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int q;
-    rd(q);
+    int n, m;
+    rd(n, m);
+    vector<int> a(n), b(n);
+    rd_vec(a, 1);
+    rd_vec(b, 0);
 
-    while (q--) {
-        int l, r;
-        rd(l, r);
+    sort(a.begin(), a.end());
+    sort(b.begin(), b.end());
 
-        i128 L = 4, R = 7;
-        i128 base = 2;
-        i128 ans = 0;
-        while (L <= r) {
-            i128 tl = max(L, (i128) l), tr = min(R, (i128) r);
-
-            auto calc = [&](i128 base) {
-                i128 res = 0;
-                i128 power = 1;
-
-                i128 L = (i128) base;
-                i128 R = L * base - 1;
-
-                while (L <= tr) {
-                    i128 left = max(L, (i128) tl);
-                    i128 right = min(R, (i128) tr);
-                    if (left <= right) {
-                        res += power * (right - left + 1);
-                        res %= MOD;
-                    }
-                    L *= base;
-                    R = R * base + (base - 1);
-                    power++;
-                }
-                return res;
-            };
-
-            ans = (ans + calc(base)) % MOD;
-            L *= 2;
-            R = R * 2 + 1;
-            base++;
-        }
-
-        ans %= MOD;
-        if (ans < 0)
-            ans += MOD;
-        prt((ll) ans);
+    multiset<int> st;
+    int cnt = 0;
+    for (int i: range(n)) {
+        st.insert(b[i]);
     }
+
+    for (int i: range(1, n)) {
+        auto pos = st.upper_bound(a[i]);
+        if (pos != st.end()) {
+            st.erase(pos);
+            cnt++;
+        }
+    }
+
+    int ans = cnt * m;
+    int tmp = *st.rbegin();
+    ans += min(m, tmp - 1);
+    prt(m * n - ans);
 }
 
 signed main() {

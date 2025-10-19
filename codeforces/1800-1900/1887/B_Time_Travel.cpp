@@ -130,51 +130,76 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int q;
-    rd(q);
+    int n, t;
+    rd(n, t);
 
-    while (q--) {
-        int l, r;
-        rd(l, r);
+    vector<vector<pii>> g(n + 1);
 
-        i128 L = 4, R = 7;
-        i128 base = 2;
-        i128 ans = 0;
-        while (L <= r) {
-            i128 tl = max(L, (i128) l), tr = min(R, (i128) r);
-
-            auto calc = [&](i128 base) {
-                i128 res = 0;
-                i128 power = 1;
-
-                i128 L = (i128) base;
-                i128 R = L * base - 1;
-
-                while (L <= tr) {
-                    i128 left = max(L, (i128) tl);
-                    i128 right = min(R, (i128) tr);
-                    if (left <= right) {
-                        res += power * (right - left + 1);
-                        res %= MOD;
-                    }
-                    L *= base;
-                    R = R * base + (base - 1);
-                    power++;
-                }
-                return res;
-            };
-
-            ans = (ans + calc(base)) % MOD;
-            L *= 2;
-            R = R * 2 + 1;
-            base++;
+    for (int i: range(1, t + 1)) {
+        int m;
+        rd(m);
+        for (int _i = 0; _i < m; _i++) {
+            int u, v;
+            rd(u, v);
+            g[u].eb(v, i);
+            g[v].eb(u, i);
         }
-
-        ans %= MOD;
-        if (ans < 0)
-            ans += MOD;
-        prt((ll) ans);
     }
+
+    int k;
+    rd(k);
+
+    vector<int> a(k + 1);
+    for (int i: range(1, k + 1)) {
+        rd(a[i]);
+    }
+
+    vector<vector<int>> pos(t + 1);
+    for (int i: range(1, k + 1)) {
+        pos[a[i]].pb(i);
+    }
+
+    vector<int> dist(n + 1, (int) inf);
+    priority_queue<pii, vector<pii>, greater<pii>> pq;
+    dist[1] = 1;
+    pq.emplace(1, 1);
+
+    while (!pq.empty()) {
+        auto [idx, u] = pq.top();
+        pq.pop();
+        if (idx != dist[u]) {
+            continue;
+        }
+        if (u == n) {
+            prt(max<int>(1, idx - 1));
+            return;
+        }
+        if (idx > k) {
+            continue;
+        }
+        if (idx + 1 < dist[u]) {
+            dist[u] = idx + 1;
+            pq.emplace(idx + 1, u);
+        }
+        for (auto &[v, timeId]: g[u]) {
+            auto &lst = pos[timeId];
+            if (lst.empty()) {
+                continue;
+            }
+            auto it = lower_bound(lst.begin(), lst.end(), idx);
+            if (it == lst.end()) {
+                continue;
+            }
+            int t = *it;
+            int nid = t + 1;
+            if (nid < dist[v]) {
+                dist[v] = nid;
+                pq.emplace(nid, v);
+            }
+        }
+    }
+
+    prt(-1);
 }
 
 signed main() {

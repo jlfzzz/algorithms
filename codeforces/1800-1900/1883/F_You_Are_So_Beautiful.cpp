@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#include <vector>
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
@@ -125,56 +126,32 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int q;
-    rd(q);
+    int n;
+    rd(n);
+    vector<int> a(n);
+    rd_vec(a);
 
-    while (q--) {
-        int l, r;
-        rd(l, r);
-
-        i128 L = 4, R = 7;
-        i128 base = 2;
-        i128 ans = 0;
-        while (L <= r) {
-            i128 tl = max(L, (i128) l), tr = min(R, (i128) r);
-
-            auto calc = [&](i128 base) {
-                i128 res = 0;
-                i128 power = 1;
-
-                i128 L = (i128) base;
-                i128 R = L * base - 1;
-
-                while (L <= tr) {
-                    i128 left = max(L, (i128) tl);
-                    i128 right = min(R, (i128) tr);
-                    if (left <= right) {
-                        res += power * (right - left + 1);
-                        res %= MOD;
-                    }
-                    L *= base;
-                    R = R * base + (base - 1);
-                    power++;
-                }
-                return res;
-            };
-
-            ans = (ans + calc(base)) % MOD;
-            L *= 2;
-            R = R * 2 + 1;
-            base++;
-        }
-
-        ans %= MOD;
-        if (ans < 0)
-            ans += MOD;
-        prt((ll) ans);
+    int ans = 0;
+    vector<int> suf(n + 1);
+    map<int, int> m1, m2;
+    for (int i: range(n - 1, -1, -1)) {
+        suf[i] = suf[i + 1] + !m1.contains(a[i]);
+        m1[a[i]] = 1;
     }
+
+    for (int i: range(n)) {
+        if (!m2.contains(a[i])) {
+            ans += suf[i];
+        }
+        m2[a[i]] = 1;
+    }
+
+    prt(ans);
 }
 
 signed main() {

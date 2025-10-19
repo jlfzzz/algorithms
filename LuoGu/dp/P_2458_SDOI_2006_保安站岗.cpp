@@ -130,51 +130,50 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int q;
-    rd(q);
+    int n;
+    rd(n);
 
-    while (q--) {
-        int l, r;
-        rd(l, r);
+    vector<int> cost(n + 1);
+    vector<vector<int>> g(n + 1);
+    for (int i: range(1, n + 1)) {
+        int idx, c, m;
+        rd(idx, c, m);
+        cost[idx] = c;
 
-        i128 L = 4, R = 7;
-        i128 base = 2;
-        i128 ans = 0;
-        while (L <= r) {
-            i128 tl = max(L, (i128) l), tr = min(R, (i128) r);
+        for (int j: range(m)) {
+            int v;
+            rd(v);
+            g[idx].pb(v);
+            g[v].pb(idx);
+        }
+    }
 
-            auto calc = [&](i128 base) {
-                i128 res = 0;
-                i128 power = 1;
-
-                i128 L = (i128) base;
-                i128 R = L * base - 1;
-
-                while (L <= tr) {
-                    i128 left = max(L, (i128) tl);
-                    i128 right = min(R, (i128) tr);
-                    if (left <= right) {
-                        res += power * (right - left + 1);
-                        res %= MOD;
-                    }
-                    L *= base;
-                    R = R * base + (base - 1);
-                    power++;
-                }
-                return res;
-            };
-
-            ans = (ans + calc(base)) % MOD;
-            L *= 2;
-            R = R * 2 + 1;
-            base++;
+    vector<vector<int>> dp(n + 1, vector<int>(3));
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        int sum = 0;
+        dp[u][0] = cost[u];
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+            dfs(v, u);
+            dp[u][0] += ranges::min(dp[v]);
+            dp[u][1] += min(dp[v][0], dp[v][2]);
+            sum += min(dp[v][2], dp[v][0]);
         }
 
-        ans %= MOD;
-        if (ans < 0)
-            ans += MOD;
-        prt((ll) ans);
-    }
+        int now = inf;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            now = min(now, sum - min(dp[v][0], dp[v][2]) + dp[v][0]);
+        }
+        dp[u][2] = now;
+    };
+    dfs(1, 0);
+    prt(min(dp[1][0], dp[1][2]));
 }
 
 signed main() {

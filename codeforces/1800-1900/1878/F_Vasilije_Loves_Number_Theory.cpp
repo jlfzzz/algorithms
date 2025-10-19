@@ -125,55 +125,97 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
-void init() {}
+vector<bool> vis(1e6 + 10);
+vector<int> primes;
+void init() {
+    for (int i = 2; i <= 1e6; i++) {
+        if (!vis[i])
+            primes.push_back(i);
+        for (auto x: primes) {
+            if (x * i > 1e6)
+                break;
+            vis[x * i] = 1;
+            if (i % x == 0)
+                break;
+        }
+    }
+}
 
 void solve() {
-    int q;
-    rd(q);
-
-    while (q--) {
-        int l, r;
-        rd(l, r);
-
-        i128 L = 4, R = 7;
-        i128 base = 2;
-        i128 ans = 0;
-        while (L <= r) {
-            i128 tl = max(L, (i128) l), tr = min(R, (i128) r);
-
-            auto calc = [&](i128 base) {
-                i128 res = 0;
-                i128 power = 1;
-
-                i128 L = (i128) base;
-                i128 R = L * base - 1;
-
-                while (L <= tr) {
-                    i128 left = max(L, (i128) tl);
-                    i128 right = min(R, (i128) tr);
-                    if (left <= right) {
-                        res += power * (right - left + 1);
-                        res %= MOD;
-                    }
-                    L *= base;
-                    R = R * base + (base - 1);
-                    power++;
-                }
-                return res;
-            };
-
-            ans = (ans + calc(base)) % MOD;
-            L *= 2;
-            R = R * 2 + 1;
-            base++;
+    int n, q;
+    rd(n, q);
+    int now = n, nowd;
+    int k = primes.size();
+    vector<int> num(k), nu;
+    int t = n;
+    int p = -1;
+    int d = 1;
+    for (auto x: primes) {
+        p++;
+        if (x > t)
+            break;
+        if (t % x != 0)
+            continue;
+        int cnt = 0;
+        while (t % x == 0) {
+            cnt++;
+            t /= x;
         }
-
-        ans %= MOD;
-        if (ans < 0)
-            ans += MOD;
-        prt((ll) ans);
+        num[p] = cnt;
+        d *= (cnt + 1);
+    }
+    nowd = d;
+    nu = num;
+    while (q--) {
+        int op;
+        rd(op);
+        if (op == 2) {
+            now = n;
+            nowd = d;
+            nu = num;
+        } else {
+            int xx;
+            rd(xx);
+            p = -1;
+            t = xx;
+            for (auto x: primes) {
+                p++;
+                if (x > t)
+                    break;
+                if (t % x != 0)
+                    continue;
+                int cnt = 0;
+                while (t % x == 0) {
+                    cnt++;
+                    t /= x;
+                }
+                nowd /= (nu[p] + 1);
+                nu[p] += cnt;
+                nowd *= (nu[p] + 1);
+            }
+            bool ok = true;
+            p = -1;
+            t = nowd;
+            for (auto x: primes) {
+                p++;
+                if (x > t)
+                    break;
+                if (t % x != 0)
+                    continue;
+                int cnt = 0;
+                while (t % x == 0) {
+                    cnt++;
+                    t /= x;
+                }
+                if (cnt > nu[p]) {
+                    ok = false;
+                    break;
+                }
+            }
+            prt(ok ? "YES" : "NO");
+        }
     }
 }
 
@@ -182,9 +224,8 @@ signed main() {
     cin.tie(nullptr);
     init();
     int T = 1;
-    if (Multitest) {
+    if (Multitest)
         rd(T);
-    }
     while (T--)
         solve();
     return 0;

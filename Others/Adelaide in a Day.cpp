@@ -12,6 +12,8 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
+// https://aucpl.com/contest/2025round8au
+
 namespace utils {
     void debug() { cerr << "\n"; }
 
@@ -123,6 +125,38 @@ namespace utils {
 
 using namespace utils;
 
+template<typename T>
+class FenwickTree {
+    vector<T> tree;
+
+public:
+    FenwickTree(int n) : tree(n + 1) {}
+
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
+        }
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+};
+
 #define int ll
 
 int Multitest = 0;
@@ -130,51 +164,80 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int q;
-    rd(q);
+    int n;
+    rd(n);
 
-    while (q--) {
-        int l, r;
-        rd(l, r);
+    vector<pii> friends(n);
+    vector<int> ts;
+    for (int i: range(n)) {
+        rd(friends[i].first, friends[i].second);
+        ts.pb(friends[i].first);
+        ts.pb(friends[i].second);
+    }
 
-        i128 L = 4, R = 7;
-        i128 base = 2;
-        i128 ans = 0;
-        while (L <= r) {
-            i128 tl = max(L, (i128) l), tr = min(R, (i128) r);
+    int m;
+    rd(m);
+    struct Act {
+        int l, r, val;
+    };
+    vector<Act> act(m);
+    for (int i: range(m)) {
+        int l, r, val;
+        rd(l, r, val);
+        act[i] = {l, r, val};
+        ts.pb(l);
+        ts.pb(r);
+    }
 
-            auto calc = [&](i128 base) {
-                i128 res = 0;
-                i128 power = 1;
+    ranges::sort(ts);
+    ts.erase(unique(all(ts)), ts.end());
 
-                i128 L = (i128) base;
-                i128 R = L * base - 1;
+    // 1-index
+    auto getIdx = [&](int val) -> int { return ranges::lower_bound(ts, val) - ts.begin() + 1; };
 
-                while (L <= tr) {
-                    i128 left = max(L, (i128) tl);
-                    i128 right = min(R, (i128) tr);
-                    if (left <= right) {
-                        res += power * (right - left + 1);
-                        res %= MOD;
-                    }
-                    L *= base;
-                    R = R * base + (base - 1);
-                    power++;
-                }
-                return res;
-            };
+    int N = ts.size() + 5;
+    vector<vector<int>> ev1(N);
+    vector<vector<pii>> ev2(N);
 
-            ans = (ans + calc(base)) % MOD;
-            L *= 2;
-            R = R * 2 + 1;
-            base++;
+    // debug("ts sz", N);
+
+    for (auto &[s, t]: friends) {
+        int i = getIdx(s);
+        int j = getIdx(t);
+
+        ev1[i].pb(j);
+    }
+
+    for (auto &[l, r, val]: act) {
+        int i = getIdx(l);
+        int j = getIdx(r);
+
+        ev2[i].eb(j, val);
+    }
+
+    FenwickTree<ll> fwt(N + 5);
+    vector<int> dp(N + 5);
+    int pre = 0;
+    dp[0] = 0;
+    int sz = ts.size();
+    for (int i: range(1, sz + 1)) {
+        dp[i + 1] = max(dp[i + 1], dp[i]);
+
+        // debug("i", i, "pre", pre, "ended", fwt.pre(i - 1), "dp[i]", dp[i]);
+
+        for (auto r: ev1[i]) {
+            pre++;
+            fwt.update(r, 1);
         }
 
-        ans %= MOD;
-        if (ans < 0)
-            ans += MOD;
-        prt((ll) ans);
+        for (auto &[end, val]: ev2[i]) {
+            int cnt = pre - fwt.pre(end - 1);
+            dp[end + 1] = max(dp[end + 1], dp[i] + cnt * val);
+        }
     }
+
+    int ans = ranges::max(dp);
+    prt(ans);
 }
 
 signed main() {

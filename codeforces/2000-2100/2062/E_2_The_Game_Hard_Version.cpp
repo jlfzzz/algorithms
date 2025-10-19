@@ -1,5 +1,130 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+#define i128 __int128_t
+#define pb push_back
+#define pf push_front
+#define eb emplace_back
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
+
+namespace utils {
+    void debug() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void debug(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        debug(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+
+    struct range : ranges::view_base {
+        struct Iterator {
+            using iterator_category = random_access_iterator_tag;
+            using value_type = long long;
+            using difference_type = ptrdiff_t;
+            ll val, d;
+            Iterator() = default;
+            Iterator(ll val, ll d) : val(val), d(d) {};
+            value_type operator*() const { return val; }
+            Iterator &operator++() { return val += d, *this; }
+            Iterator operator++(int) {
+                Iterator tmp = *this;
+                ++(*this);
+                return tmp;
+            }
+            Iterator &operator--() { return val -= d, *this; }
+            Iterator operator--(int) {
+                Iterator tmp = *this;
+                --(*this);
+                return tmp;
+            }
+            difference_type operator-(const Iterator &other) const { return (val - other.val) / d; }
+            bool operator==(const Iterator &other) const { return val == other.val; }
+        };
+        Iterator Begin, End;
+        explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
+        range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
+            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
+            End.val = a + max(cnt, ll(0)) * d;
+        };
+        [[nodiscard]] Iterator begin() const { return Begin; }
+        [[nodiscard]] Iterator end() const { return End; };
+        [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
+    };
+} // namespace utils
+
+using namespace utils;
+
+#include <bits/stdc++.h>
+using namespace std;
 
 
 namespace atcoder::internal {
@@ -275,21 +400,6 @@ F composition(F f, F g) { return {f.add + g.add}; }
 
 F id() { return {0}; }
 
-// S 就是 Node，结构体
-// F 是 lazy 的结构体
-// op 就是maintain，pushup，合并节点
-// e 就是无效值，例如0，或者求最大值的时候一定要设置会为最小，反之
-// mapping 就是用lazy去更新
-// composition 就是lazy合并，参数f是新lazy，g是旧lazy。记得优先级
-// id 就是无效的lazy，例如-1
-
-// 构造函数记得传入 S 数组 tree_arr
-// 查询是 左闭右开！
-// max_right 是传入一个索引，左起点，从它开始一直往右找一个return true的
-// min_left 是传入一个索引，右起点，从它开始一直往左找一个return true的
-
-// 删除全局段树，使用类内实例
-
 class HLD {
 public:
     int n, timer{};
@@ -393,3 +503,125 @@ public:
         return depth[u] < depth[v] ? u : v;
     }
 };
+
+
+#define int ll
+
+int Multitest = 1;
+
+void init() {}
+
+void solve() {
+    int n;
+    rd(n);
+
+    vector<int> w(n + 1);
+    for (int i = 1; i <= n; i++) {
+        rd(w[i]);
+        w[i]--;
+    }
+
+    HLD hld(n);
+    for (int i = 0; i < n - 1; i++) {
+        int u, v;
+        rd(u, v);
+        hld.add_edge(u, v);
+    }
+    hld.build(1);
+
+    vector<int> pos(n + 2);
+    for (int u = 1; u <= n; u++) {
+        pos[hld.pos[u]] = u;
+    }
+
+    vector<vector<int>> vec(n);
+    for (int u = 1; u <= n; u++) {
+        vec[w[u]].push_back(u);
+    }
+
+    array<int, 2> f{-1, -1};
+    set<int> s;
+    vector<int> ans_flag(n + 1, 0);
+
+    auto check = [&](int u, int v) -> bool {
+        return hld.pos[u] <= hld.pos[v] && hld.pos[v] < hld.pos[u] + hld.sz[u];
+    };
+
+    for (int val = n - 1; val >= 0; val--) {
+        if (vec[val].empty()) {
+            continue;
+        }
+
+        auto nf = f;
+        for (int x: vec[val]) {
+            int L = hld.pos[x];
+            int R = hld.pos[x] + hld.sz[x];
+
+            auto itl = s.lower_bound(L);
+            auto itr = s.lower_bound(R);
+
+            if (itl == s.begin() && itr == s.end()) {
+                continue;
+            }
+
+            for (int y: f) {
+                if (y == -1 || check(x, y)) {
+                    ans_flag[x] = 1;
+                }
+            }
+
+            int a_pos = (itl != s.begin() ? *s.begin() : *itr);
+            int b_pos = (itr != s.end() ? *prev(s.end()) : *prev(itl));
+            int a = pos[a_pos];
+            int b = pos[b_pos];
+            int l = hld.lca(a, b);
+
+            if (nf[0] == -1) {
+                nf = {x, l};
+            } else {
+                for (int i = 0; i < 2; i++) {
+                    int y = nf[i];
+                    int a2 = hld.lca(y, x);
+                    int b2 = hld.lca(y, l);
+                    nf[i] = (hld.depth[a2] > hld.depth[b2] ? a2 : b2);
+                }
+            }
+        }
+
+        for (int x: vec[val]) {
+            s.insert(hld.pos[x]);
+        }
+        f = nf;
+    }
+
+    vector<int> ans;
+    for (int u = 1; u <= n; u++) {
+        if (ans_flag[u]) {
+            ans.push_back(u);
+        }
+    }
+
+    if (ans.empty()) {
+        cout << 0 << '\n';
+        return;
+    }
+    ranges::sort(ans);
+    cout << (int) ans.size();
+    for (int u: ans) {
+        cout << ' ' << u;
+    }
+    cout << '\n';
+}
+
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--)
+        solve();
+    return 0;
+}

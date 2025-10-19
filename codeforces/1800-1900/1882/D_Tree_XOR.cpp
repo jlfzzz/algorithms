@@ -125,56 +125,58 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int q;
-    rd(q);
+    int n;
+    rd(n);
 
-    while (q--) {
-        int l, r;
-        rd(l, r);
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
 
-        i128 L = 4, R = 7;
-        i128 base = 2;
-        i128 ans = 0;
-        while (L <= r) {
-            i128 tl = max(L, (i128) l), tr = min(R, (i128) r);
-
-            auto calc = [&](i128 base) {
-                i128 res = 0;
-                i128 power = 1;
-
-                i128 L = (i128) base;
-                i128 R = L * base - 1;
-
-                while (L <= tr) {
-                    i128 left = max(L, (i128) tl);
-                    i128 right = min(R, (i128) tr);
-                    if (left <= right) {
-                        res += power * (right - left + 1);
-                        res %= MOD;
-                    }
-                    L *= base;
-                    R = R * base + (base - 1);
-                    power++;
-                }
-                return res;
-            };
-
-            ans = (ans + calc(base)) % MOD;
-            L *= 2;
-            R = R * 2 + 1;
-            base++;
-        }
-
-        ans %= MOD;
-        if (ans < 0)
-            ans += MOD;
-        prt((ll) ans);
+    vector<vector<int>> g(n + 1);
+    for (int i: range(n - 1)) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
+
+    vector<int> dp(n + 1), sz(n + 1);
+    auto dfs1 = [&](this auto &&dfs, int u, int fa) -> void {
+        sz[u] = 1;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            dfs(v, u);
+            sz[u] += sz[v];
+            dp[u] += dp[v] + sz[v] * (a[u] ^ a[v]);
+        }
+    };
+
+    dfs1(1, 0);
+
+    vector<int> ans(n + 1);
+    auto dfs2 = [&](this auto &&dfs, int u, int fa) -> void {
+        ans[u] = dp[u];
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            // dp[v] -= sz[v] * (a[v] ^ a[u]);
+            dp[v] += (n - sz[v]) * (a[v] ^ a[u]) + (dp[u] - dp[v] - sz[v] * (a[u] ^ a[v]));
+            dfs(v, u);
+        }
+    };
+
+    dfs2(1, 0);
+
+    prt_vec(ans, 1);
 }
 
 signed main() {
