@@ -12,44 +12,6 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-constexpr int MAX = 1 << 10;
-constexpr int MAX_BIT = 10;
-
-void Add(ll &x, ll y) {
-    x += y;
-    if (x >= MOD) {
-        x -= MOD;
-    }
-    if (x < 0) {
-        x += MOD;
-    }
-}
-
-vector<array<ll, 2>> GetSegXOR(ll x, ll y) {
-    vector<array<ll, 2>> seg;
-    if (y < 0) {
-        return seg;
-    }
-    ll p = 0;
-    for (ll i = MAX_BIT - 1; i >= 0; i--) {
-        if ((y >> i) & 1LL) {
-            if ((x >> i) & 1LL) {
-                seg.push_back({p | (1LL << i), p | ((1LL << (i + 1)) - 1)});
-            } else {
-                seg.push_back({p, p | ((1LL << i) - 1)});
-                p |= (1LL << i);
-            }
-        } else {
-            if ((x >> i) & 1LL) {
-                p |= (1LL << i);
-            }
-        }
-    }
-    assert((p ^ x) == y);
-    seg.push_back({p, p});
-    return seg;
-}
-
 namespace utils {
     void debug() { cerr << "\n"; }
 
@@ -168,79 +130,41 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n;
-    cin >> n;
-    vector<int> A(n + 1), L(n + 1), R(n + 1);
+    int n, k;
+    rd(n, k);
+
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
+    a[0] = 0;
+
+    vector<int> cold(k + 1), hot(k + 1);
+    rd_vec(cold, 1);
+    rd_vec(hot, 1);
+
+    vector<int> dp(k + 1, inf);
+    dp[0] = 0;
+    int s = 0;
+    int minn = 0;
     for (int i = 1; i <= n; i++) {
-        cin >> A[i] >> L[i] >> R[i];
-    }
-    vector<int> dp(MAX);
-    for (int v = 0; v <= A[1]; v++) {
-        Add(dp[v], 1);
-    }
-    for (int i = 2; i <= n; i++) {
-        vector<int> ndp(MAX);
-        for (int j = 0; j < MAX; j++) {
-            if (dp[j] == 0) {
-                continue;
+        if (a[i] == a[i - 1]) {
+            s += hot[a[i]];
+        } else {
+            s += cold[a[i]];
+            int x = a[i];
+            int prev = a[i - 1];
+            int best = min(dp[x] + hot[x], minn + cold[x]);
+            int newVal = best - cold[x];
+            if (newVal < dp[prev]) {
+                dp[prev] = newVal;
             }
-            if (i % 2 == 0) {
-                if (j >= A[i]) {
-                    Add(ndp[j - A[i]], dp[j]);
-                    if (j + 1 < MAX) {
-                        Add(ndp[j + 1], -dp[j]);
-                    }
-                } else {
-                    Add(ndp[0], dp[j]);
-                    if (j + 1 < MAX) {
-                        Add(ndp[j + 1], -dp[j]);
-                    }
-                    Add(ndp[1], dp[j]);
-                    if (A[i] - j + 1 < MAX) {
-                        Add(ndp[A[i] - j + 1], -dp[j]);
-                    }
-                }
-            } else {
-                auto segl = GetSegXOR(j, L[i - 1] - 1);
-                auto segr = GetSegXOR(j, R[i - 1]);
-                for (auto &pr: segr) {
-                    int l = pr[0];
-                    int r = pr[1];
-                    l = max<int>(0, l);
-                    r = min<int>(r, A[i]);
-                    if (l > r) {
-                        continue;
-                    }
-                    Add(ndp[l], dp[j]);
-                    if (r + 1 < MAX) {
-                        Add(ndp[r + 1], -dp[j]);
-                    }
-                }
-                for (auto &pr: segl) {
-                    int l = pr[0];
-                    int r = pr[1];
-                    l = max<int>(0, l);
-                    r = min<int>(r, A[i]);
-                    if (l > r) {
-                        continue;
-                    }
-                    Add(ndp[l], -dp[j]);
-                    if (r + 1 < MAX) {
-                        Add(ndp[r + 1], dp[j]);
-                    }
-                }
+            if (dp[prev] < minn) {
+                minn = dp[prev];
             }
         }
-        for (int j = 1; j < MAX; j++) {
-            Add(ndp[j], ndp[j - 1]);
-        }
-        dp.swap(ndp);
     }
-    int ans = 0;
-    for (int i = 0; i < MAX; i++) {
-        Add(ans, dp[i]);
-    }
-    cout << ans << '\n';
+
+    int ans = minn + s;
+    prt(ans);
 }
 
 signed main() {

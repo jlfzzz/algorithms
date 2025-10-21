@@ -12,44 +12,6 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-constexpr int MAX = 1 << 10;
-constexpr int MAX_BIT = 10;
-
-void Add(ll &x, ll y) {
-    x += y;
-    if (x >= MOD) {
-        x -= MOD;
-    }
-    if (x < 0) {
-        x += MOD;
-    }
-}
-
-vector<array<ll, 2>> GetSegXOR(ll x, ll y) {
-    vector<array<ll, 2>> seg;
-    if (y < 0) {
-        return seg;
-    }
-    ll p = 0;
-    for (ll i = MAX_BIT - 1; i >= 0; i--) {
-        if ((y >> i) & 1LL) {
-            if ((x >> i) & 1LL) {
-                seg.push_back({p | (1LL << i), p | ((1LL << (i + 1)) - 1)});
-            } else {
-                seg.push_back({p, p | ((1LL << i) - 1)});
-                p |= (1LL << i);
-            }
-        } else {
-            if ((x >> i) & 1LL) {
-                p |= (1LL << i);
-            }
-        }
-    }
-    assert((p ^ x) == y);
-    seg.push_back({p, p});
-    return seg;
-}
-
 namespace utils {
     void debug() { cerr << "\n"; }
 
@@ -123,7 +85,7 @@ namespace utils {
         }
     }
 
-    struct range : ranges::view_base {
+    struct range {
         struct Iterator {
             using iterator_category = random_access_iterator_tag;
             using value_type = long long;
@@ -167,81 +129,72 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {
-    int n;
-    cin >> n;
-    vector<int> A(n + 1), L(n + 1), R(n + 1);
-    for (int i = 1; i <= n; i++) {
-        cin >> A[i] >> L[i] >> R[i];
+int memo[20][10][10][2][2][2];
+string bestNumMemo[20][10][10][2][2][2];
+string L, R;
+
+string dfs(int i, bool is_lo, bool is_hi, int mx, int mn, bool started) {
+    int n = R.size();
+    if (i == n) {
+        memo[i][mx][mn][is_lo][is_hi][started] = started ? (mx - mn) : 0;
+        return "";
     }
-    vector<int> dp(MAX);
-    for (int v = 0; v <= A[1]; v++) {
-        Add(dp[v], 1);
-    }
-    for (int i = 2; i <= n; i++) {
-        vector<int> ndp(MAX);
-        for (int j = 0; j < MAX; j++) {
-            if (dp[j] == 0) {
-                continue;
-            }
-            if (i % 2 == 0) {
-                if (j >= A[i]) {
-                    Add(ndp[j - A[i]], dp[j]);
-                    if (j + 1 < MAX) {
-                        Add(ndp[j + 1], -dp[j]);
-                    }
-                } else {
-                    Add(ndp[0], dp[j]);
-                    if (j + 1 < MAX) {
-                        Add(ndp[j + 1], -dp[j]);
-                    }
-                    Add(ndp[1], dp[j]);
-                    if (A[i] - j + 1 < MAX) {
-                        Add(ndp[A[i] - j + 1], -dp[j]);
-                    }
-                }
-            } else {
-                auto segl = GetSegXOR(j, L[i - 1] - 1);
-                auto segr = GetSegXOR(j, R[i - 1]);
-                for (auto &pr: segr) {
-                    int l = pr[0];
-                    int r = pr[1];
-                    l = max<int>(0, l);
-                    r = min<int>(r, A[i]);
-                    if (l > r) {
-                        continue;
-                    }
-                    Add(ndp[l], dp[j]);
-                    if (r + 1 < MAX) {
-                        Add(ndp[r + 1], -dp[j]);
-                    }
-                }
-                for (auto &pr: segl) {
-                    int l = pr[0];
-                    int r = pr[1];
-                    l = max<int>(0, l);
-                    r = min<int>(r, A[i]);
-                    if (l > r) {
-                        continue;
-                    }
-                    Add(ndp[l], -dp[j]);
-                    if (r + 1 < MAX) {
-                        Add(ndp[r + 1], dp[j]);
-                    }
-                }
-            }
+
+    int &x = memo[i][mx][mn][is_lo][is_hi][started];
+    string &best = bestNumMemo[i][mx][mn][is_lo][is_hi][started];
+    if (x != -1)
+        return best;
+
+    int lo = is_lo ? (L[i] - '0') : 0;
+    int hi = is_hi ? (R[i] - '0') : 9;
+
+    int res = inf;
+    string resStr;
+
+    for (int d = lo; d <= hi; d++) {
+        bool nxt_lo = is_lo && (d == (L[i] - '0'));
+        bool nxt_hi = is_hi && (d == (R[i] - '0'));
+        bool nxt_started = started || (d != 0);
+
+        int tmx = mx;
+        int tmn = mn;
+        if (nxt_started) {
+            tmx = max(mx, d);
+            tmn = min(mn, d);
         }
-        for (int j = 1; j < MAX; j++) {
-            Add(ndp[j], ndp[j - 1]);
+
+        string sub = dfs(i + 1, nxt_lo, nxt_hi, tmx, tmn, nxt_started);
+        int diff = memo[i + 1][tmx][tmn][nxt_lo][nxt_hi][nxt_started];
+
+        string curStr = char('0' + d) + sub;
+        if (diff < res || (diff == res && curStr < resStr)) {
+            res = diff;
+            resStr = curStr;
         }
-        dp.swap(ndp);
     }
-    int ans = 0;
-    for (int i = 0; i < MAX; i++) {
-        Add(ans, dp[i]);
-    }
-    cout << ans << '\n';
+
+    x = res;
+    best = resStr;
+    return best;
 }
+
+void solve() {
+    int l, r;
+    rd(l, r);
+    L = to_string(l);
+    R = to_string(r);
+    if (L.size() != R.size())
+        L = string(R.size() - L.size(), '0') + L;
+
+    memset(memo, -1, sizeof(memo));
+
+    string ans = dfs(0, true, true, 0, 9, false);
+
+    while (ans.size() > 1 && ans[0] == '0')
+        ans.erase(ans.begin());
+    cout << ans << "\n";
+}
+
 
 signed main() {
     ios::sync_with_stdio(false);

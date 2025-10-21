@@ -12,44 +12,6 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-constexpr int MAX = 1 << 10;
-constexpr int MAX_BIT = 10;
-
-void Add(ll &x, ll y) {
-    x += y;
-    if (x >= MOD) {
-        x -= MOD;
-    }
-    if (x < 0) {
-        x += MOD;
-    }
-}
-
-vector<array<ll, 2>> GetSegXOR(ll x, ll y) {
-    vector<array<ll, 2>> seg;
-    if (y < 0) {
-        return seg;
-    }
-    ll p = 0;
-    for (ll i = MAX_BIT - 1; i >= 0; i--) {
-        if ((y >> i) & 1LL) {
-            if ((x >> i) & 1LL) {
-                seg.push_back({p | (1LL << i), p | ((1LL << (i + 1)) - 1)});
-            } else {
-                seg.push_back({p, p | ((1LL << i) - 1)});
-                p |= (1LL << i);
-            }
-        } else {
-            if ((x >> i) & 1LL) {
-                p |= (1LL << i);
-            }
-        }
-    }
-    assert((p ^ x) == y);
-    seg.push_back({p, p});
-    return seg;
-}
-
 namespace utils {
     void debug() { cerr << "\n"; }
 
@@ -163,84 +125,76 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
+template<typename T>
+void prt_bin(T x, int width = -1, char fill = '0') {
+    static_assert(is_integral_v<T>, "prt_bin only supports integral types");
+
+    string s;
+    if (x == 0) {
+        s = "0";
+    } else {
+        while (x != 0) {
+            s.push_back((x & 1) ? '1' : '0');
+            x >>= 1;
+        }
+        reverse(s.begin(), s.end());
+    }
+
+    // 如果指定了宽度，则填充
+    if (width > 0 && (int) s.size() < width) {
+        s = string(width - s.size(), fill) + s;
+    }
+
+    cout << s << "\n";
+}
+
 void solve() {
     int n;
-    cin >> n;
-    vector<int> A(n + 1), L(n + 1), R(n + 1);
-    for (int i = 1; i <= n; i++) {
-        cin >> A[i] >> L[i] >> R[i];
-    }
-    vector<int> dp(MAX);
-    for (int v = 0; v <= A[1]; v++) {
-        Add(dp[v], 1);
-    }
-    for (int i = 2; i <= n; i++) {
-        vector<int> ndp(MAX);
-        for (int j = 0; j < MAX; j++) {
-            if (dp[j] == 0) {
+    rd(n);
+
+    array<unordered_map<int, int>, 26> cnt;
+    int ans = 0;
+    int u = (1 << 26) - 1;
+
+    for (int i: range(n)) {
+        string s;
+        rd(s);
+
+        int cc[26];
+        memset(cc, 0, sizeof(cc));
+        for (char c: s) {
+            cc[c - 'a']++;
+        }
+
+        int mask = 0;
+        for (int j: range(26)) {
+            mask |= (cc[j] & 1) << j;
+        }
+
+        for (int j: range(26)) {
+            if (cc[j]) {
                 continue;
             }
-            if (i % 2 == 0) {
-                if (j >= A[i]) {
-                    Add(ndp[j - A[i]], dp[j]);
-                    if (j + 1 < MAX) {
-                        Add(ndp[j + 1], -dp[j]);
-                    }
-                } else {
-                    Add(ndp[0], dp[j]);
-                    if (j + 1 < MAX) {
-                        Add(ndp[j + 1], -dp[j]);
-                    }
-                    Add(ndp[1], dp[j]);
-                    if (A[i] - j + 1 < MAX) {
-                        Add(ndp[A[i] - j + 1], -dp[j]);
-                    }
-                }
-            } else {
-                auto segl = GetSegXOR(j, L[i - 1] - 1);
-                auto segr = GetSegXOR(j, R[i - 1]);
-                for (auto &pr: segr) {
-                    int l = pr[0];
-                    int r = pr[1];
-                    l = max<int>(0, l);
-                    r = min<int>(r, A[i]);
-                    if (l > r) {
-                        continue;
-                    }
-                    Add(ndp[l], dp[j]);
-                    if (r + 1 < MAX) {
-                        Add(ndp[r + 1], -dp[j]);
-                    }
-                }
-                for (auto &pr: segl) {
-                    int l = pr[0];
-                    int r = pr[1];
-                    l = max<int>(0, l);
-                    r = min<int>(r, A[i]);
-                    if (l > r) {
-                        continue;
-                    }
-                    Add(ndp[l], -dp[j]);
-                    if (r + 1 < MAX) {
-                        Add(ndp[r + 1], dp[j]);
-                    }
-                }
+
+            int t = (u - (1 << j)) ^ mask;
+            ans += cnt[j][t];
+        }
+
+        // prt_bin(mask, 30);
+
+        for (int j: range(26)) {
+            if (cc[j]) {
+                continue;
             }
+            cnt[j][mask]++;
         }
-        for (int j = 1; j < MAX; j++) {
-            Add(ndp[j], ndp[j - 1]);
-        }
-        dp.swap(ndp);
     }
-    int ans = 0;
-    for (int i = 0; i < MAX; i++) {
-        Add(ans, dp[i]);
-    }
-    cout << ans << '\n';
+
+    prt(ans);
 }
 
 signed main() {

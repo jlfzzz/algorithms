@@ -12,44 +12,6 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-constexpr int MAX = 1 << 10;
-constexpr int MAX_BIT = 10;
-
-void Add(ll &x, ll y) {
-    x += y;
-    if (x >= MOD) {
-        x -= MOD;
-    }
-    if (x < 0) {
-        x += MOD;
-    }
-}
-
-vector<array<ll, 2>> GetSegXOR(ll x, ll y) {
-    vector<array<ll, 2>> seg;
-    if (y < 0) {
-        return seg;
-    }
-    ll p = 0;
-    for (ll i = MAX_BIT - 1; i >= 0; i--) {
-        if ((y >> i) & 1LL) {
-            if ((x >> i) & 1LL) {
-                seg.push_back({p | (1LL << i), p | ((1LL << (i + 1)) - 1)});
-            } else {
-                seg.push_back({p, p | ((1LL << i) - 1)});
-                p |= (1LL << i);
-            }
-        } else {
-            if ((x >> i) & 1LL) {
-                p |= (1LL << i);
-            }
-        }
-    }
-    assert((p ^ x) == y);
-    seg.push_back({p, p});
-    return seg;
-}
-
 namespace utils {
     void debug() { cerr << "\n"; }
 
@@ -161,6 +123,55 @@ namespace utils {
 
 using namespace utils;
 
+template<typename T>
+class FenwickTree {
+    vector<T> tree;
+
+public:
+    FenwickTree(int n) : tree(n + 1) {}
+
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
+        }
+    }
+
+    // 点更新取 max
+    void updateMax(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            if (val > tree[i]) {
+                tree[i] = val;
+            }
+        }
+    }
+
+    T preMax(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res = max(res, tree[i]);
+        }
+        return res;
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+};
+
 #define int ll
 
 int Multitest = 1;
@@ -169,78 +180,66 @@ void init() {}
 
 void solve() {
     int n;
-    cin >> n;
-    vector<int> A(n + 1), L(n + 1), R(n + 1);
-    for (int i = 1; i <= n; i++) {
-        cin >> A[i] >> L[i] >> R[i];
-    }
-    vector<int> dp(MAX);
-    for (int v = 0; v <= A[1]; v++) {
-        Add(dp[v], 1);
-    }
-    for (int i = 2; i <= n; i++) {
-        vector<int> ndp(MAX);
-        for (int j = 0; j < MAX; j++) {
-            if (dp[j] == 0) {
-                continue;
-            }
-            if (i % 2 == 0) {
-                if (j >= A[i]) {
-                    Add(ndp[j - A[i]], dp[j]);
-                    if (j + 1 < MAX) {
-                        Add(ndp[j + 1], -dp[j]);
-                    }
-                } else {
-                    Add(ndp[0], dp[j]);
-                    if (j + 1 < MAX) {
-                        Add(ndp[j + 1], -dp[j]);
-                    }
-                    Add(ndp[1], dp[j]);
-                    if (A[i] - j + 1 < MAX) {
-                        Add(ndp[A[i] - j + 1], -dp[j]);
-                    }
-                }
-            } else {
-                auto segl = GetSegXOR(j, L[i - 1] - 1);
-                auto segr = GetSegXOR(j, R[i - 1]);
-                for (auto &pr: segr) {
-                    int l = pr[0];
-                    int r = pr[1];
-                    l = max<int>(0, l);
-                    r = min<int>(r, A[i]);
-                    if (l > r) {
-                        continue;
-                    }
-                    Add(ndp[l], dp[j]);
-                    if (r + 1 < MAX) {
-                        Add(ndp[r + 1], -dp[j]);
-                    }
-                }
-                for (auto &pr: segl) {
-                    int l = pr[0];
-                    int r = pr[1];
-                    l = max<int>(0, l);
-                    r = min<int>(r, A[i]);
-                    if (l > r) {
-                        continue;
-                    }
-                    Add(ndp[l], -dp[j]);
-                    if (r + 1 < MAX) {
-                        Add(ndp[r + 1], dp[j]);
-                    }
-                }
+    rd(n);
+
+    vector<tuple<int, int, int>> events;
+    vector<int> coords;
+
+    for (int _: range(n)) {
+        int k;
+        rd(k);
+
+        vector<int> v(k);
+        rd_vec(v);
+
+        int curMax = -1;
+        vector<int> temp;
+        for (int x: v) {
+            if (x > curMax) {
+                temp.pb(x);
+                curMax = x;
             }
         }
-        for (int j = 1; j < MAX; j++) {
-            Add(ndp[j], ndp[j - 1]);
+
+        int sz = (int) temp.size();
+        int albumMax = temp.back();
+        int rPlus = albumMax + 1;
+        for (int i: range(sz - 1, -1, -1)) {
+            int cur = temp[i];
+            int cnt = sz - i;
+            events.eb(cur, rPlus, cnt);
+            coords.pb(cur);
+            coords.pb(rPlus);
         }
-        dp.swap(ndp);
     }
-    int ans = 0;
-    for (int i = 0; i < MAX; i++) {
-        Add(ans, dp[i]);
+
+    ranges::sort(coords);
+    coords.erase(unique(coords.begin(), coords.end()), coords.end());
+
+    auto getId = [&](int x) {
+        int id = (int) (ranges::lower_bound(coords, x) - coords.begin()) + 1;
+        return id;
+    };
+
+    int m = (int) coords.size();
+    vector<vector<pair<int, int>>> grouped(m + 1);
+    for (auto &[cur, rPlus, cnt]: events) {
+        int i = getId(cur);
+        int j = getId(rPlus);
+        grouped[i].eb(j, cnt);
     }
-    cout << ans << '\n';
+
+    FenwickTree<long long> bit(m);
+    bit.updateMax(1, 0LL);
+    for (int i: range(1, m + 1)) {
+        long long base = bit.preMax(i);
+        for (auto &[to, cnt]: grouped[i]) {
+            bit.updateMax(to, base + cnt);
+        }
+    }
+
+    long long ans = bit.preMax(m);
+    prt(ans);
 }
 
 signed main() {
