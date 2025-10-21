@@ -1,89 +1,174 @@
-#include <algorithm>
-#include <iostream>
-#include <numeric>
-#include <queue>
-#include <string>
-#include <vector>
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+#define i128 __int128_t
+#define pb push_back
+#define pf push_front
+#define eb emplace_back
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
+namespace utils {
+    void debug() { cerr << "\n"; }
 
-// 为了提高 cin/cout 的效率
-void setup_io() {
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(NULL);
-}
+    template<typename T, typename... Args>
+    void debug(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        debug(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+
+    struct range : ranges::view_base {
+        struct Iterator {
+            using iterator_category = random_access_iterator_tag;
+            using value_type = long long;
+            using difference_type = ptrdiff_t;
+            ll val, d;
+            Iterator() = default;
+            Iterator(ll val, ll d) : val(val), d(d) {};
+            value_type operator*() const { return val; }
+            Iterator &operator++() { return val += d, *this; }
+            Iterator operator++(int) {
+                Iterator tmp = *this;
+                ++(*this);
+                return tmp;
+            }
+            Iterator &operator--() { return val -= d, *this; }
+            Iterator operator--(int) {
+                Iterator tmp = *this;
+                --(*this);
+                return tmp;
+            }
+            difference_type operator-(const Iterator &other) const { return (val - other.val) / d; }
+            bool operator==(const Iterator &other) const { return val == other.val; }
+        };
+        Iterator Begin, End;
+        explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
+        range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
+            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
+            End.val = a + max(cnt, ll(0)) * d;
+        };
+        [[nodiscard]] Iterator begin() const { return Begin; }
+        [[nodiscard]] Iterator end() const { return End; };
+        [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
+    };
+} // namespace utils
+
+using namespace utils;
+
+#define int ll
+
+int Multitest = 1;
+
+void init() {}
 
 void solve() {
     int n;
-    std::cin >> n;
+    rd(n);
 
-    // adj: 存储有向图的邻接表
-    // in_degree: 存储每个顶点的入度
-    // 使用 n+1 的大小，方便进行1-based索引
-    std::vector<std::vector<int>> adj(n + 1);
-    std::vector<int> in_degree(n + 1, 0);
+    vector<string> a(n);
+    rd_vec(a);
 
-    // 读取邻接矩阵，构建有向图并计算入度
-    for (int i = 0; i < n; ++i) {
-        std::string row;
-        std::cin >> row;
-        for (int j = 0; j < n; ++j) {
-            if (row[j] == '1') {
-                // 顶点编号为 i+1 和 j+1
-                // 建立从小编号到大编号的有向边
-                int u = std::min(i + 1, j + 1);
-                int v = std::max(i + 1, j + 1);
-                adj[u].push_back(v);
-                in_degree[v]++;
+    vector<int> ans(n);
+    for (int i: range(n - 1, -1, -1)) {
+        int cnt = 0;
+        for (int j: range(i)) {
+            if (a[i][j] == '1') {
+                cnt++;
+            }
+        }
+
+        for (int j: range(n)) {
+            if (ans[j]) {
+                continue;
+            }
+            if (cnt == 0) {
+                ans[j] = i + 1;
+                break;
+            } else {
+                cnt--;
             }
         }
     }
-
-    // 使用优先队列（最大堆）来保证每次都选择编号最大的节点
-    std::priority_queue<int> q;
-
-    // 将所有初始入度为0的节点加入优先队列
-    for (int i = 1; i <= n; ++i) {
-        if (in_degree[i] == 0) {
-            q.push(i);
-        }
-    }
-
-    // 存储最终的排列结果
-    std::vector<int> p;
-    p.reserve(n);
-
-    // 拓扑排序主循环
-    while (!q.empty()) {
-        // 取出当前可选节点中编号最大的一个
-        int u = q.top();
-        q.pop();
-
-        p.push_back(u);
-
-        // 遍历 u 的所有邻居 v
-        for (int v: adj[u]) {
-            // 将 v 的入度减1
-            in_degree[v]--;
-            // 如果 v 的入度变为0，则将其加入优先队列
-            if (in_degree[v] == 0) {
-                q.push(v);
-            }
-        }
-    }
-
-    // 输出结果
-    for (int i = 0; i < n; ++i) {
-        std::cout << p[i] << (i == n - 1 ? "" : " ");
-    }
-    std::cout << "\n";
+    prt_vec(ans);
 }
 
-int main() {
-    setup_io();
-    int t;
-    std::cin >> t;
-    while (t--) {
-        solve();
+signed main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
+    while (T--)
+        solve();
     return 0;
 }
