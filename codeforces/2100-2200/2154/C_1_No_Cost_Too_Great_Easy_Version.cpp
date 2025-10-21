@@ -36,6 +36,26 @@ namespace utils {
     }
 
     template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
     void rd(T &x) {
         cin >> x;
     }
@@ -44,6 +64,25 @@ namespace utils {
     void rd(T &x, Args &...args) {
         cin >> x;
         rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
     }
 
     struct range : ranges::view_base {
@@ -81,59 +120,103 @@ namespace utils {
         [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
     };
 } // namespace utils
+
 using namespace utils;
 
-#define int ll
-int Multitest = 0;
+int Multitest = 1;
+
+constexpr int MAXP = int(2e5 + 5);
+vector<int> spf;
+
+vector<vector<int>> factors;
+
+void sieve() {
+    spf.assign(MAXP + 1, 0);
+    for (int i = 2; i <= MAXP; i++) {
+        if (!spf[i]) {
+            spf[i] = i;
+            if ((ll) i * i <= MAXP)
+                for (int j = i * i; j <= MAXP; j += i)
+                    if (!spf[j])
+                        spf[j] = i;
+        }
+    }
+    for (int i = 2; i <= MAXP; i++)
+        if (!spf[i])
+            spf[i] = i;
+
+    factors.assign(MAXP + 1, {});
+    for (int i = 2; i <= MAXP; i++) {
+        int x = i;
+        while (x > 1) {
+            int p = spf[x];
+            factors[i].pb(p);
+            while (x % p == 0)
+                x /= p;
+        }
+    }
+}
+
+void init() { sieve(); }
 
 void solve() {
     int n;
     rd(n);
 
-    vector<vector<int>> g(n + 1);
-    for (int _: range(n - 1)) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vector<int> a(n), b(n);
+    rd_vec(a);
+    rd_vec(b);
+
+    unordered_map<int, int> cnt;
+    for (int x: a) {
+        const vector<int> &pf = factors[x];
+
+        for (int p: pf) {
+            if (cnt[p]) {
+                prt(0);
+                return;
+            }
+            cnt[p]++;
+        }
     }
 
-    vector<vector<int>> dp(n + 1, vector<int>(3));
-    auto dfs = [&](auto &&dfs, int u, int fa) -> void {
-        dp[u][0] = 1;
-        dp[u][1] = inf;
-        int sum = 0;
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+    for (int x: a) {
+        if (x != 1) {
+            const vector<int> &pf = factors[x];
+            for (int p: pf)
+                cnt[p]--;
+
+            int y = x + 1;
+            const vector<int> &pf2 = factors[y];
+
+            for (int p: pf2) {
+                if (cnt[p]) {
+                    prt(1);
+                    return;
+                }
             }
 
-            dfs(dfs, v, u);
-            dp[u][0] += ranges::min(dp[v]);
-            sum += min(dp[v][0], dp[v][1]);
-            dp[u][2] += min(dp[v][0], dp[v][1]);
-        }
-
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+            for (int p: pf)
+                cnt[p]++;
+        } else {
+            if (cnt[2]) {
+                prt(1);
+                return;
             }
-
-            dp[u][1] = min(dp[u][1], sum - min(dp[v][0], dp[v][1]) + dp[v][0]);
         }
-    };
+    }
 
-    dfs(dfs, 1, 0);
-    int ans = min(dp[1][0], dp[1][1]);
-
-    prt(ans);
+    prt(2);
 }
+
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    init();
     int T = 1;
-    if (Multitest)
+    if (Multitest) {
         rd(T);
+    }
     while (T--)
         solve();
     return 0;

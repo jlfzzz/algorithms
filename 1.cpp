@@ -1,182 +1,216 @@
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
-using ld = long double;
-const char nl = '\n';
 
-using pii = pair<ll, ll>;
-#define pb push_back
-#define eb emplace_back
-#define all(x) (x).begin(), (x).end()
-constexpr int inf = 0x3f3f3f3f / 2;
+struct Edge {
+    int to;
+    int rev;
+    int cap;
+    int cost;
+};
 
-void solve() {
-    ll n;
-    cin >> n;
-    vector<int> allTime;
-    vector<pii> people(n + 1);
+struct MinCostMaxFlow {
+    int n;
+    vector<vector<Edge>> graph;
+    MinCostMaxFlow(int n_) : n(n_), graph(n_) {}
 
-    struct Info {
-        int l, r, f, id;
-    };
-
-    for (int i = 1; i <= n; i++) {
-        int s, t;
-        cin >> s >> t;
-        allTime.pb(s);
-        allTime.pb(t);
-
-        people[i] = {s, t};
-    }
-    int m;
-    cin >> m;
-    vector<Info> activities(m + 1);
-    for (int i = 1; i <= m; i++) {
-        int x, y, f;
-        cin >> x >> y >> f;
-
-        allTime.pb(x);
-        allTime.pb(y);
-        activities[i] = {x, y, f, i};
+    void addEdge(int u, int v, int cap, int cost) {
+        Edge a{v, (int) graph[v].size(), cap, cost};
+        Edge b{u, (int) graph[u].size(), 0, -cost};
+        graph[u].push_back(a);
+        graph[v].push_back(b);
     }
 
-    sort(all(allTime));
-    allTime.erase(unique(all(allTime)), allTime.end());
-
-    // for (int x: allTime) {
-    //     cout << x << '\n';
-    // }
-
-    auto getId = [&](int pos) { return lower_bound(all(allTime), pos) - allTime.begin() + 1; };
-
-    struct Node {
-        int mx;
-    };
-
-    map<int, set<int>> left;
-
-    // cout << activities.size() << '\n';
-
-    for (int j = 1; j <= m; j++) {
-        auto &[x, y, f, id] = activities[j];
-        int i = getId(y);
-        // cout << i << '\n';
-        left[i].insert(f);
-    }
-
-
-    int N = allTime.size();
-    vector<Node> tree(4 * N + 100);
-
-    auto merge = [&](Node &a, Node &b) -> Node { return {max(a.mx, b.mx)}; };
-
-    auto build = [&](auto &&bd, int o, int l, int r) -> void {
-        if (l == r) {
-            auto it = left.find(l);
-            if (it == left.end()) {
-                tree[o] = {-inf};
-            } else {
-                // cout << "l is " << l << "val is " << *it->second.rbegin() << '\n';
-                tree[o] = {*it->second.rbegin()};
+    pair<int, long long> minCostMaxFlow(int s, int t, int maxNeededFlow) {
+        int flow = 0;
+        long long cost = 0;
+        const long long INFLL = (1LL << 60);
+        vector<long long> dist(n);
+        vector<int> inq(n);
+        vector<int> pvNode(n);
+        vector<int> pvEdge(n);
+        while (flow < maxNeededFlow) {
+            for (int i = 0; i < n; ++i) {
+                dist[i] = INFLL;
+                inq[i] = 0;
+                pvNode[i] = -1;
+                pvEdge[i] = -1;
             }
-            return;
-        }
-
-        int m = (l + r) / 2;
-        bd(bd, o * 2, l, m);
-        bd(bd, o * 2 + 1, m + 1, r);
-        tree[o] = merge(tree[o * 2], tree[o * 2 + 1]);
-    };
-
-    build(build, 1, 1, N);
-
-    auto update = [&](auto &&upd, int o, int l, int r, int pos, int val) -> void {
-        if (l == r) {
-            auto it = left.find(l);
-            if (it != left.end()) {
-                auto &st = it->second;
-                st.erase(val);
-
-                if (st.empty()) {
-                    tree[o] = {-inf};
-                } else {
-                    tree[o] = {*st.rbegin()};
+            deque<int> dq;
+            dist[s] = 0;
+            dq.push_back(s);
+            inq[s] = 1;
+            while (!dq.empty()) {
+                int u = dq.front();
+                dq.pop_front();
+                inq[u] = 0;
+                for (int ei = 0; ei < (int) graph[u].size(); ++ei) {
+                    Edge const &e = graph[u][ei];
+                    if (e.cap <= 0) {
+                        continue;
+                    }
+                    int v = e.to;
+                    long long nd = dist[u] + e.cost;
+                    if (nd < dist[v]) {
+                        dist[v] = nd;
+                        pvNode[v] = u;
+                        pvEdge[v] = ei;
+                        if (!inq[v]) {
+                            if (!dq.empty() && nd < dist[dq.front()]) {
+                                dq.push_front(v);
+                            } else {
+                                dq.push_back(v);
+                            }
+                            inq[v] = 1;
+                        }
+                    }
                 }
             }
-            return;
+            if (dist[t] == INFLL) {
+                break;
+            }
+            int add = maxNeededFlow - flow;
+            int v = t;
+            while (v != s) {
+                int u = pvNode[v];
+                int ei = pvEdge[v];
+                if (u == -1 || ei == -1) {
+                    add = 0;
+                    break;
+                }
+                add = min(add, graph[u][ei].cap);
+                v = u;
+            }
+            if (add == 0) {
+                break;
+            }
+            v = t;
+            while (v != s) {
+                int u = pvNode[v];
+                int ei = pvEdge[v];
+                Edge &e = graph[u][ei];
+                Edge &re = graph[v][e.rev];
+                e.cap -= add;
+                re.cap += add;
+                v = u;
+            }
+            flow += add;
+            cost += (long long) add * dist[t];
         }
+        return {flow, cost};
+    }
+};
 
-        int m = (l + r) / 2;
-        if (pos <= m) {
-            upd(upd, o * 2, l, m, pos, val);
+static bool isAllowed(char ch, int pos, int n, int countH) {
+    int oneBased = pos + 1;
+    bool isTslot = (oneBased % 3 == 0);
+    if (ch == 'T') {
+        if (isTslot) {
+            return true;
         } else {
-            upd(upd, o * 2 + 1, m + 1, r, pos, val);
-        }
-        tree[o] = merge(tree[o * 2], tree[o * 2 + 1]);
-    };
-
-    auto query = [&](auto &&q, int o, int l, int r, int ql, int qr) -> int {
-        if (ql > r || qr < l) {
-            return -inf;
-        }
-
-        if (ql >= l && qr <= r) {
-            return tree[o].mx;
-        }
-
-        int m = (l + r) / 2;
-        return max(q(q, o * 2, l, m, ql, qr), q(q, o * 2 + 1, m + 1, r, ql, qr));
-    };
-
-    vector<vector<pii>> ev1(N + 1);
-    vector<vector<Info>> ev2(N + 1);
-
-    for (int i = 1; i <= n; i++) {
-        auto &[s, t] = people[i];
-
-        int j = getId(s);
-        int k = getId(t);
-
-        ev1[j].eb(k, i);
-    }
-
-    for (int i = 1; i <= m; i++) {
-        auto &[x, y, f, id] = activities[i];
-
-        int j = getId(x);
-        int k = getId(y);
-
-        ev2[j].pb({x, k, f, id});
-    }
-
-    vector<int> ans(n + 1);
-    for (int i = 1; i <= N; i++) {
-        for (auto &[r, id]: ev1[i]) {
-            int mx = query(query, 1, 1, N, i, r);
-            ans[id] = mx;
-        }
-
-        for (auto &[x, y, f, id]: ev2[i]) {
-            update(update, 1, 1, N, y, f);
+            return false;
         }
     }
-
-    int sum = 0;
-    for (int i = 1; i <= n; i++) {
-        cout << "i is" << i << " ans[i] is " << ans[i] << '\n';
-        if (ans[i] != -inf) {
-            sum += ans[i];
+    if (isTslot) {
+        return false;
+    }
+    if (ch == 'H') {
+        if (countH == 1 && pos == 0) {
+            return true;
+        } else {
+            return false;
         }
     }
-
-    cout << sum << '\n';
+    if (ch == 'b') {
+        if (pos != 0 && pos != n - 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    if (ch == 'o') {
+        if (countH == 1 && pos == 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+    return false;
 }
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
 
-    solve();
+    int n;
+    if (!(cin >> n)) {
+        return 0;
+    }
+    string s;
+    cin >> s;
+    if ((int) s.size() != n) {
+        // If input length mismatches, consider impossible
+        cout << -1 << '\n';
+        return 0;
+    }
 
+    int cntT = 0, cntH = 0, cntB = 0, cntO = 0;
+    for (char c: s) {
+        if (c == 'T') {
+            cntT += 1;
+        } else if (c == 'H') {
+            cntH += 1;
+        } else if (c == 'b') {
+            cntB += 1;
+        } else if (c == 'o') {
+            cntO += 1;
+        } else {
+            cout << -1 << '\n';
+            return 0;
+        }
+    }
+
+    int needT = n / 3; // positions 3,6,9,... (1-based)
+    if (cntT != needT) {
+        cout << -1 << '\n';
+        return 0;
+    }
+    if (!(cntH == 0 || cntH == 1)) {
+        cout << -1 << '\n';
+        return 0;
+    }
+    if (cntB < 1 || cntO < 1) {
+        cout << -1 << '\n';
+        return 0;
+    }
+
+    int N = 2 * n + 2;
+    int S = 0;
+    int T = 2 * n + 1;
+    MinCostMaxFlow mcmf(N);
+
+    for (int i = 0; i < n; ++i) {
+        mcmf.addEdge(S, 1 + i, 1, 0);
+    }
+    for (int i = 0; i < n; ++i) {
+        char ch = s[i];
+        for (int j = 0; j < n; ++j) {
+            if (isAllowed(ch, j, n, cntH)) {
+                int cost = abs(i - j);
+                mcmf.addEdge(1 + i, 1 + n + j, 1, cost);
+            } else {
+                continue;
+            }
+        }
+    }
+    for (int j = 0; j < n; ++j) {
+        mcmf.addEdge(1 + n + j, T, 1, 0);
+    }
+
+    auto res = mcmf.minCostMaxFlow(S, T, n);
+    if (res.first != n) {
+        cout << -1 << '\n';
+    } else {
+        cout << res.second << '\n';
+    }
     return 0;
 }

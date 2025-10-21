@@ -36,6 +36,26 @@ namespace utils {
     }
 
     template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
     void rd(T &x) {
         cin >> x;
     }
@@ -44,6 +64,25 @@ namespace utils {
     void rd(T &x, Args &...args) {
         cin >> x;
         rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
     }
 
     struct range : ranges::view_base {
@@ -81,10 +120,14 @@ namespace utils {
         [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
     };
 } // namespace utils
+
 using namespace utils;
 
 #define int ll
-int Multitest = 0;
+
+int Multitest = 1;
+
+void init() {}
 
 void solve() {
     int n;
@@ -98,42 +141,108 @@ void solve() {
         g[v].pb(u);
     }
 
-    vector<vector<int>> dp(n + 1, vector<int>(3));
-    auto dfs = [&](auto &&dfs, int u, int fa) -> void {
-        dp[u][0] = 1;
-        dp[u][1] = inf;
-        int sum = 0;
+    vector<int> dis(n + 1), in(n + 1), parent(n + 1);
+
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
         for (int v: g[u]) {
             if (v == fa) {
                 continue;
             }
 
-            dfs(dfs, v, u);
-            dp[u][0] += ranges::min(dp[v]);
-            sum += min(dp[v][0], dp[v][1]);
-            dp[u][2] += min(dp[v][0], dp[v][1]);
-        }
-
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            dp[u][1] = min(dp[u][1], sum - min(dp[v][0], dp[v][1]) + dp[v][0]);
+            dis[v] = dis[u] + 1;
+            parent[v] = u;
+            dfs(v, u);
         }
     };
 
-    dfs(dfs, 1, 0);
-    int ans = min(dp[1][0], dp[1][1]);
+    dfs(1, 0);
+    vector<int> path;
+    {
+        int t = n;
+        while (parent[t]) {
+            in[t] = 1;
+            path.pb(t);
+            t = parent[t];
+        }
+        path.pb(t);
+        in[t] = 1;
+        ranges::reverse(path);
+    }
 
-    prt(ans);
+    priority_queue<pair<int, int>> pq1, pq0;
+    for (int i: range(1, n)) {
+        if (!in[i]) {
+            if (dis[i] & 1) {
+                pq1.emplace(dis[i], i);
+            } else {
+                pq0.emplace(dis[i], i);
+            }
+        }
+    }
+
+    vector<pii> ans;
+    int ts = 0;
+    while (!pq0.empty() || !pq1.empty()) {
+        if (ts & 1) {
+            if (!pq0.empty()) {
+                auto t0 = pq0.top();
+                int u = t0.second;
+                if (!pq1.empty() && t0.first < pq1.top().first) {
+
+                } else {
+                    pq0.pop();
+                    ans.eb(2, u);
+                }
+            }
+        } else {
+            if (!pq1.empty()) {
+                auto t1 = pq1.top();
+                int u = t1.second;
+                if (!pq0.empty() && t1.first < pq0.top().first) {
+
+                } else {
+                    pq1.pop();
+                    ans.emplace_back(2, u);
+                }
+            }
+        }
+
+        ans.emplace_back(1, -1);
+        ts++;
+    }
+
+    if (ts % 2 == 0) {
+        ans.emplace_back(1, -1);
+        ts++;
+    }
+
+    for (int x: path) {
+        if (x == n) {
+            break;
+        }
+
+        ans.eb(2, x);
+        ans.eb(1, -1);
+    }
+
+    prt(ans.size());
+    for (auto &[x, y]: ans) {
+        if (x == 2) {
+            prt(x, y);
+        } else {
+            prt(x);
+        }
+    }
 }
+
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    init();
     int T = 1;
-    if (Multitest)
+    if (Multitest) {
         rd(T);
+    }
     while (T--)
         solve();
     return 0;

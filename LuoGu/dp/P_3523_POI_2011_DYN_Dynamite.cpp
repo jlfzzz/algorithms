@@ -36,6 +36,26 @@ namespace utils {
     }
 
     template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
     void rd(T &x) {
         cin >> x;
     }
@@ -44,6 +64,25 @@ namespace utils {
     void rd(T &x, Args &...args) {
         cin >> x;
         rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
     }
 
     struct range : ranges::view_base {
@@ -81,14 +120,21 @@ namespace utils {
         [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
     };
 } // namespace utils
+
 using namespace utils;
 
 #define int ll
+
 int Multitest = 0;
 
+void init() {}
+
 void solve() {
-    int n;
-    rd(n);
+    int n, m;
+    rd(n, m);
+
+    vector<int> d(n + 1);
+    rd_vec(d, 1);
 
     vector<vector<int>> g(n + 1);
     for (int _: range(n - 1)) {
@@ -98,42 +144,76 @@ void solve() {
         g[v].pb(u);
     }
 
-    vector<vector<int>> dp(n + 1, vector<int>(3));
-    auto dfs = [&](auto &&dfs, int u, int fa) -> void {
-        dp[u][0] = 1;
-        dp[u][1] = inf;
-        int sum = 0;
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+    int ans = n;
+    int lo = 0;
+    int hi = n + 1;
+    while (lo < hi) {
+        int mid = (lo + hi) / 2;
+
+        int use = 0;
+        vector<int> dis(n + 1, -inf / 10), r(n + 1, -inf);
+        auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+            // 2 是距离炸弹的, 1是距离上一个放的
+            int dis1 = -inf, dis2 = -inf;
+
+            if (d[u]) {
+                dis[u] = 0;
             }
 
-            dfs(dfs, v, u);
-            dp[u][0] += ranges::min(dp[v]);
-            sum += min(dp[v][0], dp[v][1]);
-            dp[u][2] += min(dp[v][0], dp[v][1]);
-        }
+            for (int v: g[u]) {
+                if (v == fa) {
+                    continue;
+                }
 
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+                dfs(v, u);
+                dis2 = max(dis2, dis[v] + 1);
+                dis1 = max(dis1, r[v] - 1);
             }
 
-            dp[u][1] = min(dp[u][1], sum - min(dp[v][0], dp[v][1]) + dp[v][0]);
-        }
-    };
+            if (d[u]) {
+                dis2 = max(dis2, (int) 0);
+            }
 
-    dfs(dfs, 1, 0);
-    int ans = min(dp[1][0], dp[1][1]);
+            if (dis1 >= dis2) {
+                dis[u] = -inf / 10;
+                r[u] = dis1;
+            } else {
+                if (dis2 >= mid) {
+                    r[u] = mid;
+                    dis[u] = -inf / 10;
+                    use++;
+                } else {
+                    r[u] = -inf;
+                    dis[u] = max(dis[u], dis2);
+                }
+            }
+        };
+
+        dfs(1, 0);
+
+        if (dis[1] >= 0) {
+            use++;
+        }
+
+        if (use <= m) {
+            ans = mid;
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+    }
 
     prt(ans);
 }
+
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    init();
     int T = 1;
-    if (Multitest)
+    if (Multitest) {
         rd(T);
+    }
     while (T--)
         solve();
     return 0;

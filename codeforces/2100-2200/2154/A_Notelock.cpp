@@ -36,6 +36,26 @@ namespace utils {
     }
 
     template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
     void rd(T &x) {
         cin >> x;
     }
@@ -44,6 +64,25 @@ namespace utils {
     void rd(T &x, Args &...args) {
         cin >> x;
         rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
     }
 
     struct range : ranges::view_base {
@@ -81,59 +120,50 @@ namespace utils {
         [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
     };
 } // namespace utils
+
 using namespace utils;
 
 #define int ll
-int Multitest = 0;
+
+int Multitest = 1;
+
+void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, k;
+    rd(n, k);
 
-    vector<vector<int>> g(n + 1);
-    for (int _: range(n - 1)) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    string s;
+    rd(s);
+
+    int ans = 0;
+    for (int i: range(n)) {
+        if (s[i] == '1') {
+            bool f = false;
+            int l = max(0ll, i - k + 1);
+            for (int j: range(l, i)) {
+                if (s[j] == '1') {
+                    f = true;
+                    break;
+                }
+            }
+            if (!f) {
+                ans++;
+            }
+        }
     }
-
-    vector<vector<int>> dp(n + 1, vector<int>(3));
-    auto dfs = [&](auto &&dfs, int u, int fa) -> void {
-        dp[u][0] = 1;
-        dp[u][1] = inf;
-        int sum = 0;
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            dfs(dfs, v, u);
-            dp[u][0] += ranges::min(dp[v]);
-            sum += min(dp[v][0], dp[v][1]);
-            dp[u][2] += min(dp[v][0], dp[v][1]);
-        }
-
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            dp[u][1] = min(dp[u][1], sum - min(dp[v][0], dp[v][1]) + dp[v][0]);
-        }
-    };
-
-    dfs(dfs, 1, 0);
-    int ans = min(dp[1][0], dp[1][1]);
 
     prt(ans);
 }
+
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    init();
     int T = 1;
-    if (Multitest)
+    if (Multitest) {
         rd(T);
+    }
     while (T--)
         solve();
     return 0;
