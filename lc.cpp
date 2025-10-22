@@ -120,7 +120,32 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
+class Solution {
+public:
+    int maxFrequency(vector<int> &nums, int k, int numOperations) {
+        int n = nums.size();
+        unordered_map<int, int> cnt;
+        map<int, int> items;
+        for (int x: nums) {
+            cnt[x]++;
+            items[x - k]++;
+            items[x + k + 1]--;
+            if (!items.contains(x)) {
+                items[x] = 0;
+            }
+        }
 
+        int ans = 0;
+        int pre = 0;
+        for (auto &[x, v]: items) {
+            pre += v;
+
+            ans = max(ans, min(pre - cnt[x], numOperations) + cnt[x]);
+        }
+
+        return ans;
+    }
+};
 
 int main() {
     ios::sync_with_stdio(false);

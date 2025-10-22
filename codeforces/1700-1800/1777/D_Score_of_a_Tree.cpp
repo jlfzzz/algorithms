@@ -125,7 +125,7 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
@@ -133,83 +133,49 @@ void solve() {
     int n;
     rd(n);
 
-    vector<vector<pii>> g(n + 1);
+    vector<vector<int>> g(n + 1);
     for (int _: range(n - 1)) {
-        int u, v, t;
-        rd(u, v, t);
-        g[u].eb(v, t);
-        g[v].eb(u, t);
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
 
-    vector<int> ans(n + 1);
-    vector<int> msk(n + 1);
-    auto build = [&](auto &&build, int u, int fa) -> void {
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            msk[v] = msk[u] ^ (1LL << (x - 1));
-            build(build, v, u);
-        }
-    };
-    build(build, 1, 0);
-
-    auto dfs = [&](auto &&dfs, int u, int fa) -> unordered_map<int, int> {
-        unordered_map<int, int> big;
-        for (auto [v, x]: g[u]) {
+    vector<int> dis(n + 1, 1);
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        for (int v: g[u]) {
             if (v == fa) {
                 continue;
             }
 
-            auto sub = dfs(dfs, v, u);
-            ans[u] += ans[v];
-
-            if (sub.size() > big.size()) {
-                swap(sub, big);
-            }
-
-            for (auto &kv: sub) {
-                int s = kv.first;
-                int c = kv.second;
-                int add = 0;
-                auto it0 = big.find(s);
-                if (it0 != big.end()) {
-                    add += it0->second;
-                }
-                for (int i: range(20)) {
-                    int m = s ^ (1LL << i);
-                    auto it = big.find(m);
-                    if (it != big.end()) {
-                        add += it->second;
-                    }
-                }
-                ans[u] +=  c * add;
-            }
-
-            for (auto &kv: sub) {
-                big[kv.first] += kv.second;
-            }
+            dfs(v, u);
+            dis[u] = max(dis[u], dis[v] + 1);
         }
-
-        int addU = 0;
-        auto it0 = big.find(msk[u]);
-        if (it0 != big.end()) {
-            addU += it0->second;
-        }
-        for (int i: range(20)) {
-            int m = msk[u] ^ (1LL << i);
-            auto it = big.find(m);
-            if (it != big.end()) {
-                addU += it->second;
-            }
-        }
-        ans[u] += addU;
-        big[msk[u]] += 1;
-        return big;
     };
 
-    dfs(dfs, 1, 0);
-    prt_vec(ans, 1);
+    dfs(1, 0);
+
+    int ans = 0;
+    for (int i: range(1, n + 1)) {
+        ans += dis[i];
+    }
+
+    auto q_pow = [&](int b, int e) -> int {
+        int res = 1;
+        while (e) {
+            if (e & 1) {
+                res = res * b % MOD;
+            }
+            b = b * b % MOD;
+            e /= 2;
+        }
+
+        return res;
+    };
+
+    ans %= MOD;
+    ans = ans * q_pow(2, n - 1) % MOD;
+    prt(ans);
 }
 
 signed main() {

@@ -47,7 +47,7 @@ public:
     }
 
     T preMax(int i) const {
-        T res = 0;
+        T res = numeric_limits<T>::min();
         for (; i > 0; i &= i - 1) {
             res = max(res, tree[i]);
         }

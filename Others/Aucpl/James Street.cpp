@@ -12,6 +12,8 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
+// https://aucpl.com/problem/jamesstreet
+
 namespace utils {
     void debug() { cerr << "\n"; }
 
@@ -183,7 +185,7 @@ void solve() {
                         add += it->second;
                     }
                 }
-                ans[u] +=  c * add;
+                ans[u] += c * add;
             }
 
             for (auto &kv: sub) {

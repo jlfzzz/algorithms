@@ -125,91 +125,63 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, c;
+    rd(n, c);
 
-    vector<vector<pii>> g(n + 1);
-    for (int _: range(n - 1)) {
-        int u, v, t;
-        rd(u, v, t);
-        g[u].eb(v, t);
-        g[v].eb(u, t);
+    vector<int> a(n);
+    rd_vec(a);
+
+    vector<pii> cost;
+    for (int i: range(n)) {
+        int cur = min(i + 1, n - i) + a[i];
+        cost.eb(cur, (int) i);
+    }
+    ranges::sort(cost);
+
+    vector<int> pref(n + 1, 0);
+    for (int i: range(n)) {
+        pref[i + 1] = pref[i] + cost[i].first;
     }
 
-    vector<int> ans(n + 1);
-    vector<int> msk(n + 1);
-    auto build = [&](auto &&build, int u, int fa) -> void {
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            msk[v] = msk[u] ^ (1LL << (x - 1));
-            build(build, v, u);
+    vector<int> pos(n, -1);
+    for (int i: range(n)) {
+        pos[cost[i].second] = i;
+    }
+
+    int ans = 0;
+    for (int i: range(n)) {
+        int need = i + 1 + a[i];
+        if (c < need) {
+            continue;
         }
-    };
-    build(build, 1, 0);
 
-    auto dfs = [&](auto &&dfs, int u, int fa) -> unordered_map<int, int> {
-        unordered_map<int, int> big;
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
-            }
+        int rem = c - need;
+        int k = int(upper_bound(all(pref), rem) - pref.begin()) - 1;
+        if (k < 0) {
+            k = 0;
+        }
 
-            auto sub = dfs(dfs, v, u);
-            ans[u] += ans[v];
-
-            if (sub.size() > big.size()) {
-                swap(sub, big);
-            }
-
-            for (auto &kv: sub) {
-                int s = kv.first;
-                int c = kv.second;
-                int add = 0;
-                auto it0 = big.find(s);
-                if (it0 != big.end()) {
-                    add += it0->second;
+        int extra = k;
+        int p = pos[i];
+        if (p < extra) {
+            if (extra < n) {
+                if (pref[extra + 1] - cost[p].first <= rem) {
+                } else {
+                    extra -= 1;
                 }
-                for (int i: range(20)) {
-                    int m = s ^ (1LL << i);
-                    auto it = big.find(m);
-                    if (it != big.end()) {
-                        add += it->second;
-                    }
-                }
-                ans[u] +=  c * add;
-            }
-
-            for (auto &kv: sub) {
-                big[kv.first] += kv.second;
+            } else {
+                extra -= 1;
             }
         }
 
-        int addU = 0;
-        auto it0 = big.find(msk[u]);
-        if (it0 != big.end()) {
-            addU += it0->second;
-        }
-        for (int i: range(20)) {
-            int m = msk[u] ^ (1LL << i);
-            auto it = big.find(m);
-            if (it != big.end()) {
-                addU += it->second;
-            }
-        }
-        ans[u] += addU;
-        big[msk[u]] += 1;
-        return big;
-    };
-
-    dfs(dfs, 1, 0);
-    prt_vec(ans, 1);
+        ans = max(ans, 1 + extra);
+    }
+    prt(ans);
 }
 
 signed main() {

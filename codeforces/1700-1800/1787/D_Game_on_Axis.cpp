@@ -125,91 +125,116 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
     int n;
     rd(n);
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
 
-    vector<vector<pii>> g(n + 1);
-    for (int _: range(n - 1)) {
-        int u, v, t;
-        rd(u, v, t);
-        g[u].eb(v, t);
-        g[v].eb(u, t);
+    vector<int> vis(n + 1);
+    vector<int> instk(n + 1);
+    auto dfs = [&](this auto &&dfs, int u) -> int {
+        if (u < 1 || u > n) {
+            return 2;
+        }
+        if (vis[u] != 0) {
+            return vis[u];
+        }
+        if (instk[u]) {
+            vis[u] = 1;
+            return 1;
+        }
+        instk[u] = 1;
+        int res = dfs(u + a[u]);
+        instk[u] = 0;
+        vis[u] = res;
+        return res;
+    };
+
+    int cntEnd = 0;
+    for (int i: range(1, n + 1)) {
+        if (!vis[i]) {
+            dfs(i);
+        }
     }
 
-    vector<int> ans(n + 1);
-    vector<int> msk(n + 1);
-    auto build = [&](auto &&build, int u, int fa) -> void {
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            msk[v] = msk[u] ^ (1LL << (x - 1));
-            build(build, v, u);
+    for (int i: range(1, n + 1)) {
+        if (vis[i] == 2) {
+            cntEnd++;
         }
-    };
-    build(build, 1, 0);
+    }
 
-    auto dfs = [&](auto &&dfs, int u, int fa) -> unordered_map<int, int> {
-        unordered_map<int, int> big;
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
+    int ans = 0;
+    vector<int> inpath(n + 1);
+    vector<int> idx(n + 1);
+    int L = 0;
+    {
+        int t = 1;
+        while (true) {
+            if (t < 1 || t > n) {
+                break;
             }
-
-            auto sub = dfs(dfs, v, u);
-            ans[u] += ans[v];
-
-            if (sub.size() > big.size()) {
-                swap(sub, big);
+            if (inpath[t]) {
+                break;
             }
+            inpath[t] = 1;
+            idx[t] = ++L;
+            t += a[t];
+        }
+    }
 
-            for (auto &kv: sub) {
-                int s = kv.first;
-                int c = kv.second;
-                int add = 0;
-                auto it0 = big.find(s);
-                if (it0 != big.end()) {
-                    add += it0->second;
-                }
-                for (int i: range(20)) {
-                    int m = s ^ (1LL << i);
-                    auto it = big.find(m);
-                    if (it != big.end()) {
-                        add += it->second;
+    if (vis[1] == 2) {
+        ans = (n - L) * (2 * n + 1);
+
+        vector<int> memo(n + 1, -1);
+        auto f = [&](this auto &&f, int u) -> int {
+            if (u < 1 || u > n) {
+                return 0;
+            }
+            if (idx[u] != 0) {
+                return idx[u];
+            }
+            if (memo[u] != -1) {
+                return memo[u];
+            }
+            int v = u + a[u];
+            int r = f(v);
+            memo[u] = r;
+            return r;
+        };
+
+        int cnt = 0;
+        vector<int> meet(L + 1);
+        for (int u: range(1, n + 1)) {
+            if (vis[u] == 2) {
+                if (idx[u] == 0) {
+                    int p = f(u);
+                    if (p == 0) {
+                        cnt++;
+                    } else {
+                        meet[p]++;
                     }
                 }
-                ans[u] +=  c * add;
-            }
-
-            for (auto &kv: sub) {
-                big[kv.first] += kv.second;
             }
         }
 
-        int addU = 0;
-        auto it0 = big.find(msk[u]);
-        if (it0 != big.end()) {
-            addU += it0->second;
+        int add = L * cnt;
+        for (int p: range(1, L + 1)) {
+            add += meet[p] * (p - 1);
         }
-        for (int i: range(20)) {
-            int m = msk[u] ^ (1LL << i);
-            auto it = big.find(m);
-            if (it != big.end()) {
-                addU += it->second;
-            }
-        }
-        ans[u] += addU;
-        big[msk[u]] += 1;
-        return big;
-    };
 
-    dfs(dfs, 1, 0);
-    prt_vec(ans, 1);
+        ans += L * (n + 1);
+        ans += (L * (L - 1)) / 2;
+        ans += add;
+    } else {
+        ans = L * (n + 1 + cntEnd);
+    }
+
+    prt(ans);
 }
 
 signed main() {

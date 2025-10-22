@@ -130,86 +130,71 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, m;
+    rd(n, m);
 
-    vector<vector<pii>> g(n + 1);
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
+
+    vector<vector<int>> g(n + 1);
+    vector<set<pii>> sons(n + 1);
+    vector<int> sz(n + 1), impor(n + 1), parent(n + 1);
+
     for (int _: range(n - 1)) {
-        int u, v, t;
-        rd(u, v, t);
-        g[u].eb(v, t);
-        g[v].eb(u, t);
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
 
-    vector<int> ans(n + 1);
-    vector<int> msk(n + 1);
-    auto build = [&](auto &&build, int u, int fa) -> void {
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            msk[v] = msk[u] ^ (1LL << (x - 1));
-            build(build, v, u);
-        }
-    };
-    build(build, 1, 0);
-
-    auto dfs = [&](auto &&dfs, int u, int fa) -> unordered_map<int, int> {
-        unordered_map<int, int> big;
-        for (auto [v, x]: g[u]) {
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        sz[u] = 1;
+        impor[u] = a[u];
+        for (int v: g[u]) {
             if (v == fa) {
                 continue;
             }
 
-            auto sub = dfs(dfs, v, u);
-            ans[u] += ans[v];
-
-            if (sub.size() > big.size()) {
-                swap(sub, big);
-            }
-
-            for (auto &kv: sub) {
-                int s = kv.first;
-                int c = kv.second;
-                int add = 0;
-                auto it0 = big.find(s);
-                if (it0 != big.end()) {
-                    add += it0->second;
-                }
-                for (int i: range(20)) {
-                    int m = s ^ (1LL << i);
-                    auto it = big.find(m);
-                    if (it != big.end()) {
-                        add += it->second;
-                    }
-                }
-                ans[u] +=  c * add;
-            }
-
-            for (auto &kv: sub) {
-                big[kv.first] += kv.second;
-            }
+            dfs(v, u);
+            sz[u] += sz[v];
+            impor[u] += impor[v];
+            sons[u].insert({-sz[v], v});
+            parent[v] = u;
         }
-
-        int addU = 0;
-        auto it0 = big.find(msk[u]);
-        if (it0 != big.end()) {
-            addU += it0->second;
-        }
-        for (int i: range(20)) {
-            int m = msk[u] ^ (1LL << i);
-            auto it = big.find(m);
-            if (it != big.end()) {
-                addU += it->second;
-            }
-        }
-        ans[u] += addU;
-        big[msk[u]] += 1;
-        return big;
     };
+    dfs(1, 0);
 
-    dfs(dfs, 1, 0);
-    prt_vec(ans, 1);
+    while (m--) {
+        int op, x;
+        rd(op, x);
+
+        if (op == 1) {
+            prt(impor[x]);
+        } else {
+            if (sons[x].empty()) {
+                continue;
+            }
+
+            int fa = parent[x];
+            sons[fa].erase({-sz[x], x});
+
+            auto [imp, v] = *sons[x].begin();
+            int oldSz = sz[x];
+            int oldImp = impor[x];
+
+            sz[x] -= sz[v];
+            impor[x] -= impor[v];
+            sons[x].erase(sons[x].begin());
+            parent[x] = v;
+
+            sz[v] = oldSz;
+            impor[v] = oldImp;
+            sons[v].insert({-sz[x], x});
+            parent[v] = fa;
+
+            sons[fa].insert({-sz[v], v});
+        }
+    }
 }
 
 signed main() {
