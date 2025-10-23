@@ -133,83 +133,24 @@ void solve() {
     int n;
     rd(n);
 
-    vector<vector<pii>> g(n + 1);
-    for (int _: range(n - 1)) {
-        int u, v, t;
-        rd(u, v, t);
-        g[u].eb(v, t);
-        g[v].eb(u, t);
+    vector<int> a(n + 1), m(n + 1);
+    rd_vec(a, 1);
+    vector<double> prob(n + 1);
+    rd_vec(prob, 1);
+    rd_vec(m, 1);
+
+    vector<double> dp(n + 2, 0.0);
+
+    for (int i = n; i >= 1; i--) {
+        double option1 = dp[i + 1];
+
+        int next = min(i + m[i] + 1, n + 1);
+        double option2 = prob[i] * a[i] + (1 - prob[i]) * dp[next];
+
+        dp[i] = max(option1, option2);
     }
 
-    vector<int> ans(n + 1);
-    vector<int> msk(n + 1);
-    auto build = [&](auto &&build, int u, int fa) -> void {
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            msk[v] = msk[u] ^ (1LL << (x - 1));
-            build(build, v, u);
-        }
-    };
-    build(build, 1, 0);
-
-    auto dfs = [&](auto &&dfs, int u, int fa) -> unordered_map<int, int> {
-        unordered_map<int, int> big;
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            auto sub = dfs(dfs, v, u);
-            ans[u] += ans[v];
-
-            if (sub.size() > big.size()) {
-                swap(sub, big);
-            }
-
-            for (auto &kv: sub) {
-                int s = kv.first;
-                int c = kv.second;
-                int add = 0;
-                auto it0 = big.find(s);
-                if (it0 != big.end()) {
-                    add += it0->second;
-                }
-                for (int i: range(20)) {
-                    int m = s ^ (1LL << i);
-                    auto it = big.find(m);
-                    if (it != big.end()) {
-                        add += it->second;
-                    }
-                }
-                ans[u] +=  c * add;
-            }
-
-            for (auto &kv: sub) {
-                big[kv.first] += kv.second;
-            }
-        }
-
-        int addU = 0;
-        auto it0 = big.find(msk[u]);
-        if (it0 != big.end()) {
-            addU += it0->second;
-        }
-        for (int i: range(20)) {
-            int m = msk[u] ^ (1LL << i);
-            auto it = big.find(m);
-            if (it != big.end()) {
-                addU += it->second;
-            }
-        }
-        ans[u] += addU;
-        big[msk[u]] += 1;
-        return big;
-    };
-
-    dfs(dfs, 1, 0);
-    prt_vec(ans, 1);
+    cout << fixed << setprecision(100) << dp[1] << '\n';
 }
 
 signed main() {

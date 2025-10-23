@@ -140,20 +140,18 @@ void solve() {
 
     auto encode = [&](int x, bool last) -> int { return x << 30 | last; };
 
-    auto calc1 = [&](vector<int> &a) -> vector<pair<long long, long long>> {
+    auto calc1 = [&](vector<int> &a) -> unordered_map<int, int> {
         int sz = a.size();
-        vector<long long> keys;
-        // estimate independent sets ~ F_{sz+2}
-        size_t f0 = 1, f1 = 1; // F2=1
-        for (int i = 0; i < sz; ++i) {
-            size_t fn = f0 + f1;
-            f0 = f1;
-            f1 = fn;
-        }
-        keys.reserve(f1 + 16);
+        unordered_map<int, int> res;
+        res.reserve(1 << 18);
         auto dfs = [&](auto &&dfs, int i, int sum, bool pre) -> void {
             if (i == sz) {
-                keys.push_back(encode(sum, pre));
+                int key = encode(sum, pre);
+                auto it = res.find(key);
+                if (it == res.end())
+                    res.emplace(key, 1);
+                else
+                    ++it->second;
                 return;
             }
 
@@ -167,32 +165,21 @@ void solve() {
         };
         dfs(dfs, 0, 0, false);
 
-        sort(keys.begin(), keys.end());
-        vector<pair<long long, long long>> res;
-        res.reserve(keys.size());
-        for (size_t i = 0; i < keys.size();) {
-            size_t j = i + 1;
-            while (j < keys.size() && keys[j] == keys[i]) j++;
-            res.emplace_back(keys[i], (long long)(j - i));
-            i = j;
-        }
         return res;
     };
 
-    auto calc2 = [&](vector<int> &a) -> vector<pair<long long, long long>> {
+    auto calc2 = [&](vector<int> &a) -> unordered_map<int, int> {
         int sz = a.size();
-        vector<long long> keys;
-        // estimate independent sets ~ F_{sz+2}
-        size_t f0 = 1, f1 = 1; // F2=1
-        for (int i = 0; i < sz; ++i) {
-            size_t fn = f0 + f1;
-            f0 = f1;
-            f1 = fn;
-        }
-        keys.reserve(f1 + 16);
+        unordered_map<int, int> res;
+        res.reserve(1 << 18);
         auto dfs = [&](auto &&dfs, int i, int sum, bool pre, bool first) -> void {
             if (i == sz) {
-                keys.push_back(encode(sum, first));
+                int key = encode(sum, first);
+                auto it = res.find(key);
+                if (it == res.end())
+                    res.emplace(key, 1);
+                else
+                    ++it->second;
                 return;
             }
 
@@ -207,15 +194,6 @@ void solve() {
         };
         dfs(dfs, 0, 0, false, false);
 
-        sort(keys.begin(), keys.end());
-        vector<pair<long long, long long>> res;
-        res.reserve(keys.size());
-        for (size_t i = 0; i < keys.size();) {
-            size_t j = i + 1;
-            while (j < keys.size() && keys[j] == keys[i]) j++;
-            res.emplace_back(keys[i], (long long)(j - i));
-            i = j;
-        }
         return res;
     };
 
@@ -226,25 +204,25 @@ void solve() {
     auto cntL = calc1(arr1);
     auto cntR = calc2(arr2);
 
-    auto getCnt = [&](const vector<pair<long long, long long>> &v, long long key) -> long long {
-        auto it = lower_bound(v.begin(), v.end(), make_pair(key, 0LL), [](const auto &a, const auto &b){ return a.first < b.first; });
-        if (it != v.end() && it->first == key) return it->second;
-        return 0LL;
-    };
-
     int ans = 0;
 
-    for (auto &p: cntL) {
-        long long key = p.first;
-        long long cnt1 = p.second;
-        long long val1 = key >> 30;
-        long long last = key & 1;
+    for (auto &[key, cnt1]: cntL) {
+        int val1 = key >> 30;
+        int last = key & 1;
 
-        long long val2 = (m - val1) % m;
         if (last) {
-            ans += cnt1 * getCnt(cntR, (val2 << 30));
+            int val2 = (m - val1) % m;
+            auto it0 = cntR.find(val2 << 30);
+            if (it0 != cntR.end())
+                ans += cnt1 * it0->second;
         } else {
-            ans += cnt1 * (getCnt(cntR, (val2 << 30)) + getCnt(cntR, (val2 << 30 | 1)));
+            int val2 = (m - val1) % m;
+            auto it0 = cntR.find(val2 << 30);
+            if (it0 != cntR.end())
+                ans += cnt1 * it0->second;
+            auto it1 = cntR.find(val2 << 30 | 1);
+            if (it1 != cntR.end())
+                ans += cnt1 * it1->second;
         }
     }
 

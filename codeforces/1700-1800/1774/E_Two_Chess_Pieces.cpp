@@ -2,8 +2,6 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define ld long double
-#define db double
 #define pb push_back
 #define pf push_front
 #define eb emplace_back
@@ -132,45 +130,131 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n, d;
+    rd(n, d);
 
-    vector<vector<pair<int, ld>>> rg(n + 1);
-    vector<int> outdeg(n + 1, 0);
-    for (int i: range(m)) {
-        int u, v, w;
-        rd(u, v, w);
-        rg[v].eb(u, (ld) w);
-        outdeg[u]++;
+    vector<vector<int>> g(n + 1);
+    for (int _: range(n - 1)) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
 
-    deque<int> q;
-    for (int i: range(1, n + 1)) {
-        if (outdeg[i] == 0) {
-            q.pb(i);
+    set<int> stA, stB;
+    int m;
+    rd(m);
+    for (int _: range(m)) {
+        int t;
+        rd(t);
+        stA.insert(t);
+    }
+
+    rd(m);
+    for (int _: range(m)) {
+        int t;
+        rd(t);
+        stB.insert(t);
+    }
+
+    vector<int> dis(n + 1);
+    auto dfs1 = [&](this auto &&dfs, int u, int fa) -> void {
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            dis[v] = dis[u] + 1;
+            dfs(v, u);
         }
-    }
+    };
+    dfs1(1, 0);
 
-    vector<ld> dp(n + 1, 0.0L);
-    vector<ld> acc(n + 1, 0.0L);
-    vector<int> cnt(n + 1, 0);
+    struct Info {
+        int ca, totA, cb, totB, dA, dB;
 
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop_front();
-        for (auto &e: rg[u]) {
-            int p = e.first;
-            ld w = e.second;
-            acc[p] += w + dp[u];
-            cnt[p]++;
-            if (cnt[p] == outdeg[p]) {
-                dp[p] = acc[p] / (ld) outdeg[p];
-                q.pb(p);
+        Info() : ca(-1), totA(0), cb(-1), totB(0), dA(-inf), dB(-inf) {}
+    };
+
+    vector<Info> dp(n + 1);
+    auto dfs2 = [&](this auto &&dfs, int u, int fa) -> void {
+        auto &cur = dp[u];
+        int mxdA = -inf, mxdB = -inf;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            dfs(v, u);
+            auto [ca, totA, cb, totB, dA, dB] = dp[v];
+            if (ca != -1) {
+                if (cur.ca == -1) {
+                    cur.ca = ca;
+                } else {
+                    cur.ca += ca;
+                }
+                cur.totA += totA + 1;
+            }
+            if (cb != -1) {
+                if (cur.cb == -1) {
+                    cur.cb = cb;
+                } else {
+                    cur.cb += cb;
+                }
+                cur.totB += totB + 1;
+            }
+            mxdA = max(mxdA, dA);
+            mxdB = max(mxdB, dB);
+        }
+
+        if (stA.contains(u)) {
+            if (cur.ca == -1) {
+                cur.ca = 1;
+            } else {
+                cur.ca++;
             }
         }
+        if (stB.contains(u)) {
+            if (cur.cb == -1) {
+                cur.cb = 1;
+            } else {
+                cur.cb++;
+            }
+        }
+
+        int curD = dis[u];
+        if (mxdA - curD >= d) {
+            if (cur.cb == -1) {
+                cur.cb = 1;
+            }
+            mxdA = -1;
+        }
+        if (mxdB - curD >= d) {
+            if (cur.ca == -1) {
+                cur.ca = 1;
+            }
+            mxdB = -1;
+        }
+
+        if (cur.ca != -1 && mxdA != -1) {
+            mxdA = max(mxdA, curD);
+        }
+        if (cur.cb != -1 && mxdB != -1) {
+            mxdB = max(mxdB, curD);
+        }
+        cur.dA = mxdA;
+        cur.dB = mxdB;
+    };
+    dfs2(1, 0);
+    int ans = 0;
+    if (dp[1].ca != -1) {
+        ans += dp[1].totA * 2;
+    }
+    if (dp[1].cb != -1) {
+        ans += dp[1].totB * 2;
     }
 
-    cout << fixed << setprecision(2) << dp[1] << '\n';
+    prt(ans);
 }
 
 signed main() {

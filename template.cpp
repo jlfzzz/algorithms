@@ -2,6 +2,8 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
+#define ld long double
+#define db double
 #define pb push_back
 #define pf push_front
 #define eb emplace_back

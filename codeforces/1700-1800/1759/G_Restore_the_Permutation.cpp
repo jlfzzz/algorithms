@@ -2,8 +2,6 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define ld long double
-#define db double
 #define pb push_back
 #define pf push_front
 #define eb emplace_back
@@ -127,50 +125,48 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-    vector<vector<pair<int, ld>>> rg(n + 1);
-    vector<int> outdeg(n + 1, 0);
-    for (int i: range(m)) {
-        int u, v, w;
-        rd(u, v, w);
-        rg[v].eb(u, (ld) w);
-        outdeg[u]++;
+    vector<int> b(n / 2);
+    rd_vec(b);
+
+    vector<int> taken(n + 1);
+    for (int x: b) {
+        if (taken[x]) {
+            prt(-1);
+            return;
+        }
+        taken[x] = 1;
     }
 
-    deque<int> q;
+    set<int> have;
     for (int i: range(1, n + 1)) {
-        if (outdeg[i] == 0) {
-            q.pb(i);
+        if (!taken[i]) {
+            have.insert(i);
         }
     }
 
-    vector<ld> dp(n + 1, 0.0L);
-    vector<ld> acc(n + 1, 0.0L);
-    vector<int> cnt(n + 1, 0);
-
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop_front();
-        for (auto &e: rg[u]) {
-            int p = e.first;
-            ld w = e.second;
-            acc[p] += w + dp[u];
-            cnt[p]++;
-            if (cnt[p] == outdeg[p]) {
-                dp[p] = acc[p] / (ld) outdeg[p];
-                q.pb(p);
-            }
+    vector<int> ans(n);
+    for (int i: range(n / 2 - 1, -1, -1)) {
+        int cur = b[i];
+        auto it = have.upper_bound(cur);
+        if (it == have.begin()) {
+            prt(-1);
+            return;
         }
+        it--;
+        ans[i * 2] = *it;
+        ans[i * 2 + 1] = cur;
+        have.erase(it);
     }
 
-    cout << fixed << setprecision(2) << dp[1] << '\n';
+    prt_vec(ans);
 }
 
 signed main() {

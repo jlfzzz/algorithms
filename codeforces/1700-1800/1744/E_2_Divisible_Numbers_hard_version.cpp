@@ -2,8 +2,6 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define ld long double
-#define db double
 #define pb push_back
 #define pf push_front
 #define eb emplace_back
@@ -127,50 +125,53 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int a, b, c, d;
+    rd(a, b, c, d);
 
-    vector<vector<pair<int, ld>>> rg(n + 1);
-    vector<int> outdeg(n + 1, 0);
-    for (int i: range(m)) {
-        int u, v, w;
-        rd(u, v, w);
-        rg[v].eb(u, (ld) w);
-        outdeg[u]++;
+    if (c >= 2 * a && d >= 2 * b) {
+        prt(2 * a, 2 * b);
+        return;
     }
 
-    deque<int> q;
-    for (int i: range(1, n + 1)) {
-        if (outdeg[i] == 0) {
-            q.pb(i);
-        }
-    }
+    auto getDivs = [&](int x) -> vector<int> {
+        vector<int> res;
 
-    vector<ld> dp(n + 1, 0.0L);
-    vector<ld> acc(n + 1, 0.0L);
-    vector<int> cnt(n + 1, 0);
-
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop_front();
-        for (auto &e: rg[u]) {
-            int p = e.first;
-            ld w = e.second;
-            acc[p] += w + dp[u];
-            cnt[p]++;
-            if (cnt[p] == outdeg[p]) {
-                dp[p] = acc[p] / (ld) outdeg[p];
-                q.pb(p);
+        for (int i = 1; i * i <= x; i++) {
+            if (x % i == 0) {
+                res.pb(i);
+                if (x / i != i) {
+                    res.pb(x / i);
+                }
             }
         }
+        return res;
+    };
+
+    auto divs1 = getDivs(a);
+    auto divs2 = getDivs(b);
+
+    for (int d1: divs1) {
+        for (int d2: divs2) {
+            int n = d1 * d2;
+            int m = a * b / d1 / d2;
+
+            int ans1 = c / n * n;
+            int ans2 = d / m * m;
+
+            if (ans1 <= a || ans2 <= b) {
+                continue;
+            }
+            prt(ans1, ans2);
+            return;
+        }
     }
 
-    cout << fixed << setprecision(2) << dp[1] << '\n';
+    prt(-1, -1);
 }
 
 signed main() {

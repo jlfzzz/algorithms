@@ -2,6 +2,8 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
+#define ld long double
+#define db double
 #define pb push_back
 #define pf push_front
 #define eb emplace_back
@@ -83,198 +85,125 @@ namespace utils {
 } // namespace utils
 using namespace utils;
 
-using ll = long long;
-using Flow = long long;
-const ll INF = 1e18;
-
-struct Edge {
-    int to, rev;
-    Flow cap;
-    ll cost;
-};
-
-struct MCMF {
-    int n;
-    vector<vector<Edge>> g;
-    vector<ll> dis;
-    vector<int> pre, pre_e;
-
-    MCMF(int _n) : n(_n), g(_n), dis(_n), pre(_n), pre_e(_n) {}
-
-    void addEdge(int u, int v, Flow cap, ll cost) {
-        g[u].push_back({v, (int) g[v].size(), cap, cost});
-        g[v].push_back({u, (int) g[u].size() - 1, 0, -cost});
-    }
-
-    bool spfa(int s, int t) {
-        fill(dis.begin(), dis.end(), INF);
-        vector<bool> inq(n, false);
-        queue<int> q;
-
-        dis[s] = 0;
-        q.push(s);
-        inq[s] = true;
-        pre[s] = -1;
-
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            inq[u] = false;
-            for (int i = 0; i < g[u].size(); i++) {
-                Edge &e = g[u][i];
-                if (e.cap > 0 && dis[u] + e.cost < dis[e.to]) {
-                    dis[e.to] = dis[u] + e.cost;
-                    pre[e.to] = u;
-                    pre_e[e.to] = i;
-                    if (!inq[e.to]) {
-                        q.push(e.to);
-                        inq[e.to] = true;
-                    }
-                }
-            }
-        }
-        return dis[t] != INF;
-    }
-
-    pair<Flow, ll> minCostMaxFlow(int s, int t) {
-        Flow flow = 0;
-        ll cost = 0;
-        while (spfa(s, t)) {
-            Flow f = INF;
-            for (int v = t; v != s; v = pre[v]) {
-                f = min(f, g[pre[v]][pre_e[v]].cap);
-            }
-            for (int v = t; v != s; v = pre[v]) {
-                Edge &e = g[pre[v]][pre_e[v]];
-                e.cap -= f;
-                g[v][e.rev].cap += f;
-                cost += (ll) f * e.cost;
-            }
-            flow += f;
-        }
-        return {flow, cost};
-    }
-};
+#define int ll
 
 int Multitest = 0;
 
 void solve() {
     int n;
-    rd(n);
-    string s;
-    rd(s);
-    if (s.size() != n) {
-        prt(-1);
-        return;
+    int R;
+    rd(n, R);
+    vector<pair<int, int>> points(n);
+    for (int i: range(n)) {
+        int x, y;
+        rd(x, y);
+        points[i] = {x, y};
     }
 
-    int cntT = 0, cntH = 0, cntB = 0, cntO = 0;
-    for (char c: s) {
-        if (c == 'T') {
-            cntT += 1;
-        } else if (c == 'H') {
-            cntH += 1;
-        } else if (c == 'b') {
-            cntB += 1;
-        } else if (c == 'o') {
-            cntO += 1;
-        } else {
-            prt(-1);
-            return;
-        }
-    }
+    const ld PI = acos(-1.0L);
+    const ld TWO_PI = 2.0L * PI;
+    const ld EPS = 1e-12;
 
-    int needT = n / 3;
-    if (cntT != needT) {
-        prt(-1);
-        return;
-    }
-    if (!(cntH == 0 || cntH == 1)) {
-        prt(-1);
-        return;
-    }
-    if (cntB < 1 || cntO < 1) {
-        prt(-1);
-        return;
-    }
+    int ans = 1;
+    vector<pair<ld, int>> evs;
 
-
-    int N = 2 * n + 2;
-    int S = 0;
-    int T = 2 * n + 1;
-    MCMF mcmf(N);
-
-    for (int i = 0; i < n; ++i) {
-        mcmf.addEdge(S, 1 + i, 1, 0);
-    }
-
-    auto check = [&](char ch, int pos, int n, int cntH) -> bool {
-        int oneBased = pos + 1;
-        bool isTslot = (oneBased % 3 == 0);
-        if (ch == 'T') {
-            if (isTslot) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        if (isTslot) {
-            return false;
-        }
-        if (ch == 'H') {
-            if (cntH == 1 && pos == 0) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        if (ch == 'b') {
-            if (pos != 0 && pos != n - 1) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        if (ch == 'o') {
-            if (cntH == 1 && pos == 0) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    for (int i = 0; i < n; ++i) {
-        char ch = s[i];
-        for (int j = 0; j < n; ++j) {
-            if (check(ch, j, n, cntH)) {
-                int cost = abs(i - j);
-                mcmf.addEdge(1 + i, 1 + n + j, 1, cost);
-            } else {
+    for (int i: range(n)) {
+        evs.clear();
+        evs.reserve(2 * (n - 1) + 8);
+        int starts = 0;
+        for (int j: range(n)) {
+            if (i == j) {
                 continue;
             }
+            ld dx = points[j].first - points[i].first;
+            ld dy = points[j].second - points[i].second;
+            ld d2 = dx * dx + dy * dy;
+            ld lim = 4.0L * (ld) R * (ld) R;
+            if (d2 > lim + 1e-18L) {
+                continue;
+            }
+            ld d = sqrtl(d2);
+            ld base = atan2(dy, dx);
+            ld ratio = d / (2.0L * R);
+            if (ratio < -1.0) {
+                ratio = -1.0;
+            }
+            if (ratio > 1.0) {
+                ratio = 1.0;
+            }
+            ld delta = acos(ratio);
+            ld L = base - delta;
+            ld RR = base + delta;
+            if (L < 0) {
+                L += TWO_PI;
+                if (L < 0) {
+                    L += TWO_PI;
+                }
+            }
+            if (L >= TWO_PI) {
+                L -= TWO_PI;
+                if (L >= TWO_PI) {
+                    L -= TWO_PI;
+                }
+            }
+            if (RR < 0) {
+                RR += TWO_PI;
+                if (RR < 0) {
+                    RR += TWO_PI;
+                }
+            }
+            if (RR >= TWO_PI) {
+                RR -= TWO_PI;
+                if (RR >= TWO_PI) {
+                    RR -= TWO_PI;
+                }
+            }
+            if (L <= RR) {
+                evs.emplace_back(L, +1);
+                starts++;
+                evs.emplace_back(RR, -1);
+            } else {
+                evs.emplace_back(L, +1);
+                starts++;
+                evs.emplace_back(TWO_PI, -1);
+                evs.emplace_back(0.0L, +1);
+                starts++;
+                evs.emplace_back(RR, -1);
+            }
+        }
+        if (starts + 1 <= ans) {
+            continue;
+        }
+        sort(evs.begin(), evs.end(), [](const auto &a, const auto &b) {
+            if (fabs(a.first - b.first) > 1e-18) {
+                return a.first < b.first;
+            }
+            return a.second > b.second;
+        });
+        int curr = 0;
+        for (const auto &e: evs) {
+            curr += e.second;
+            if (ans < curr + 1) {
+                ans = curr + 1;
+            }
+        }
+        if (ans == n) {
+            break;
         }
     }
-    for (int j = 0; j < n; ++j) {
-        mcmf.addEdge(1 + n + j, T, 1, 0);
-    }
 
-    auto res = mcmf.minCostMaxFlow(S, T);
-    if (res.first != n) {
-        prt(-1);
-    } else {
-        prt(res.second);
-    }
+    cout << ans << '\n';
 }
 
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int T = 1;
-    if (Multitest)
+    if (Multitest) {
         rd(T);
-    while (T--)
+    }
+    while (T--) {
         solve();
+    }
     return 0;
 }

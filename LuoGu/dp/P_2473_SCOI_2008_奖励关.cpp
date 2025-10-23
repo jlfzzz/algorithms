@@ -132,47 +132,53 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int k, n;
+    rd(k, n);
 
-    vector<vector<pair<int, ld>>> rg(n + 1);
-    vector<int> outdeg(n + 1, 0);
-    for (int i: range(m)) {
-        int u, v, w;
-        rd(u, v, w);
-        rg[v].eb(u, (ld) w);
-        outdeg[u]++;
-    }
+    vector<ld> score(n);
+    vector<int> need(n, 0);
 
-    deque<int> q;
-    for (int i: range(1, n + 1)) {
-        if (outdeg[i] == 0) {
-            q.pb(i);
+    for (int i: range(n)) {
+        int s;
+        rd(s);
+        score[i] = s;
+
+        int mask = 0;
+        while (true) {
+            int t;
+            rd(t);
+            if (t == 0)
+                break;
+            t--;
+            mask |= 1 << t;
         }
+        need[i] = mask;
     }
 
-    vector<ld> dp(n + 1, 0.0L);
-    vector<ld> acc(n + 1, 0.0L);
-    vector<int> cnt(n + 1, 0);
+    int u = 1 << n;
+    vector<ld> dp(u, 0.0);
 
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop_front();
-        for (auto &e: rg[u]) {
-            int p = e.first;
-            ld w = e.second;
-            acc[p] += w + dp[u];
-            cnt[p]++;
-            if (cnt[p] == outdeg[p]) {
-                dp[p] = acc[p] / (ld) outdeg[p];
-                q.pb(p);
+    for (int t: range(k)) {
+        vector<ld> ndp(u, -1e300);
+
+        for (int mask: range(u)) {
+            ld sum = 0.0;
+            for (int i: range(n)) {
+                if ((mask & need[i]) != need[i]) {
+                    sum += dp[mask];
+                } else {
+                    sum += max(dp[mask], score[i] + dp[mask | (1 << i)]);
+                }
             }
+            ndp[mask] = sum / (ld) n;
         }
+
+        dp.swap(ndp);
     }
 
-    cout << fixed << setprecision(2) << dp[1] << '\n';
+    auto ans = dp[0];
+    cout << fixed << setprecision(30) << ans << '\n';
 }
-
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

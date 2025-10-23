@@ -2,8 +2,6 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define ld long double
-#define db double
 #define pb push_back
 #define pf push_front
 #define eb emplace_back
@@ -127,50 +125,63 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n, k;
+    rd(n, k);
 
-    vector<vector<pair<int, ld>>> rg(n + 1);
-    vector<int> outdeg(n + 1, 0);
-    for (int i: range(m)) {
-        int u, v, w;
-        rd(u, v, w);
-        rg[v].eb(u, (ld) w);
-        outdeg[u]++;
+    vector<vector<int>> g(n + 1);
+    for (int i: range(2, n + 1)) {
+        int t;
+        rd(t);
+        g[i].pb(t);
+        g[t].pb(i);
     }
 
-    deque<int> q;
-    for (int i: range(1, n + 1)) {
-        if (outdeg[i] == 0) {
-            q.pb(i);
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
+
+    auto dfs = [&](this auto &&dfs, int u, int need, int fa) -> pii {
+        if (g[u].size() == 1 && u != 1) {
+            int val = a[u] * need;
+            int inc = a[u];
+            return {val, inc};
         }
-    }
 
-    vector<ld> dp(n + 1, 0.0L);
-    vector<ld> acc(n + 1, 0.0L);
-    vector<int> cnt(n + 1, 0);
-
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop_front();
-        for (auto &e: rg[u]) {
-            int p = e.first;
-            ld w = e.second;
-            acc[p] += w + dp[u];
-            cnt[p]++;
-            if (cnt[p] == outdeg[p]) {
-                dp[p] = acc[p] / (ld) outdeg[p];
-                q.pb(p);
+        vector<int> children;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
             }
+            children.pb(v);
         }
-    }
 
-    cout << fixed << setprecision(2) << dp[1] << '\n';
+        int m = children.size();
+        int q = need / m;
+        int r = need % m;
+
+        int sum = a[u] * need;
+        vector<int> vec;
+        for (int v: children) {
+            auto [base, inc] = dfs(v, q, u);
+            sum += base;
+            vec.pb(inc);
+        }
+
+        sort(vec.begin(), vec.end(), greater<int>());
+        for (int i = 0; i < (int) r; i++) {
+            sum += vec[i];
+        }
+
+        int delta = a[u] + vec[r];
+        return {sum, delta};
+    };
+
+    auto [ans, _] = dfs(1, k, 0);
+    prt(ans);
 }
 
 signed main() {
