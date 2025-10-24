@@ -130,34 +130,58 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, c;
+    rd(n, c);
 
-    vector<string> a(n);
+    vector<int> a(n);
     rd_vec(a);
 
-    vector<int> ans(n);
-    for (int i: range(n - 1, -1, -1)) {
-        int cnt = 0;
-        for (int j: range(i)) {
-            if (a[i][j] == '1') {
-                cnt++;
+    vector<pii> cost;
+    for (int i: range(n)) {
+        int cur = min(i + 1, n - i) + a[i];
+        cost.eb(cur, (int) i);
+    }
+    ranges::sort(cost);
+
+    vector<int> pref(n + 1, 0);
+    for (int i: range(n)) {
+        pref[i + 1] = pref[i] + cost[i].first;
+    }
+
+    vector<int> pos(n, -1);
+    for (int i: range(n)) {
+        pos[cost[i].second] = i;
+    }
+
+    int ans = 0;
+    for (int i: range(n)) {
+        int need = i + 1 + a[i];
+        if (c < need) {
+            continue;
+        }
+
+        int rem = c - need;
+        int k = int(upper_bound(all(pref), rem) - pref.begin()) - 1;
+        if (k < 0) {
+            k = 0;
+        }
+
+        int extra = k;
+        int p = pos[i];
+        if (p < extra) {
+            if (extra < n) {
+                if (pref[extra + 1] - cost[p].first <= rem) {
+                } else {
+                    extra -= 1;
+                }
+            } else {
+                extra -= 1;
             }
         }
 
-        for (int j: range(n)) {
-            if (ans[j]) {
-                continue;
-            }
-            if (cnt == 0) {
-                ans[j] = i + 1;
-                break;
-            } else {
-                cnt--;
-            }
-        }
+        ans = max(ans, 1 + extra);
     }
-    prt_vec(ans);
+    prt(ans);
 }
 
 signed main() {

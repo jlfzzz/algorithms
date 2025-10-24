@@ -12,6 +12,8 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
+// https://aucpl.com/problem/toweroftomsii
+
 namespace utils {
     void debug() { cerr << "\n"; }
 
@@ -161,45 +163,113 @@ int Multitest = 0;
 void solve() {
     int n;
     rd(n);
-
-    vector<vector<int>> g(n + 1);
-    for (int _: range(n - 1)) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    string s;
+    rd(s);
+    if (s.size() != n) {
+        prt(-1);
+        return;
     }
 
-    vector<vector<int>> dp(n + 1, vector<int>(3));
-    auto dfs = [&](auto &&dfs, int u, int fa) -> void {
-        dp[u][0] = 1;
-        dp[u][1] = inf;
-        int sum = 0;
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            dfs(dfs, v, u);
-            dp[u][0] += ranges::min(dp[v]);
-            sum += min(dp[v][0], dp[v][1]);
-            dp[u][2] += min(dp[v][0], dp[v][1]);
+    int cntT = 0, cntH = 0, cntB = 0, cntO = 0;
+    for (char c: s) {
+        if (c == 'T') {
+            cntT += 1;
+        } else if (c == 'H') {
+            cntH += 1;
+        } else if (c == 'b') {
+            cntB += 1;
+        } else if (c == 'o') {
+            cntO += 1;
+        } else {
+            prt(-1);
+            return;
         }
+    }
 
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+    int needT = n / 3;
+    if (cntT != needT) {
+        prt(-1);
+        return;
+    }
+    if (!(cntH == 0 || cntH == 1)) {
+        prt(-1);
+        return;
+    }
+    if (cntB < 1 || cntO < 1) {
+        prt(-1);
+        return;
+    }
+
+
+    int N = 2 * n + 2;
+    int S = 0;
+    int T = 2 * n + 1;
+    MCMF mcmf(N);
+
+    for (int i = 0; i < n; ++i) {
+        mcmf.addEdge(S, 1 + i, 1, 0);
+    }
+
+    auto check = [&](char ch, int pos, int n, int cntH) -> bool {
+        int oneBased = pos + 1;
+        bool isTslot = (oneBased % 3 == 0);
+        if (ch == 'T') {
+            if (isTslot) {
+                return true;
+            } else {
+                return false;
             }
-
-            dp[u][1] = min(dp[u][1], sum - min(dp[v][0], dp[v][1]) + dp[v][0]);
         }
+        if (isTslot) {
+            return false;
+        }
+        if (ch == 'H') {
+            if (cntH == 1 && pos == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (ch == 'b') {
+            if (pos != 0 && pos != n - 1) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (ch == 'o') {
+            if (cntH == 1 && pos == 0) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+        return false;
     };
 
-    dfs(dfs, 1, 0);
-    int ans = min(dp[1][0], dp[1][1]);
+    for (int i = 0; i < n; ++i) {
+        char ch = s[i];
+        for (int j = 0; j < n; ++j) {
+            if (check(ch, j, n, cntH)) {
+                int cost = abs(i - j);
+                mcmf.addEdge(1 + i, 1 + n + j, 1, cost);
+            } else {
+                continue;
+            }
+        }
+    }
+    for (int j = 0; j < n; ++j) {
+        mcmf.addEdge(1 + n + j, T, 1, 0);
+    }
 
-    prt(ans);
+    auto res = mcmf.minCostMaxFlow(S, T);
+    if (res.first != n) {
+        prt(-1);
+    } else {
+        prt(res.second);
+    }
 }
+
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

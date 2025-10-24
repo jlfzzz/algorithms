@@ -132,32 +132,109 @@ void init() {}
 void solve() {
     int n;
     rd(n);
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
 
-    vector<string> a(n);
-    rd_vec(a);
-
-    vector<int> ans(n);
-    for (int i: range(n - 1, -1, -1)) {
-        int cnt = 0;
-        for (int j: range(i)) {
-            if (a[i][j] == '1') {
-                cnt++;
-            }
+    vector<int> vis(n + 1);
+    vector<int> instk(n + 1);
+    auto dfs = [&](this auto &&dfs, int u) -> int {
+        if (u < 1 || u > n) {
+            return 2;
         }
+        if (vis[u] != 0) {
+            return vis[u];
+        }
+        if (instk[u]) {
+            vis[u] = 1;
+            return 1;
+        }
+        instk[u] = 1;
+        int res = dfs(u + a[u]);
+        instk[u] = 0;
+        vis[u] = res;
+        return res;
+    };
 
-        for (int j: range(n)) {
-            if (ans[j]) {
-                continue;
-            }
-            if (cnt == 0) {
-                ans[j] = i + 1;
-                break;
-            } else {
-                cnt--;
-            }
+    int cntEnd = 0;
+    for (int i: range(1, n + 1)) {
+        if (!vis[i]) {
+            dfs(i);
         }
     }
-    prt_vec(ans);
+
+    for (int i: range(1, n + 1)) {
+        if (vis[i] == 2) {
+            cntEnd++;
+        }
+    }
+
+    int ans = 0;
+    vector<int> inpath(n + 1);
+    vector<int> idx(n + 1);
+    int L = 0;
+    {
+        int t = 1;
+        while (true) {
+            if (t < 1 || t > n) {
+                break;
+            }
+            if (inpath[t]) {
+                break;
+            }
+            inpath[t] = 1;
+            idx[t] = ++L;
+            t += a[t];
+        }
+    }
+
+    if (vis[1] == 2) {
+        ans = (n - L) * (2 * n + 1);
+
+        vector<int> memo(n + 1, -1);
+        auto f = [&](this auto &&f, int u) -> int {
+            if (u < 1 || u > n) {
+                return 0;
+            }
+            if (idx[u] != 0) {
+                return idx[u];
+            }
+            if (memo[u] != -1) {
+                return memo[u];
+            }
+            int v = u + a[u];
+            int r = f(v);
+            memo[u] = r;
+            return r;
+        };
+
+        int cnt = 0;
+        vector<int> meet(L + 1);
+        for (int u: range(1, n + 1)) {
+            if (vis[u] == 2) {
+                if (idx[u] == 0) {
+                    int p = f(u);
+                    if (p == 0) {
+                        cnt++;
+                    } else {
+                        meet[p]++;
+                    }
+                }
+            }
+        }
+
+        int add = L * cnt;
+        for (int p: range(1, L + 1)) {
+            add += meet[p] * (p - 1);
+        }
+
+        ans += L * (n + 1);
+        ans += (L * (L - 1)) / 2;
+        ans += add;
+    } else {
+        ans = L * (n + 1 + cntEnd);
+    }
+
+    prt(ans);
 }
 
 signed main() {

@@ -12,6 +12,8 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
+// https://aucpl.com/problem/xorracerii
+
 namespace utils {
     void debug() { cerr << "\n"; }
 
@@ -36,26 +38,6 @@ namespace utils {
     }
 
     template<typename T>
-    void prt_vec(const vector<T> &v) {
-        for (size_t i = 0; i < v.size(); i++) {
-            if (i)
-                cout << " ";
-            cout << v[i];
-        }
-        cout << "\n";
-    }
-
-    template<typename T>
-    void prt_vec(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < (int) v.size(); i++) {
-            if (i > start_index)
-                cout << " ";
-            cout << v[i];
-        }
-        cout << "\n";
-    }
-
-    template<typename T>
     void rd(T &x) {
         cin >> x;
     }
@@ -64,25 +46,6 @@ namespace utils {
     void rd(T &x, Args &...args) {
         cin >> x;
         rd(args...);
-    }
-
-    template<typename A, typename B>
-    void rd(pair<A, B> &p) {
-        cin >> p.first >> p.second;
-    }
-
-    template<typename T>
-    void rd_vec(vector<T> &v) {
-        for (auto &x: v) {
-            rd(x);
-        }
-    }
-
-    template<typename T>
-    void rd_vec(vector<T> &v, int start_index) {
-        for (int i = start_index; i < (int) v.size(); i++) {
-            rd(v[i]);
-        }
     }
 
     struct range : ranges::view_base {
@@ -120,54 +83,138 @@ namespace utils {
         [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
     };
 } // namespace utils
-
 using namespace utils;
+
+struct TrieNode {
+    int count;
+    array<unique_ptr<TrieNode>, 2> nxt;
+
+    TrieNode() : count(0), nxt{nullptr, nullptr} {}
+};
+
+struct Trie {
+    unique_ptr<TrieNode> root;
+
+    Trie() : root(make_unique<TrieNode>()) {}
+
+    void insert(int x) const {
+        TrieNode *curr = root.get();
+        curr->count++;
+        for (int i = 30; i >= 0; i--) {
+            int bit = (x >> i) & 1;
+            if (!curr->nxt[bit]) {
+                curr->nxt[bit] = make_unique<TrieNode>();
+            }
+            curr = curr->nxt[bit].get();
+            curr->count++;
+        }
+    }
+
+    int get_max(int x) const {
+        TrieNode *curr = root.get();
+        int ans = 0;
+        if (!curr || curr->count == 0)
+            return ans;
+
+        for (int i = 30; i >= 0; i--) {
+            int bit = (x >> i) & 1;
+            int t = 1 - bit;
+            if (curr->nxt[t] && curr->nxt[t]->count > 0) {
+                ans |= (1 << i);
+                curr = curr->nxt[t].get();
+            } else if (curr->nxt[bit] && curr->nxt[bit]->count > 0) {
+                curr = curr->nxt[bit].get();
+            } else {
+                break;
+            }
+        }
+        return ans;
+    }
+
+    int get_min(int x) const {
+        TrieNode *curr = root.get();
+        int ans = 0;
+        if (!curr || curr->count == 0)
+            return ans;
+
+        for (int i = 30; i >= 0; i--) {
+            int bit = (x >> i) & 1;
+            if (curr->nxt[bit] && curr->nxt[bit]->count > 0) {
+                curr = curr->nxt[bit].get();
+            } else if (curr->nxt[1 - bit] && curr->nxt[1 - bit]->count > 0) {
+                ans |= (1 << i);
+                curr = curr->nxt[1 - bit].get();
+            } else {
+                break;
+            }
+        }
+        return ans;
+    }
+
+    void erase(int x) const {
+        TrieNode *curr = root.get();
+        curr->count--;
+        for (int i = 30; i >= 0; i--) {
+            int bit = (x >> i) & 1;
+            curr = curr->nxt[bit].get();
+            curr->count--;
+        }
+    }
+};
 
 #define int ll
 
-int Multitest = 1;
-
-void init() {}
+int Multitest = 0;
 
 void solve() {
-    int n;
-    rd(n);
+    int n, q;
+    rd(n, q);
 
-    vector<string> a(n);
-    rd_vec(a);
-
-    vector<int> ans(n);
-    for (int i: range(n - 1, -1, -1)) {
-        int cnt = 0;
-        for (int j: range(i)) {
-            if (a[i][j] == '1') {
-                cnt++;
-            }
-        }
-
-        for (int j: range(n)) {
-            if (ans[j]) {
-                continue;
-            }
-            if (cnt == 0) {
-                ans[j] = i + 1;
-                break;
-            } else {
-                cnt--;
-            }
-        }
+    vector<vector<pii>> g(n + 1);
+    for (int _: range(q)) {
+        int u, v, c;
+        rd(u, v, c);
+        g[u].eb(v, c);
+        g[v].eb(u, c);
     }
-    prt_vec(ans);
+
+    vector<int> vis(n + 1);
+    int ans = 0;
+    for (int i: range(1, n + 1)) {
+        if (vis[i]) {
+            continue;
+        }
+
+        Trie trie;
+        trie.insert(0);
+        int mx = 0;
+        auto dfs = [&](auto &&dfs, int u, int fa, int sum) -> void {
+            vis[u] = 1;
+            for (auto [v, w]: g[u]) {
+                if (v == fa) {
+                    continue;
+                }
+
+                int t = sum ^ w;
+                trie.insert(t);
+                mx = max<int>({trie.get_max(t), mx, w});
+                dfs(dfs, v, u, t);
+            }
+        };
+
+        dfs(dfs, i, 0, 0);
+        ans += mx;
+    }
+
+    prt(ans);
 }
 
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    init();
     int T = 1;
-    if (Multitest) {
+    if (Multitest)
         rd(T);
-    }
     while (T--)
         solve();
     return 0;

@@ -125,39 +125,76 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, m;
+    rd(n, m);
 
-    vector<string> a(n);
-    rd_vec(a);
+    vector<int> a(n + 1);
+    rd_vec(a, 1);
 
-    vector<int> ans(n);
-    for (int i: range(n - 1, -1, -1)) {
-        int cnt = 0;
-        for (int j: range(i)) {
-            if (a[i][j] == '1') {
-                cnt++;
-            }
-        }
+    vector<vector<int>> g(n + 1);
+    vector<set<pii>> sons(n + 1);
+    vector<int> sz(n + 1), impor(n + 1), parent(n + 1);
 
-        for (int j: range(n)) {
-            if (ans[j]) {
+    for (int _: range(n - 1)) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        sz[u] = 1;
+        impor[u] = a[u];
+        for (int v: g[u]) {
+            if (v == fa) {
                 continue;
             }
-            if (cnt == 0) {
-                ans[j] = i + 1;
-                break;
-            } else {
-                cnt--;
+
+            dfs(v, u);
+            sz[u] += sz[v];
+            impor[u] += impor[v];
+            sons[u].insert({-sz[v], v});
+            parent[v] = u;
+        }
+    };
+    dfs(1, 0);
+
+    while (m--) {
+        int op, x;
+        rd(op, x);
+
+        if (op == 1) {
+            prt(impor[x]);
+        } else {
+            if (sons[x].empty()) {
+                continue;
             }
+
+            int fa = parent[x];
+            sons[fa].erase({-sz[x], x});
+
+            auto [imp, v] = *sons[x].begin();
+            int oldSz = sz[x];
+            int oldImp = impor[x];
+
+            sz[x] -= sz[v];
+            impor[x] -= impor[v];
+            sons[x].erase(sons[x].begin());
+            parent[x] = v;
+
+            sz[v] = oldSz;
+            impor[v] = oldImp;
+            sons[v].insert({-sz[x], x});
+            parent[v] = fa;
+
+            sons[fa].insert({-sz[v], v});
         }
     }
-    prt_vec(ans);
 }
 
 signed main() {

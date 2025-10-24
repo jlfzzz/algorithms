@@ -133,31 +133,49 @@ void solve() {
     int n;
     rd(n);
 
-    vector<string> a(n);
-    rd_vec(a);
+    vector<vector<int>> g(n + 1);
+    for (int _: range(n - 1)) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
 
-    vector<int> ans(n);
-    for (int i: range(n - 1, -1, -1)) {
-        int cnt = 0;
-        for (int j: range(i)) {
-            if (a[i][j] == '1') {
-                cnt++;
-            }
-        }
-
-        for (int j: range(n)) {
-            if (ans[j]) {
+    vector<int> dis(n + 1, 1);
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        for (int v: g[u]) {
+            if (v == fa) {
                 continue;
             }
-            if (cnt == 0) {
-                ans[j] = i + 1;
-                break;
-            } else {
-                cnt--;
-            }
+
+            dfs(v, u);
+            dis[u] = max(dis[u], dis[v] + 1);
         }
+    };
+
+    dfs(1, 0);
+
+    int ans = 0;
+    for (int i: range(1, n + 1)) {
+        ans += dis[i];
     }
-    prt_vec(ans);
+
+    auto q_pow = [&](int b, int e) -> int {
+        int res = 1;
+        while (e) {
+            if (e & 1) {
+                res = res * b % MOD;
+            }
+            b = b * b % MOD;
+            e /= 2;
+        }
+
+        return res;
+    };
+
+    ans %= MOD;
+    ans = ans * q_pow(2, n - 1) % MOD;
+    prt(ans);
 }
 
 signed main() {
