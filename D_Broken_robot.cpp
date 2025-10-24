@@ -36,6 +36,26 @@ namespace utils {
     }
 
     template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
     void rd(T &x) {
         cin >> x;
     }
@@ -44,6 +64,25 @@ namespace utils {
     void rd(T &x, Args &...args) {
         cin >> x;
         rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
     }
 
     struct range : ranges::view_base {
@@ -81,26 +120,27 @@ namespace utils {
         [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
     };
 } // namespace utils
+
 using namespace utils;
 
 #define int ll
+
 int Multitest = 0;
 
+void init() {}
+
 void solve() {
-    int n, k;
-    rd(n, k);
-
-    vector<int> a(n);
-    rd_vec(a);
-
     
 }
+
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    init();
     int T = 1;
-    if (Multitest)
+    if (Multitest) {
         rd(T);
+    }
     while (T--)
         solve();
     return 0;

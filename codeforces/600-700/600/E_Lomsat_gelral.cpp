@@ -36,6 +36,26 @@ namespace utils {
     }
 
     template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
     void rd(T &x) {
         cin >> x;
     }
@@ -44,6 +64,25 @@ namespace utils {
     void rd(T &x, Args &...args) {
         cin >> x;
         rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
     }
 
     struct range : ranges::view_base {
@@ -81,26 +120,104 @@ namespace utils {
         [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
     };
 } // namespace utils
+
 using namespace utils;
 
 #define int ll
+
 int Multitest = 0;
 
+void init() {}
+
 void solve() {
-    int n, k;
-    rd(n, k);
+    int n;
+    rd(n);
+    vector<int> col(n + 1);
+    rd_vec(col, 1);
 
-    vector<int> a(n);
-    rd_vec(a);
+    vector<vector<int>> adj(n + 1);
+    for (int i: range(n - 1)) {
+        int x, y;
+        rd(x, y);
+        adj[x].pb(y);
+        adj[y].pb(x);
+    }
 
-    
+    vector<int> sz(n + 1, 1);
+    vector<int> ans(n + 1);
+
+    auto dfs_sz = [&](auto &&self, int v, int p) -> void {
+        for (int u: adj[v])
+            if (u != p) {
+                self(self, u, v);
+                sz[v] += sz[u];
+            }
+    };
+    dfs_sz(dfs_sz, 1, 0);
+
+    struct DS {
+        map<int, int> *freq;
+        int mx;
+        long long sum;
+    };
+
+    auto dfs = [&](auto &&self, int v, int p) -> DS {
+        int big = -1;
+        for (int u: adj[v]) {
+            if (u != p && (big == -1 || sz[u] > sz[big])) {
+                big = u;
+            }
+        }
+
+        DS cur{nullptr, 0, 0};
+        if (big != -1) {
+            cur = self(self, big, v);
+        } else {
+            cur.freq = new map<int, int>();
+            cur.mx = 0;
+            cur.sum = 0;
+        }
+
+        auto add_color = [&](int color, int delta) {
+            int newCnt = (*cur.freq)[color] + delta;
+            (*cur.freq)[color] = newCnt;
+            if (newCnt > cur.mx) {
+                cur.mx = newCnt;
+                cur.sum = color;
+            } else if (newCnt == cur.mx) {
+                cur.sum += color;
+            }
+        };
+
+        for (int u: adj[v]) {
+            if (u != p && u != big) {
+                DS small = self(self, u, v);
+                for (const auto &kv: *small.freq) {
+                    add_color(kv.first, kv.second);
+                }
+                delete small.freq;
+            }
+        }
+
+        add_color(col[v], 1);
+
+        ans[v] = cur.sum;
+        return cur;
+    };
+
+    dfs(dfs, 1, 0);
+
+    prt_vec(ans, 1);
 }
+
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    init();
     int T = 1;
-    if (Multitest)
+    if (Multitest) {
         rd(T);
+    }
     while (T--)
         solve();
     return 0;

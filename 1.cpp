@@ -1,216 +1,129 @@
+// Killing Monsters (SP Regionals 2023 Problem K)
+// 计数在长度区间 [L, U] 的所有序列，使所选怪物赏金之和能被 K 整除。
+// 令 A[r] = 赏金对 K 取模为 r 的怪物数量。长度为 t 的序列的模 K 计数分布为 A 的循环卷积 t 次幂：A^{*t}。
+// 目标为 sum_{t=L..U} (A^{*t}[0])。在环 R = (Z_mod 1e9+7)[x]/(x^K-1) 中，设 F(x)=sum_r A[r] x^r，则 A^{*t} 即 F^t，
+// 利用几何级数按二进制拆分：预处理 P[i]=F^{2^i} 与 S[i]=sum_{j=1..2^i} F^j，按位累加得到 S_n，最终答案为 (S_U -
+// S_{L-1}) 的 x^0 系数。
+
 #include <bits/stdc++.h>
 using namespace std;
 
-struct Edge {
-    int to;
-    int rev;
-    int cap;
-    int cost;
-};
+static constexpr int MOD = 1000000007;
 
-struct MinCostMaxFlow {
-    int n;
-    vector<vector<Edge>> graph;
-    MinCostMaxFlow(int n_) : n(n_), graph(n_) {}
+static inline int addmod(int a, int b) {
+    int s = a + b;
+    if (s >= MOD) {
+        s -= MOD;
+    }
+    return s;
+}
 
-    void addEdge(int u, int v, int cap, int cost) {
-        Edge a{v, (int) graph[v].size(), cap, cost};
-        Edge b{u, (int) graph[u].size(), 0, -cost};
-        graph[u].push_back(a);
-        graph[v].push_back(b);
+static inline int submod(int a, int b) {
+    int s = a - b;
+    if (s < 0) {
+        s += MOD;
     }
+    return s;
+}
 
-    pair<int, long long> minCostMaxFlow(int s, int t, int maxNeededFlow) {
-        int flow = 0;
-        long long cost = 0;
-        const long long INFLL = (1LL << 60);
-        vector<long long> dist(n);
-        vector<int> inq(n);
-        vector<int> pvNode(n);
-        vector<int> pvEdge(n);
-        while (flow < maxNeededFlow) {
-            for (int i = 0; i < n; ++i) {
-                dist[i] = INFLL;
-                inq[i] = 0;
-                pvNode[i] = -1;
-                pvEdge[i] = -1;
-            }
-            deque<int> dq;
-            dist[s] = 0;
-            dq.push_back(s);
-            inq[s] = 1;
-            while (!dq.empty()) {
-                int u = dq.front();
-                dq.pop_front();
-                inq[u] = 0;
-                for (int ei = 0; ei < (int) graph[u].size(); ++ei) {
-                    Edge const &e = graph[u][ei];
-                    if (e.cap <= 0) {
-                        continue;
-                    }
-                    int v = e.to;
-                    long long nd = dist[u] + e.cost;
-                    if (nd < dist[v]) {
-                        dist[v] = nd;
-                        pvNode[v] = u;
-                        pvEdge[v] = ei;
-                        if (!inq[v]) {
-                            if (!dq.empty() && nd < dist[dq.front()]) {
-                                dq.push_front(v);
-                            } else {
-                                dq.push_back(v);
-                            }
-                            inq[v] = 1;
-                        }
-                    }
-                }
-            }
-            if (dist[t] == INFLL) {
-                break;
-            }
-            int add = maxNeededFlow - flow;
-            int v = t;
-            while (v != s) {
-                int u = pvNode[v];
-                int ei = pvEdge[v];
-                if (u == -1 || ei == -1) {
-                    add = 0;
-                    break;
-                }
-                add = min(add, graph[u][ei].cap);
-                v = u;
-            }
-            if (add == 0) {
-                break;
-            }
-            v = t;
-            while (v != s) {
-                int u = pvNode[v];
-                int ei = pvEdge[v];
-                Edge &e = graph[u][ei];
-                Edge &re = graph[v][e.rev];
-                e.cap -= add;
-                re.cap += add;
-                v = u;
-            }
-            flow += add;
-            cost += (long long) add * dist[t];
+static vector<int> cyclicConvolution(const vector<int> &a, const vector<int> &b) {
+    int K = (int) a.size();
+    vector<int> c(K, 0);
+    for (int j = 0; j < K; ++j) {
+        int aj = a[j];
+        if (aj == 0) {
+            continue;
         }
-        return {flow, cost};
+        long long aVal = aj;
+        for (int i = 0; i < K; ++i) {
+            int idx = i + j;
+            if (idx >= K) {
+                idx -= K;
+            }
+            long long prod = (aVal * (long long) b[i]) % MOD;
+            int nv = c[idx] + (int) prod;
+            if (nv >= MOD) {
+                nv -= MOD;
+            }
+            c[idx] = nv;
+        }
     }
-};
+    return c;
+}
 
-static bool isAllowed(char ch, int pos, int n, int countH) {
-    int oneBased = pos + 1;
-    bool isTslot = (oneBased % 3 == 0);
-    if (ch == 'T') {
-        if (isTslot) {
-            return true;
-        } else {
-            return false;
+static vector<int> addVec(const vector<int> &a, const vector<int> &b) {
+    int K = (int) a.size();
+    vector<int> c(K);
+    for (int i = 0; i < K; ++i) {
+        c[i] = addmod(a[i], b[i]);
+    }
+    return c;
+}
+
+static void buildPowersAndSums(const vector<int> &F, long long maxN, vector<vector<int>> &P, vector<vector<int>> &S) {
+    P.clear();
+    S.clear();
+    P.push_back(F);
+    S.push_back(F);
+    long long len = 1;
+    while ((len << 1) <= maxN) {
+        vector<int> p2 = cyclicConvolution(P.back(), P.back());
+        vector<int> ps = cyclicConvolution(P.back(), S.back());
+        vector<int> s2 = addVec(S.back(), ps);
+        P.push_back(std::move(p2));
+        S.push_back(std::move(s2));
+        len <<= 1;
+    }
+}
+
+static vector<int> prefixSum(long long n, const vector<vector<int>> &P, const vector<vector<int>> &S) {
+    int K = (int) P[0].size();
+    vector<int> resS(K, 0);
+    vector<int> resP(K, 0);
+    resP[0] = 1; // 单位元 E(x)=1
+    int bit = 0;
+    long long x = n;
+    while (x > 0) {
+        if ((x & 1LL) != 0) {
+            vector<int> t = cyclicConvolution(resP, S[bit]);
+            resS = addVec(resS, t);
+            resP = cyclicConvolution(resP, P[bit]);
         }
+        x >>= 1LL;
+        bit += 1;
     }
-    if (isTslot) {
-        return false;
-    }
-    if (ch == 'H') {
-        if (countH == 1 && pos == 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    if (ch == 'b') {
-        if (pos != 0 && pos != n - 1) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    if (ch == 'o') {
-        if (countH == 1 && pos == 0) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-    return false;
+    return resS;
 }
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
 
-    int n;
-    if (!(cin >> n)) {
+    int N, K;
+    long long L, U;
+    if (!(cin >> N >> K >> L >> U)) {
         return 0;
     }
-    string s;
-    cin >> s;
-    if ((int) s.size() != n) {
-        // If input length mismatches, consider impossible
-        cout << -1 << '\n';
-        return 0;
+    vector<int> A(K, 0);
+    for (int i = 0; i < N; ++i) {
+        long long b;
+        cin >> b;
+        int r = (int) (b % K);
+        A[r] = addmod(A[r], 1);
     }
 
-    int cntT = 0, cntH = 0, cntB = 0, cntO = 0;
-    for (char c: s) {
-        if (c == 'T') {
-            cntT += 1;
-        } else if (c == 'H') {
-            cntH += 1;
-        } else if (c == 'b') {
-            cntB += 1;
-        } else if (c == 'o') {
-            cntO += 1;
-        } else {
-            cout << -1 << '\n';
-            return 0;
-        }
-    }
+    // F(x) = sum_r A[r] x^r
+    vector<vector<int>> P, S;
+    buildPowersAndSums(A, U, P, S);
 
-    int needT = n / 3; // positions 3,6,9,... (1-based)
-    if (cntT != needT) {
-        cout << -1 << '\n';
-        return 0;
-    }
-    if (!(cntH == 0 || cntH == 1)) {
-        cout << -1 << '\n';
-        return 0;
-    }
-    if (cntB < 1 || cntO < 1) {
-        cout << -1 << '\n';
-        return 0;
-    }
-
-    int N = 2 * n + 2;
-    int S = 0;
-    int T = 2 * n + 1;
-    MinCostMaxFlow mcmf(N);
-
-    for (int i = 0; i < n; ++i) {
-        mcmf.addEdge(S, 1 + i, 1, 0);
-    }
-    for (int i = 0; i < n; ++i) {
-        char ch = s[i];
-        for (int j = 0; j < n; ++j) {
-            if (isAllowed(ch, j, n, cntH)) {
-                int cost = abs(i - j);
-                mcmf.addEdge(1 + i, 1 + n + j, 1, cost);
-            } else {
-                continue;
-            }
-        }
-    }
-    for (int j = 0; j < n; ++j) {
-        mcmf.addEdge(1 + n + j, T, 1, 0);
-    }
-
-    auto res = mcmf.minCostMaxFlow(S, T, n);
-    if (res.first != n) {
-        cout << -1 << '\n';
+    vector<int> SU = prefixSum(U, P, S);
+    vector<int> SLm1;
+    if (L > 1) {
+        SLm1 = prefixSum(L - 1, P, S);
     } else {
-        cout << res.second << '\n';
+        SLm1.assign(K, 0);
     }
+    int ans = submod(SU[0], SLm1[0]);
+    cout << ans << '\n';
     return 0;
 }
