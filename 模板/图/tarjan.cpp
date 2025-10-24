@@ -123,7 +123,7 @@ void solve2() {
     }
 }
 
-// 割点（支持重边）
+// 割点
 void solve3() {
     int n, m;
     cin >> n >> m;
