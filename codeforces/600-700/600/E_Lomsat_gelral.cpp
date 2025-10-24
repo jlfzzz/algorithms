@@ -130,85 +130,83 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, k;
-    rd(n, k);
+    int n;
+    rd(n);
+    vector<int> col(n + 1);
+    rd_vec(col, 1);
 
-    vector<vector<pii>> g(n + 1);
-    for (int _: range(n - 1)) {
-        int u, v, t;
-        rd(u, v, t);
-        g[u].eb(v, t);
-        g[v].eb(u, t);
+    vector<vector<int>> adj(n + 1);
+    for (int i: range(n - 1)) {
+        int x, y;
+        rd(x, y);
+        adj[x].pb(y);
+        adj[y].pb(x);
     }
 
+    vector<int> sz(n + 1, 1);
     vector<int> ans(n + 1);
-    vector<int> msk(n + 1);
-    auto build = [&](auto &&build, int u, int fa) -> void {
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
+
+    auto dfs_sz = [&](auto &&self, int v, int p) -> void {
+        for (int u: adj[v])
+            if (u != p) {
+                self(self, u, v);
+                sz[v] += sz[u];
             }
-            msk[v] = msk[u] ^ (1LL << (x - 1));
-            build(build, v, u);
-        }
     };
-    build(build, 1, 0);
+    dfs_sz(dfs_sz, 1, 0);
 
-    auto dfs = [&](auto &&dfs, int u, int fa) -> unordered_map<int, int> {
-        unordered_map<int, int> big;
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
+    struct DS {
+        map<int, int> *freq;
+        int mx;
+        long long sum;
+    };
+
+    auto dfs = [&](auto &&self, int v, int p) -> DS {
+        int big = -1;
+        for (int u: adj[v]) {
+            if (u != p && (big == -1 || sz[u] > sz[big])) {
+                big = u;
             }
+        }
 
-            auto sub = dfs(dfs, v, u);
-            ans[u] += ans[v];
+        DS cur{nullptr, 0, 0};
+        if (big != -1) {
+            cur = self(self, big, v);
+        } else {
+            cur.freq = new map<int, int>();
+            cur.mx = 0;
+            cur.sum = 0;
+        }
 
-            if (sub.size() > big.size()) {
-                swap(sub, big);
+        auto add_color = [&](int color, int delta) {
+            int newCnt = (*cur.freq)[color] + delta;
+            (*cur.freq)[color] = newCnt;
+            if (newCnt > cur.mx) {
+                cur.mx = newCnt;
+                cur.sum = color;
+            } else if (newCnt == cur.mx) {
+                cur.sum += color;
             }
+        };
 
-            for (auto &kv: sub) {
-                int s = kv.first;
-                int c = kv.second;
-                int add = 0;
-                auto it0 = big.find(s);
-                if (it0 != big.end()) {
-                    add += it0->second;
+        for (int u: adj[v]) {
+            if (u != p && u != big) {
+                DS small = self(self, u, v);
+                for (const auto &kv: *small.freq) {
+                    add_color(kv.first, kv.second);
                 }
-                for (int i: range(20)) {
-                    int m = s ^ (1LL << i);
-                    auto it = big.find(m);
-                    if (it != big.end()) {
-                        add += it->second;
-                    }
-                }
-                ans[u] +=  c * add;
-            }
-
-            for (auto &kv: sub) {
-                big[kv.first] += kv.second;
+                delete small.freq;
             }
         }
 
-        int addU = 0;
-        auto it0 = big.find(msk[u]);
-        if (it0 != big.end()) {
-            addU += it0->second;
-        }
-        for (int i: range(20)) {
-            int m = msk[u] ^ (1LL << i);
-            auto it = big.find(m);
-            if (it != big.end()) {
-                addU += it->second;
-            }
-        }
-        ans[u] += addU;
-        big[msk[u]] += 1;
-        return big;
+        add_color(col[v], 1);
+
+        ans[v] = cur.sum;
+        return cur;
     };
 
     dfs(dfs, 1, 0);
+
     prt_vec(ans, 1);
 }
 

@@ -91,6 +91,7 @@ int Multitest = 0;
 
 void solve() {
     int n;
+<<<<<<< HEAD
     int R;
     rd(n, R);
     vector<pair<int, int>> points(n);
@@ -193,8 +194,48 @@ void solve() {
     }
 
     cout << ans << '\n';
-}
+=======
+    rd(n);
 
+    vector<vector<int>> g(n + 1);
+    for (int _: range(n - 1)) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+
+    vector<vector<int>> dp(n + 1, vector<int>(3));
+    auto dfs = [&](auto &&dfs, int u, int fa) -> void {
+        dp[u][0] = 1;
+        dp[u][1] = inf;
+        int sum = 0;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            dfs(dfs, v, u);
+            dp[u][0] += ranges::min(dp[v]);
+            sum += min(dp[v][0], dp[v][1]);
+            dp[u][2] += min(dp[v][0], dp[v][1]);
+        }
+
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            dp[u][1] = min(dp[u][1], sum - min(dp[v][0], dp[v][1]) + dp[v][0]);
+        }
+    };
+
+    dfs(dfs, 1, 0);
+    int ans = min(dp[1][0], dp[1][1]);
+
+    prt(ans);
+>>>>>>> 346ca2a8059e4da2f60f945c22e461a3f838964e
+}
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
