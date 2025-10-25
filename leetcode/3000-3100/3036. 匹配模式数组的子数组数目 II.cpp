@@ -120,16 +120,77 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
-class Solution {
+class KMP {
 public:
-    int reachNumber(int target) {
-        target = abs(target);
-        int s = 0, n = 0;
-        while (s < target || (s - target) % 2)
-            s += ++n;
-        return n;
+    static vector<int> buildLPS(vector<int> &pattern) {
+        int m = pattern.size();
+        vector<int> lps(m, 0);
+        int len = 0;
+        int i = 1;
+        while (i < m) {
+            if (pattern[i] == pattern[len]) {
+                len++;
+                lps[i] = len;
+                i++;
+            } else {
+                if (len != 0) {
+                    len = lps[len - 1];
+                } else {
+                    lps[i] = 0;
+                    i++;
+                }
+            }
+        }
+        return lps;
+    }
+
+    // KMP搜索函数 - 返回所有匹配位置
+    static vector<int> search(const vector<int> &text, vector<int> &pattern) {
+        vector<int> result;
+        int n = text.size();
+        int m = pattern.size();
+        if (m == 0)
+            return result;
+        vector<int> lps = buildLPS(pattern);
+        int i = 0;
+        int j = 0;
+        while (i < n) {
+            if (text[i] == pattern[j]) {
+                i++;
+                j++;
+                if (j == m) {
+                    result.push_back(i - m);
+                    j = lps[j - 1];
+                }
+            } else {
+                if (j != 0) {
+                    j = lps[j - 1];
+                } else {
+                    i++;
+                }
+            }
+        }
+        return result;
     }
 };
+
+class Solution {
+public:
+    int countMatchingSubarrays(vector<int> &nums, vector<int> &pattern) {
+        int n = nums.size();
+        vector<int> text;
+        for (int i = 0; i + 1 < n; i++) {
+            if (nums[i + 1] > nums[i])
+                text.push_back(1);
+            else if (nums[i + 1] == nums[i])
+                text.push_back(0);
+            else
+                text.push_back(-1);
+        }
+        return KMP::search(text, pattern).size();
+    }
+};
+
 
 int main() {
     ios::sync_with_stdio(false);

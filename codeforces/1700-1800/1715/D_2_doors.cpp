@@ -10,9 +10,6 @@ using ll = long long;
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vvi vector<vector<int>>
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -130,12 +127,40 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, q;
+    rd(n, q);
+
+    vector<int> f(n, (1 << 30) - 1);
+    vector<vector<pii>> g(n);
+
+    for (int i: range(q)) {
+        int a, b, c;
+        rd(a, b, c);
+
+        a--, b--;
+        f[a] &= c;
+        f[b] &= c;
+        g[a].eb(b, c);
+        g[b].eb(a, c);
+    }
+
+    for (int i: range(n)) {
+        int t = 0;
+        for (auto [j, x]: g[i]) {
+            t |= x & ~f[j];
+            if (j == i) {
+                t = x;
+            }
+        }
+        f[i] = t;
+    }
+
+    prt_vec(f);
 }
 
 signed main() {

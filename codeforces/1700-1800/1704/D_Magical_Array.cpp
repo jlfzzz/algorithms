@@ -10,9 +10,6 @@ using ll = long long;
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vvi vector<vector<int>>
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -135,7 +132,38 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+
+    map<int, int> cnt, cnt2;
+    for (int i: range(1, n + 1)) {
+        int sum = 0;
+        for (int j: range(1, m + 1)) {
+            int t;
+            rd(t);
+            sum += j * t;
+        }
+        cnt[sum]++;
+        cnt2[sum] = i;
+    }
+
+    int ans1 = 0;
+    int ans2 = 0;
+    if (cnt.begin()->second > 1) {
+        auto it = cnt.begin();
+        it++;
+        int t = it->first;
+        ans1 = cnt2[t];
+        ans2 = it->first - cnt.begin()->first;
+    } else {
+        ans1 = cnt2[cnt.begin()->first];
+        auto it = cnt.begin();
+        it++;
+        int t = it->first;
+        ans2 = cnt.begin()->first - t;
+    }
+
+    prt(ans1, ans2);
 }
 
 signed main() {

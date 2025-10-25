@@ -10,9 +10,6 @@ using ll = long long;
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vvi vector<vector<int>>
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -135,7 +132,44 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    vector<int> a, b;
+    int c0 = 0;
+    for (int i: range(n)) {
+        int t;
+        rd(t);
+
+        if (t == 0) {
+            c0++;
+        } else {
+            a.pb(t);
+        }
+    }
+
+    while (a.size() > 1) {
+        b.clear();
+        if (c0) {
+            b.pb(a[0]);
+            c0--;
+        }
+
+        for (int i: range(1, a.size())) {
+            int d = a[i] - a[i - 1];
+            if (!d) {
+                c0++;
+            } else {
+                b.pb(d);
+            }
+        }
+
+        ranges::sort(b);
+        a.swap(b);
+        // prt_vec(a);
+    }
+
+    prt(!a.size() ? 0 : a[0]);
 }
 
 signed main() {

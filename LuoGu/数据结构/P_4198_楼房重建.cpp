@@ -2,16 +2,22 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define int ll
-using pii = pair<int, int>;
-using pll = pair<ll, ll>;
+#define ld long double
+#define db double
+#define pb push_back
+#define pf push_front
+#define eb emplace_back
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+#define vi vector<int>
+#define vp vector<pii>
+#define vvi vector<vector<int>>
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-namespace io {
+namespace utils {
     void debug() { cerr << "\n"; }
 
     template<typename T, typename... Args>
@@ -22,10 +28,16 @@ namespace io {
         debug(args...);
     }
 
-    template<typename... Args>
-    void prt(const Args &...args) {
-        ((cout << args << " "), ...);
-        cout << "\n";
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
     }
 
     template<typename T>
@@ -46,18 +58,6 @@ namespace io {
             cout << v[i];
         }
         cout << "\n";
-    }
-
-    template<typename End, typename... Args>
-    void prt_end(const End &end, const Args &...args) {
-        ((cout << args << " "), ...);
-        cout << end;
-    }
-
-    template<typename... Args>
-    void prt_endl(const Args &...args) {
-        ((cout << args << " "), ...);
-        cout << endl;
     }
 
     template<typename T>
@@ -89,52 +89,91 @@ namespace io {
             rd(v[i]);
         }
     }
-} // namespace io
 
-using namespace io;
+    struct range : ranges::view_base {
+        struct Iterator {
+            using iterator_category = random_access_iterator_tag;
+            using value_type = long long;
+            using difference_type = ptrdiff_t;
+            ll val, d;
+            Iterator() = default;
+            Iterator(ll val, ll d) : val(val), d(d) {};
+            value_type operator*() const { return val; }
+            Iterator &operator++() { return val += d, *this; }
+            Iterator operator++(int) {
+                Iterator tmp = *this;
+                ++(*this);
+                return tmp;
+            }
+            Iterator &operator--() { return val -= d, *this; }
+            Iterator operator--(int) {
+                Iterator tmp = *this;
+                --(*this);
+                return tmp;
+            }
+            difference_type operator-(const Iterator &other) const { return (val - other.val) / d; }
+            bool operator==(const Iterator &other) const { return val == other.val; }
+        };
+        Iterator Begin, End;
+        explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
+        range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
+            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
+            End.val = a + max(cnt, ll(0)) * d;
+        };
+        [[nodiscard]] Iterator begin() const { return Begin; }
+        [[nodiscard]] Iterator end() const { return End; };
+        [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
+    };
+} // namespace utils
+
+using namespace utils;
+
+#define int ll
+
+struct Node {
+    ld mx;
+    int sum;
+};
+
+class Seg {
+public:
+    vector<Node> tree;
+    Seg(int n) : tree(4 * n + 5, {-1e300, 0}) {}
+
+    int dfs(int o, int l, int r, ld mx) {
+        if (tree[o].mx <= mx) {
+            return 0;
+        }
+        if (l == r) {
+            return tree[o].mx > mx;
+        }
+        int m = (l + r) / 2;
+        if (tree[o * 2].mx <= mx) {
+            return dfs(o * 2 + 1, m + 1, r, mx);
+        }
+        return dfs(o * 2, l, m, mx) + (tree[o].sum - tree[o * 2].sum);
+    }
+
+    void change(int o, int l, int r, int pos, ld k) {
+        if (l == r) {
+            tree[o] = {k, 1};
+            return;
+        }
+
+        int m = (l + r) / 2;
+        if (pos <= m) {
+            change(o * 2, l, m, pos, k);
+        } else {
+            change(o * 2 + 1, m + 1, r, pos, k);
+        }
+        tree[o].mx = max(tree[o * 2].mx, tree[o * 2 + 1].mx);
+        tree[o].sum = tree[o * 2].sum + dfs(o * 2 + 1, m + 1, r, tree[o * 2].mx);
+    }
+};
 
 int Multitest = 0;
 
 void init() {}
-
-struct Seg {
-    vector<long double> mx; // 区间最大斜率
-    vector<int> sum;        // 区间内自左向右可见楼数量
-    int n;
-
-    Seg(int n) : mx(4 * n + 5, 0.0L), sum(4 * n + 5, 0), n(n) {}
-
-    int dfs(int o, int l, int r, long double mls) {
-        // 若当前区间最大斜率不超过已知最大斜率，则该区间贡献为 0
-        if (mx[o] <= mls) return 0; // 剪枝
-        if (l == r) return 1;       // 叶子：该点斜率一定大于 mls
-        int mid = (l + r) / 2;
-        int ls = o * 2, rs = o * 2 + 1;
-        if (mx[ls] <= mls) return dfs(rs, mid + 1, r, mls);
-        // 左侧一定能看到至少一个；右侧的可见数与“从左到右扫完整个左儿子后的 mls=mx[ls]”相同
-        return dfs(ls, l, mid, mls) + (sum[o] - sum[ls]);
-    }
-
-    void pushup(int o, int l, int r) {
-        int mid = (l + r) / 2;
-        int ls = o * 2, rs = o * 2 + 1;
-        mx[o] = max(mx[ls], mx[rs]);
-        // 区间总可见数 = 左侧可见数 + 在右侧、已知 mls=mx[ls] 情况下可见数
-        sum[o] = sum[ls] + dfs(rs, mid + 1, r, mx[ls]);
-    }
-
-    void change(int o, int l, int r, int i, long double val) {
-        if (l == r) {
-            mx[o] = val;
-            sum[o] = (val > 0.0L) ? 1 : 0; // 本题 y>=1，恒为 1，这里写得更稳妥
-            return;
-        }
-        int mid = (l + r) / 2;
-        if (i <= mid) change(o * 2, l, mid, i, val);
-        else change(o * 2 + 1, mid + 1, r, i, val);
-        pushup(o, l, r);
-    }
-};
 
 void solve() {
     int n, m;
@@ -146,8 +185,8 @@ void solve() {
         int x, y;
         rd(x, y);
 
-        seg.change(1, 1, n, x, (long double) y / (long double) x);
-        prt_endl(seg.sum[1]);
+        seg.change(1, 1, n, x, (ld) y / (ld) x);
+        prt(seg.tree[1].sum);
     }
 }
 

@@ -10,9 +10,6 @@ using ll = long long;
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vvi vector<vector<int>>
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -135,7 +132,138 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, a, b, c;
+    rd(n, a, b, c);
+
+    int start = 4;
+    vector<pii> ans;
+    if (a + b == c) {
+        int pre = 1;
+        for (int i: range(a - 1)) {
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+        ans.eb(pre, 2);
+        pre = 2;
+        for (int i: range(b - 1)) {
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+        ans.eb(pre, 3);
+        pre = 3;
+        while (start <= n) {
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+    } else if (b + c == a) {
+        int pre = 1;
+        for (int i: range(c - 1)) {
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+        ans.eb(pre, 3);
+        pre = 3;
+        for (int i: range(b - 1)) {
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+        ans.eb(pre, 2);
+        pre = 2;
+        while (start <= n) {
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+    } else if (a + c == b) {
+        int pre = 1;
+        for (int i: range(a - 1)) {
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+        ans.eb(pre, 2);
+        pre = 1;
+        for (int i: range(c - 1)) {
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+        ans.eb(pre, 3);
+        pre = 3;
+        while (start <= n) {
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+    } else {
+        if ((a - c + b) % 2) {
+            prt("NO");
+            return;
+        }
+
+        if (a + b < c || a + c < b || b + c < a) {
+            prt("NO");
+            return;
+        }
+
+        int x = (a - c + b) / 2;
+        if (x < 0 || x > b) {
+            prt("NO");
+            return;
+        }
+        map<int, int> parent;
+
+        int pre = 1;
+        for (int i: range(a - 1)) {
+            parent[start] = pre;
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+        parent[2] = pre;
+        ans.eb(pre, 2);
+
+        int t = 2;
+        for (int i: range(x)) {
+            t = parent[t];
+        }
+
+        pre = t;
+        for (int i: range(b - x - 1)) {
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+        ans.eb(pre, 3);
+        pre = 3;
+        while (start <= n) {
+            ans.eb(pre, start);
+            pre = start;
+            start++;
+        }
+    }
+
+    if (ans.size() != n - 1) {
+        prt("NO");
+        return;
+    }
+
+    for (auto [x, y]: ans) {
+        if (x > n || y > n || x < 1 || y < 1) {
+            prt("NO");
+            return;
+        }
+    }
+
+    prt("YES");
+    for (auto [x, y]: ans) {
+        prt(x, y);
+    }
 }
 
 signed main() {

@@ -10,9 +10,6 @@ using ll = long long;
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vvi vector<vector<int>>
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -130,12 +127,75 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+
+    vector<vector<int>> g(2 * n + 1);
+    for (int _: range(m)) {
+        int i, a, j, b;
+        rd(i, a, j, b);
+
+        g[i + !a * n].pb(j + b * n);
+        g[j + !b * n].pb(i + a * n);
+    }
+
+    int timestamp = 0;
+    vector<int> dfn(2 * n + 1), low(2 * n + 1), in_stack(2 * n + 1), comp(2 * n + 1);
+    stack<int> stk;
+    int scc_cnt = 0;
+
+    auto tarjan = [&](this auto &&tarjan, int u) -> void {
+        dfn[u] = low[u] = ++timestamp;
+        stk.push(u);
+        in_stack[u] = true;
+
+        for (int v: g[u]) {
+            if (!dfn[v]) {
+                tarjan(v);
+                low[u] = min(low[u], low[v]);
+            } else if (in_stack[v]) {
+                low[u] = min(low[u], dfn[v]);
+            }
+        }
+
+        if (low[u] == dfn[u]) {
+            while (true) {
+                int x = stk.top();
+                stk.pop();
+                in_stack[x] = 0;
+                comp[x] = scc_cnt;
+                if (x == u)
+                    break;
+            }
+            ++scc_cnt;
+        }
+    };
+
+    for (int i: range(1, 2 * n + 1)) {
+        if (!dfn[i]) {
+            tarjan(i);
+        }
+    }
+
+    for (int i: range(1, n + 1)) {
+        if (comp[i] == comp[i + n]) {
+            prt("IMPOSSIBLE");
+            return;
+        }
+    }
+
+    prt("POSSIBLE");
+    vector<int> ans(n + 1);
+    for (int i: range(1, n + 1)) {
+        ans[i] = comp[i] > comp[i + n];
+    }
+
+    prt_vec(ans, 1);
 }
 
 signed main() {

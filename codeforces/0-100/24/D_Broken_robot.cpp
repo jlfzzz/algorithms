@@ -10,9 +10,6 @@ using ll = long long;
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vvi vector<vector<int>>
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -130,12 +127,48 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+    int x, y;
+    rd(x, y);
+
+    if (x == n) {
+        cout << fixed << setprecision(30) << 0.0 << endl;
+        return;
+    }
+
+    vector<ld> dp(m + 1);
+
+    for (int i: range(n - 1, x - 1, -1)) {
+        vector<ld> ndp(m + 1);
+        for (int t: range(50)) {
+            for (int j: range(1, m + 1)) {
+                int cnt = 2;
+                ld sum = dp[j] + ndp[j];
+
+                if (j > 1) {
+                    sum += ndp[j - 1];
+                    cnt++;
+                }
+                if (j < m) {
+                    sum += ndp[j + 1];
+                    cnt++;
+                }
+
+                ndp[j] = sum / cnt + 1;
+            }
+        }
+        dp.swap(ndp);
+    }
+
+
+
+    cout << fixed << setprecision(30) << dp[y] << endl;
 }
 
 signed main() {

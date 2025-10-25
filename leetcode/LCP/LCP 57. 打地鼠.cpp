@@ -120,16 +120,61 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
+
 class Solution {
 public:
-    int reachNumber(int target) {
-        target = abs(target);
-        int s = 0, n = 0;
-        while (s < target || (s - target) % 2)
-            s += ++n;
-        return n;
+    int getMaximumNumber(vector<vector<int>> &moles) {
+        ranges::sort(moles, [](vector<int> &a, vector<int> &b) { return a[0] < b[0]; });
+        vector<vector<int>> dp(3, vector<int>(3, -1));
+        dp[1][1] = 0;
+
+        int n = moles.size(), pre = 0, idx = 0;
+
+        while (idx < n) {
+            int t = moles[idx][0];
+            int dt = t - pre;
+
+            vector<pair<int, int>> cur;
+            while (idx < n && moles[idx][0] == t) {
+                cur.emplace_back(moles[idx][1], moles[idx][2]);
+                idx++;
+            }
+
+            vector<vector<int>> ndp(3, vector<int>(3, -1));
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    if (dp[i][j] == -1)
+                        continue;
+                    for (int dx = 0; dx < 3; dx++) {
+                        for (int dy = 0; dy < 3; dy++) {
+                            if (abs(i - dx) + abs(j - dy) <= dt) {
+                                ndp[dx][dy] = max(ndp[dx][dy], dp[i][j]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (auto &[x, y]: cur) {
+                if (ndp[x][y] != -1) {
+                    ndp[x][y]++;
+                }
+            }
+
+            dp = std::move(ndp);
+            pre = t;
+        }
+
+        int ans = 0;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                ans = max(ans, dp[i][j]);
+            }
+        }
+        return ans;
     }
 };
+
 
 int main() {
     ios::sync_with_stdio(false);

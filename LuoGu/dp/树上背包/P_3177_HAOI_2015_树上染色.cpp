@@ -2,117 +2,181 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define int ll
-using pii = pair<int, int>;
-using pll = pair<ll, ll>;
+#define ld long double
+#define db double
+#define pb push_back
+#define pf push_front
+#define eb emplace_back
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
 constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
-// int n, k;
-// vector<vector<pii>> g;
-// vector<int> sz;
+namespace utils {
+    void debug() { cerr << "\n"; }
 
-// vector<int> dfs(int u, int p) {
-//     vector<int> dp(2, 0);
-//     sz[u] = 1;
-//     for (auto &e: g[u]) {
-//         int v = e.first, w = e.second;
-//         if (v == p)
-//             continue;
-//         auto ch = dfs(v, u);
-//         int lim_u = (int) dp.size() - 1;
-//         int lim_v = (int) ch.size() - 1;
-//         int new_lim = min(k, lim_u + lim_v);
-//         vector<int> ndp(new_lim + 1, -inf);
-//         for (int t = 0; t <= min(k, lim_u); ++t) {
-//             if (dp[t] <= -inf / 4)
-//                 continue;
-//             int up = min(lim_v, k - t);
-//             for (int j = 0; j <= up; ++j) {
-//                 if (ch[j] <= -inf / 4)
-//                     continue;
-//                 int add = w * (j * (k - j) + (sz[v] - j) * ((n - k) - (sz[v] - j)));
-//                 ndp[t + j] = max(ndp[t + j], dp[t] + ch[j] + add);
-//             }
-//         }
-//         dp.swap(ndp);
-//         sz[u] += sz[v];
-//     }
-//     if ((int) dp.size() > k + 1)
-//         dp.resize(k + 1);
-//     return dp;
-// }
-// cin >> n >> k;
-// g.assign(n + 1, {});
-// for (int i = 1; i <= n - 1; ++i) {
-//     int u, v, w;
-//     cin >> u >> v >> w;
-//     g[u].push_back({v, w});
-//     g[v].push_back({u, w});
-// }
-// sz.assign(n + 1, 0);
-// auto res = dfs(1, 0);
-// cout << res[k] << '\n';
+    template<typename T, typename... Args>
+    void debug(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        debug(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prt_vec(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rd_vec(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+
+    struct range : ranges::view_base {
+        struct Iterator {
+            using iterator_category = random_access_iterator_tag;
+            using value_type = long long;
+            using difference_type = ptrdiff_t;
+            ll val, d;
+            Iterator() = default;
+            Iterator(ll val, ll d) : val(val), d(d) {};
+            value_type operator*() const { return val; }
+            Iterator &operator++() { return val += d, *this; }
+            Iterator operator++(int) {
+                Iterator tmp = *this;
+                ++(*this);
+                return tmp;
+            }
+            Iterator &operator--() { return val -= d, *this; }
+            Iterator operator--(int) {
+                Iterator tmp = *this;
+                --(*this);
+                return tmp;
+            }
+            difference_type operator-(const Iterator &other) const { return (val - other.val) / d; }
+            bool operator==(const Iterator &other) const { return val == other.val; }
+        };
+        Iterator Begin, End;
+        explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
+        range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
+            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
+            End.val = a + max(cnt, ll(0)) * d;
+        };
+        [[nodiscard]] Iterator begin() const { return Begin; }
+        [[nodiscard]] Iterator end() const { return End; };
+        [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
+    };
+} // namespace utils
+
+using namespace utils;
+
+#define int ll
+
+int Multitest = 0;
+
 void init() {}
 
 void solve() {
-    int n, k;
-    cin >> n >> k;
+    int n, m;
+    rd(n, m);
+
     vector<vector<pii>> g(n + 1);
-    for (int i = 0; i < n - 1; i++) {
+    for (int _: range(n - 1)) {
         int u, v, w;
-        cin >> u >> v >> w;
-        g[u].emplace_back(v, w);
-        g[v].emplace_back(u, w);
+        rd(u, v, w);
+        g[u].eb(v, w);
+        g[v].eb(u, w);
     }
 
-    vector<vector<int>> dp(n + 1, vector<int>(k + 1, -inf));
-    vector<int> sz(n + 1, 0);
-
+    vector<int> sz(n + 1, 1);
+    vector<vector<int>> dp(n + 1, vector<int>(m + 1));
     auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        sz[u] = 1;
-        dp[u][0] = 0; // 选择0个节点的价值
-        dp[u][1] = 0; // 选择1个节点的价值（根据具体问题调整）
-
-        for (const auto &[v, w]: g[u]) {
-            if (v == fa)
+        for (auto [v, w]: g[u]) {
+            if (v == fa) {
                 continue;
-
-            dfs(v, u); // 先递归处理子节点
-
-            // 临时数组用于背包合并
-            vector<int> temp(dp[u].begin(), dp[u].end());
-
-            // 背包合并：从大到小遍历避免重复计算
-            for (int i = min(k, sz[u]); i >= 0; i--) {
-                if (dp[u][i] == -inf)
-                    continue;
-
-                for (int j = min(k - i, sz[v]); j >= 0; j--) {
-                    if (dp[v][j] == -inf)
-                        continue;
-
-                    // 计算边(u,v)的贡献
-                    int add = w * (j * (k - j) + (sz[v] - j) * (n - k - (sz[v] - j)));
-                    temp[i + j] = max(temp[i + j], dp[u][i] + dp[v][j] + add);
-                }
             }
 
-            dp[u] = std::move(temp);
+            dfs(v, u);
+
+            for (int i: range(min(sz[u], m), -1, -1)) {
+                for (int j: range(min(sz[v], m), -1, -1)) {
+                    if (i + j <= m) {
+                        int t = (m - j) * j * w + (n - sz[v] - (m - j)) * (sz[v] - j) * w;
+                        dp[u][i + j] = max(dp[u][i + j], dp[u][i] + dp[v][j] + t);
+                    }
+                }
+            }
             sz[u] += sz[v];
         }
     };
-
     dfs(1, 0);
-    cout << dp[1][k] << '\n';
+    prt(dp[1][m]);
 }
 
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     init();
-    solve();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--)
+        solve();
     return 0;
 }

@@ -190,14 +190,14 @@ namespace helpers {
     }
 
     // 随机数组
-    vector<int> random_array(int n, int lo, int hi) {
+    vector<ll> random_array(int n, int lo, int hi) {
         random_device rd;
         mt19937 gen(rd());
-        uniform_int_distribution<int> dist(lo, hi);
+        uniform_int_distribution<ll> dist(lo, hi);
 
-        vector<int> arr(n);
+        vector<ll> arr(n);
         for (int i = 0; i < n; i++) {
-            arr[i] = dist(gen);
+            arr[i] = (ll) dist(gen);
         }
         return arr;
     }
@@ -905,14 +905,23 @@ vector<pii> readTree(int n);
 #define int ll
 
 void func1() {
-    int n = 5000;
+    int n = 100;
 
     vector<int> arr = {12, 3, 20, 5, 80, 1};
-    auto random_arr1 = random_array(n, 1, 1e7);
+    auto random_arr1 = random_array(n, 1, 1e5);
     auto random_arr2 = random_array(n, 1, 1e7);
 
-    int x = 495;
-
+    while (random_arr1.size() > 1) {
+        ranges::sort(random_arr1);
+        prt_vec(random_arr1);
+        vector<int> nxt;
+        for (int i: range(1, random_arr1.size())) {
+            nxt.pb(random_arr1[i] - random_arr1[i - 1]);
+        }
+        random_arr1 = nxt;
+    }
+    ranges::sort(random_arr1);
+    prt_vec(random_arr1);
 }
 
 vector<pii> readTree(int n) {

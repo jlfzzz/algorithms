@@ -2,6 +2,8 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
+#define ld long double
+#define db double
 #define pb push_back
 #define pf push_front
 #define eb emplace_back
@@ -125,12 +127,27 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    prt(2);
+    vector<int> vis(n + 1);
+    for (int i: range(1, n + 1)) {
+        if (vis[i])
+            continue;
+        int now = i;
+        while (now <= n) {
+            cout << now << ' ';
+            vis[now] = 1;
+            now *= 2;
+        }
+    }
+    prt("");
 }
 
 signed main() {

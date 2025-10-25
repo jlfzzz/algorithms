@@ -10,9 +10,6 @@ using ll = long long;
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vvi vector<vector<int>>
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -130,12 +127,131 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+struct Node {
+    int sum1, sum2, len, lazy;
+};
+
+class Seg {
+public:
+    vector<Node> tree;
+    Seg(int n) : tree(4 * n + 5) {}
+
+    void apply(Node &a, int lazy) {
+        a.sum1 = a.sum1 + 2 * lazy * a.sum2 + lazy * lazy * a.len;
+        a.sum2 = a.sum2 + a.len * lazy;
+        a.lazy += lazy;
+    }
+
+    void pushdown(int o, int l, int r) {
+        int lazy = tree[o].lazy;
+        if (lazy != 0) {
+            if (l != r) {
+                apply(tree[o * 2], lazy);
+                apply(tree[o * 2 + 1], lazy);
+            }
+            tree[o].lazy = 0;
+        }
+    }
+
+    Node pushup(Node &a, Node &b) {
+        Node res;
+        res.sum1 = a.sum1 + b.sum1;
+        res.sum2 = a.sum2 + b.sum2;
+        res.len = a.len + b.len;
+        res.lazy = 0;
+        return res;
+    }
+
+    void rangeAdd(int o, int l, int r, int ql, int qr, int delta) {
+        if (r < ql || l > qr) {
+            return;
+        }
+
+        if (l >= ql && r <= qr) {
+            apply(tree[o], delta);
+            return;
+        }
+
+        int m = (l + r) / 2;
+        pushdown(o, l, r);
+        rangeAdd(o * 2, l, m, ql, qr, delta);
+        rangeAdd(o * 2 + 1, m + 1, r, ql, qr, delta);
+        tree[o] = pushup(tree[o * 2], tree[o * 2 + 1]);
+    }
+
+    int rangeCount(int o, int l, int r, int ql, int qr) {
+        if (r < ql || l > qr) {
+            return 0;
+        }
+        if (ql <= l && r <= qr) {
+            return tree[o].len;
+        }
+        int m = (l + r) / 2;
+        return rangeCount(o * 2, l, m, ql, qr) + rangeCount(o * 2 + 1, m + 1, r, ql, qr);
+    }
+
+    void set(int o, int l, int r, int pos, bool present, int val) {
+        if (l == r) {
+            tree[o].len = present ? 1 : 0;
+            tree[o].sum2 = present ? val : 0;
+            tree[o].sum1 = present ? val * val : 0;
+            tree[o].lazy = 0;
+            return;
+        }
+        pushdown(o, l, r);
+        int m = (l + r) / 2;
+        if (pos <= m) {
+            set(o * 2, l, m, pos, present, val);
+        } else {
+            set(o * 2 + 1, m + 1, r, pos, present, val);
+        }
+        tree[o] = pushup(tree[o * 2], tree[o * 2 + 1]);
+    }
+};
+
+int Multitest = 0;
 
 void init() {}
 
+constexpr int N = 2e5 + 5;
+
 void solve() {
-    
+    int q, d;
+    rd(q, d);
+
+    Seg seg(N);
+    set<int> st;
+
+    while (q--) {
+        int a;
+        rd(a);
+
+        if (st.contains(a)) {
+            int L = a + 1;
+            int R = min(a + d, N);
+            if (L <= R) {
+                seg.rangeAdd(1, 1, N, L, R, -1);
+            }
+            seg.set(1, 1, N, a, false, 0);
+            st.erase(a);
+        } else {
+            int l = max((int) 1, a - d);
+            int r = a - 1;
+            int val = 0;
+            if (l <= r) {
+                val = seg.rangeCount(1, 1, N, l, r);
+            }
+            seg.set(1, 1, N, a, true, val);
+            int L = a + 1;
+            int R = min(a + d, N);
+            if (L <= R) {
+                seg.rangeAdd(1, 1, N, L, R, 1);
+            }
+            st.insert(a);
+        }
+
+        prt((seg.tree[1].sum1 - seg.tree[1].sum2) / 2);
+    }
 }
 
 signed main() {

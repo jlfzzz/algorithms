@@ -10,9 +10,6 @@ using ll = long long;
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vvi vector<vector<int>>
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -135,7 +132,48 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+
+    vector<int> need(m);
+    rd_vec(need);
+
+    int lo = 1;
+    int hi = 5 * m;
+    int ans = 1;
+
+    while (lo < hi) {
+        int mid = (lo + hi) / 2;
+
+        auto check = [&]() -> bool {
+            int extra = 0;
+            vector<int> use(n + 1);
+
+            for (int x: need) {
+                if (use[x] == mid) {
+                    extra++;
+                } else {
+                    use[x]++;
+                }
+            }
+
+            int left = 0;
+            for (int i: range(1, n + 1)) {
+                left += (mid - use[i]) / 2;
+            }
+
+            return left >= extra;
+        };
+
+        if (check()) {
+            ans = mid;
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+    }
+
+    prt(ans);
 }
 
 signed main() {

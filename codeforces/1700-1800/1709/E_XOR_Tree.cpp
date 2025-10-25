@@ -10,9 +10,6 @@ using ll = long long;
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vvi vector<vector<int>>
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
@@ -130,13 +127,101 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+    vector<int> weight(n + 1);
+    rd_vec(weight, 1);
+
+    vector<vector<int>> g(n + 1);
+    for (int i: range(n - 1)) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+
+    vector<int> sz(n + 1);
+    auto dfs1 = [&](this auto &&dfs, int u, int fa) -> void {
+        sz[u] = 1;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+            dfs(v, u);
+            sz[u] += sz[v];
+        }
+    };
+    dfs1(1, 0);
+
+    int ans = 0;
+    auto dfs2 = [&](this auto &&dfs, int u, int fa, int sum) -> map<int, int> * {
+        int son = -1;
+        sum ^= weight[u];
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+            if (son == -1 || sz[v] > sz[son]) {
+                son = v;
+            }
+        }
+
+        if (son == -1) {
+            auto *cnt = new map<int, int>;
+            (*cnt)[sum]++;
+            return cnt;
+        }
+
+        auto *cnt = dfs(son, u, sum);
+        bool f = false;
+        for (int v: g[u]) {
+            if (v == fa || v == son) {
+                continue;
+            }
+
+            auto *temp = dfs(v, u, sum);
+            if (!f) {
+                for (auto &[a, b]: *temp) {
+                    if ((*cnt).contains(a ^ weight[u])) {
+                        f = true;
+                        break;
+                    }
+                }
+            }
+            if (!f) {
+                for (auto &[a, b]: *temp) {
+                    (*cnt)[a] += b;
+                }
+            }
+            delete temp;
+        }
+
+        if (!f) {
+            if ((*cnt).contains(sum ^ weight[u])) {
+                f = true;
+            }
+        }
+
+        if (f) {
+            ans++;
+            delete cnt;
+            auto *empty = new map<int, int>;
+            return empty;
+        } else {
+            (*cnt)[sum]++;
+            return cnt;
+        }
+    };
+
+    dfs2(1, 0, 0);
+    prt(ans);
 }
+
 
 signed main() {
     ios::sync_with_stdio(false);

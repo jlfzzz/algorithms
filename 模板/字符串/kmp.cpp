@@ -38,26 +38,6 @@ public:
         return next;
     }
 
-    // lc28 string.find()
-    int strStr(string haystack, string needle) {
-        auto nxt = buildLPS(needle);
-        int j = 0;
-        int n = haystack.size();
-        int m = needle.size();
-        for (int i = 0; i < n; i++) {
-            while (j > 0 && needle[j] != haystack[i]) {
-                j = nxt[j - 1];
-            }
-            if (needle[j] == haystack[i]) {
-                j++;
-            }
-            if (j == m) {
-                return i - m + 1;
-            }
-        }
-        return -1;
-    }
-
     // KMP搜索函数 - 返回所有匹配位置
     static vector<int> search(const string& text, const string& pattern) {
         vector<int> result;
@@ -65,32 +45,11 @@ public:
         int m = pattern.length();
 
         if (m == 0) return result;
-
-        // 构建LPS数组
         vector<int> lps = buildLPS(pattern);
 
         int i = 0;  // text的索引
-        int j = 0;  // pattern的索引
-
-        // 这两个一样的，我喜欢下面的无注释的
-        // while (i < n) {
-        //     if (text[i] == pattern[j]) {
-        //         i++;
-        //         j++;
-        //     }
-
-        //     if (j == m) {
-        //         // 找到匹配
-        //         result.push_back(i - j);
-        //         j = lps[j - 1];  // 继续寻找下一个匹配
-        //     } else if (i < n && text[i] != pattern[j]) {
-        //         if (j != 0) {
-        //             j = lps[j - 1];  // 利用LPS数组跳过字符
-        //         } else {
-        //             i++;
-        //         }
-        //     }
-        // }
+        int j = 0; // pattern的索引
+        
         while (i < n) {
             while (j > 0 && text[i] != pattern[j]) {
                 j = lps[j - 1];
