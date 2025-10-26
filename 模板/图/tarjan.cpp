@@ -25,7 +25,8 @@ void solve1() {
 
     int cnt = 0;
     int timestamp = 0;
-    vector<int> dfn(n + 1), low(n + 1), in_stack(n + 1);
+    vector<int> dfn(n + 1), low(n + 1), in_stack(n + 1), comp(n + 1);
+    vector<vector<int>> comps;
     stack<int> stk;
 
     auto tarjan = [&](this auto &&tarjan, int u) -> void {
@@ -48,13 +49,12 @@ void solve1() {
                 int x = stk.top();
                 stk.pop();
                 in_stack[x] = false;
+                comp[x] = comps.size() + 1;
                 scc.push_back(x);
                 if (x == u)
                     break;
             }
-            if (scc.size() > 1) {
-                cnt++;
-            }
+            comps.emplace_back(scc);
         }
     };
 

@@ -10,19 +10,23 @@ using ll = long long;
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 namespace utils {
-    void debug() { cerr << "\n"; }
+    void dbg() { cerr << "\n"; }
 
     template<typename T, typename... Args>
-    void debug(const string &s, T x, Args... args) {
+    void dbg(const string &s, T x, Args... args) {
         cerr << s << " = " << x;
         if (sizeof...(args) > 0)
             cerr << ", ";
-        debug(args...);
+        dbg(args...);
     }
 
     template<typename T>
@@ -38,7 +42,7 @@ namespace utils {
     }
 
     template<typename T>
-    void prt_vec(const vector<T> &v) {
+    void prv(const vector<T> &v) {
         for (size_t i = 0; i < v.size(); i++) {
             if (i)
                 cout << " ";
@@ -48,7 +52,7 @@ namespace utils {
     }
 
     template<typename T>
-    void prt_vec(const vector<T> &v, int start_index) {
+    void prv(const vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
@@ -74,20 +78,20 @@ namespace utils {
     }
 
     template<typename T>
-    void rd_vec(vector<T> &v) {
+    void rv(vector<T> &v) {
         for (auto &x: v) {
             rd(x);
         }
     }
 
     template<typename T>
-    void rd_vec(vector<T> &v, int start_index) {
+    void rv(vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
     }
 
-    struct range : ranges::view_base {
+    struct range {
         struct Iterator {
             using iterator_category = random_access_iterator_tag;
             using value_type = long long;
@@ -135,21 +139,23 @@ void solve() {
     int n, m;
     rd(n, m);
 
-    vector<vector<int>> g(2 * n + 1);
-    for (int _: range(m)) {
-        int i, a, j, b;
-        rd(i, a, j, b);
+    vvi g(2 * n + 1);
+    auto fr = [&](int x) { return (x % 2 ? x + 1 : x - 1); };
 
-        g[i + !a * n].pb(j + b * n);
-        g[j + !b * n].pb(i + a * n);
+    for (int i = 0; i < m; i++) {
+        int a, b;
+        rd(a, b);
+
+        g[a].pb(fr(b));
+        g[b].pb(fr(a));
     }
 
     int timestamp = 0;
     vector<int> dfn(2 * n + 1), low(2 * n + 1), in_stack(2 * n + 1), comp(2 * n + 1);
+    vector<vector<int>> comps;
     stack<int> stk;
-    int scc_cnt = 0;
 
-    auto tarjan = [&](this auto &&tarjan, int u) -> void {
+    function<void(int)> tarjan = [&](int u) {
         dfn[u] = low[u] = ++timestamp;
         stk.push(u);
         in_stack[u] = true;
@@ -164,39 +170,38 @@ void solve() {
         }
 
         if (low[u] == dfn[u]) {
+            vector<int> scc;
             while (true) {
                 int x = stk.top();
                 stk.pop();
-                in_stack[x] = 0;
-                comp[x] = scc_cnt;
+                in_stack[x] = false;
+                comp[x] = comps.size() + 1;
+                scc.push_back(x);
                 if (x == u)
                     break;
             }
-            ++scc_cnt;
+            comps.emplace_back(scc);
         }
     };
 
-    for (int i: range(1, 2 * n + 1)) {
+    for (int i = 1; i <= 2 * n; i++) {
         if (!dfn[i]) {
             tarjan(i);
         }
     }
 
-    for (int i: range(1, n + 1)) {
-        if (comp[i] == comp[i + n]) {
-            prt("IMPOSSIBLE");
+    // 不可满足判定：同党两人同一 SCC 则无解
+    for (int i = 1; i <= 2 * n; i += 2) {
+        if (comp[i] == comp[i + 1]) {
+            cout << "NIE\n";
             return;
         }
     }
 
-    prt("POSSIBLE");
-    // 答案取comp id大的，代表拓扑序更靠前
-    vector<int> ans(n + 1);
-    for (int i: range(1, n + 1)) {
-        ans[i] = comp[i] > comp[i + n];
+    for (int i = 1; i <= 2 * n; i++) {
+        if (comp[i] < comp[fr(i)])
+            cout << i << "\n";
     }
-
-    prt_vec(ans, 1);
 }
 
 signed main() {
