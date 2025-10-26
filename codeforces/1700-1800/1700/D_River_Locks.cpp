@@ -19,14 +19,14 @@ constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
 
 namespace utils {
-    void dbg() { cerr << "\n"; }
+    void debug() { cerr << "\n"; }
 
     template<typename T, typename... Args>
-    void dbg(const string &s, T x, Args... args) {
+    void debug(const string &s, T x, Args... args) {
         cerr << s << " = " << x;
         if (sizeof...(args) > 0)
             cerr << ", ";
-        dbg(args...);
+        debug(args...);
     }
 
     template<typename T>
@@ -42,7 +42,7 @@ namespace utils {
     }
 
     template<typename T>
-    void prv(const vector<T> &v) {
+    void prt_vec(const vector<T> &v) {
         for (size_t i = 0; i < v.size(); i++) {
             if (i)
                 cout << " ";
@@ -52,7 +52,7 @@ namespace utils {
     }
 
     template<typename T>
-    void prv(const vector<T> &v, int start_index) {
+    void prt_vec(const vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
@@ -78,14 +78,14 @@ namespace utils {
     }
 
     template<typename T>
-    void rv(vector<T> &v) {
+    void rd_vec(vector<T> &v) {
         for (auto &x: v) {
             rd(x);
         }
     }
 
     template<typename T>
-    void rv(vector<T> &v, int start_index) {
+    void rd_vec(vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
@@ -131,12 +131,59 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+    vi v(n + 1);
+    rd_vec(v, 1);
+    int q;
+    rd(q);
+
+    vi pref(n + 1);
+    for (int i: range(1, n + 1)) {
+        pref[i] = pref[i - 1] + v[i];
+    }
+
+    vi preNeed(n + 1);
+    for (int i: range(1, n + 1)) {
+        int t = (pref[i] + i - 1) / i;
+        preNeed[i] = i == 1 ? t : max(preNeed[i - 1], t);
+    }
+
+    while (q--) {
+        int t;
+        rd(t);
+
+        int lo = 1;
+        int hi = n + 1;
+        int ans = -1;
+
+        while (lo < hi) {
+            int mid = (lo + hi) / 2;
+            auto check = [&]() {
+                int least = preNeed[mid];
+                if (t < least) {
+                    return false;
+                }
+
+                int extra = mid * t - pref[mid];
+                int need = pref[n] - pref[mid];
+                return extra >= need;
+            };
+            if (check()) {
+                ans = mid;
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        }
+
+        prt(ans);
+    }
 }
 
 signed main() {

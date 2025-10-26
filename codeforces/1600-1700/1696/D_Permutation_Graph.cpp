@@ -128,15 +128,120 @@ namespace utils {
 } // namespace utils
 
 using namespace utils;
-
 #define int ll
+
+struct MinNodeX {
+    pair<ll, ll> v;
+    MinNodeX(pair<ll, ll> vv = pair<ll, ll>(inf, -1)) : v(vv) {}
+    static MinNodeX merge(const MinNodeX &a, const MinNodeX &b) { return MinNodeX(min(a.v, b.v)); }
+    bool ok(ll x) const { return x <= v.first; }
+};
+
+struct MaxNodeX {
+    pair<ll, ll> v;
+    MaxNodeX(pair<ll, ll> vv = pair<ll, ll>(-inf, -1)) : v(vv) {}
+    static MaxNodeX merge(const MaxNodeX &a, const MaxNodeX &b) { return MaxNodeX(max(a.v, b.v)); }
+    bool ok(ll x) const { return v.first <= x; }
+};
+
+template<class N>
+struct SegTreeX {
+    vector<N> x;
+    int s{};
+    SegTreeX() = default;
+    template<class T>
+    explicit SegTreeX(const vector<T> &a) {
+        int n = (int) a.size();
+        s = 1;
+        while (s < n)
+            s <<= 1;
+        x.assign(s * 2, N());
+        for (int i = 0; i < n; i++)
+            x[s + i] = N(a[i]);
+        for (int i = s - 1; i >= 1; i--)
+            x[i] = N::merge(x[i * 2], x[i * 2 + 1]);
+    }
+
+    N composite(int l, int r) {
+        N lf, rt;
+        l += s;
+        r += s;
+        while (l < r) {
+            if (l & 1) {
+                lf = N::merge(lf, x[l]);
+                l++;
+            }
+            if (r & 1) {
+                r--;
+                rt = N::merge(x[r], rt);
+            }
+            l >>= 1;
+            r >>= 1;
+        }
+        return N::merge(lf, rt);
+    }
+    template<class F, class... Args>
+    pair<int, N> max_right(int l, F f, Args &&...args) {
+        if (l >= s)
+            return {s, N()};
+        l += s;
+        N sm;
+        if (!(sm.*f)(forward<Args>(args)...))
+            return {l - s, sm};
+        do {
+            while ((l & 1) == 0)
+                l >>= 1;
+            N tmp = N::merge(sm, x[l]);
+            if ((tmp.*f)(forward<Args>(args)...)) {
+                sm = tmp;
+                l++;
+            } else {
+                while (l < s) {
+                    l <<= 1;
+                    tmp = N::merge(sm, x[l]);
+                    if ((tmp.*f)(forward<Args>(args)...)) {
+                        sm = tmp;
+                        l++;
+                    }
+                }
+                return {l - s, sm};
+            }
+        } while ((l & -l) != l);
+        return {s, sm};
+    }
+};
 
 int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+    vector<ll> a(n);
+    for (int i = 0; i < n; i++)
+        rd(a[i]);
+
+    vector<pair<ll, ll>> rw(n);
+    for (int i = 0; i < n; i++)
+        rw[i] = {a[i], i};
+    SegTreeX<MinNodeX> segMin(rw);
+    SegTreeX<MaxNodeX> segMax(rw);
+
+    int cur = 0, ans = 0;
+    while (cur < n - 1) {
+        int nx = -1;
+        if (a[cur] < a[cur + 1]) {
+            int lim = segMin.max_right(cur, &MinNodeX::ok, a[cur]).first;
+            nx = segMax.composite(cur, lim).v.second;
+        } else {
+            int lim = segMax.max_right(cur, &MaxNodeX::ok, a[cur]).first;
+            nx = segMin.composite(cur, lim).v.second;
+        }
+        cur = nx;
+        ans++;
+    }
+    prt(ans);
 }
 
 signed main() {

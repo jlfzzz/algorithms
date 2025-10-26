@@ -131,12 +131,58 @@ using namespace utils;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    vi last(26);
+    string ans;
+    int cnt = 0;
+
+    for (int i: range(1, n + 1)) {
+        cout << "? 2 1 " << i << endl;
+        int res;
+        rd(res);
+
+        if (res > cnt) {
+            cout << "? 1 " << i << endl;
+            char c;
+            rd(c);
+            ans += c;
+            int id = c - 'a';
+            last[id] = i;
+            cnt = res;
+        } else {
+            vp pos;
+            for (int j: range(26))
+                if (last[j] > 0)
+                    pos.eb(last[j], j);
+            ranges::sort(pos, greater<>());
+
+            int l = 0, r = (int) pos.size() - 1;
+            while (l < r) {
+                int mid = (l + r) / 2;
+                auto [L, id] = pos[mid];
+                cout << "? 2 " << L << ' ' << i << endl;
+                int res;
+                rd(res);
+                if (res == mid + 1)
+                    r = mid;
+                else
+                    l = mid + 1;
+            }
+            int id = pos[l].second;
+            char c = char('a' + id);
+            ans += c;
+            last[id] = i;
+        }
+    }
+
+    cout << "! " << ans << endl;
 }
 
 signed main() {

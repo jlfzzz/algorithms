@@ -129,14 +129,28 @@ namespace utils {
 
 using namespace utils;
 
-#define int ll
-
 int Multitest = 1;
 
 void init() {}
 
+constexpr int NEG = 1e9 + 5;
+
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+
+    string a, b;
+    rd(a, b);
+
+    a = '#' + a;
+    b = '#' + b;
+
+    vvi dp1(n + 1, vi(m + 1, -NEG)), dp2(n + 1, vi(m + 1, -NEG));
+
+    dp1[0][0] = 0;
+    for (int i: range(1, n + 1)) {
+        
+    }
 }
 
 signed main() {
