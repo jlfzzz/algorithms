@@ -135,22 +135,79 @@ void init() {}
 
 constexpr int NEG = 1e9 + 5;
 
+
 void solve() {
     int n, m;
     rd(n, m);
 
-    string a, b;
-    rd(a, b);
+    string s, t;
+    rd(s, t);
 
-    a = '#' + a;
-    b = '#' + b;
+    string s1 = " " + t;
+    string s2 = " " + s;
+    s1 += " ";
 
-    vvi dp1(n + 1, vi(m + 1, -NEG)), dp2(n + 1, vi(m + 1, -NEG));
+    int N = m;
+    int M = n;
 
-    dp1[0][0] = 0;
-    for (int i: range(1, n + 1)) {
-        
+    vector<vector<short>> dp_pre(N + 2, vector<short>(M + 2, 0));
+    vector<vector<short>> dp_suf(N + 2, vector<short>(M + 2, 0));
+    vector<vector<short>> ok_pre(N + 2, vector<short>(M + 2, 0));
+    vector<vector<short>> ok_suf(N + 2, vector<short>(M + 2, 0));
+    vector<vector<short>> cursor_pos(N + 2, vector<short>(M + 2, 0));
+
+    ok_pre[0][0] = 1;
+    cursor_pos[0][0] = 0;
+    for (int i: range(0, N + 1)) {
+        for (int j: range(1, M + 1)) {
+            if (s1[i] == s2[j]) {
+                dp_pre[i][j] = dp_pre[i - 1][j - 1];
+                ok_pre[i][j] = ok_pre[i - 1][j - 1] & 1;
+                cursor_pos[i][j] = cursor_pos[i - 1][j - 1];
+            } else {
+                dp_pre[i][j] = dp_pre[i][j - 1] + (short) (j - cursor_pos[i][j - 1] + 1);
+                cursor_pos[i][j] = (short) j;
+                ok_pre[i][j] = ok_pre[i][j - 1];
+            }
+        }
     }
+
+    for (int i: range(0, N + 2)) {
+        for (int j: range(0, M + 2))
+            cursor_pos[i][j] = 0;
+    }
+
+    ok_suf[N + 1][M + 1] = 1;
+    cursor_pos[N + 1][M + 1] = (short) (M + 1);
+    for (int i: range(N + 1, 0, -1)) {
+        for (int j: range(M, 0, -1)) {
+            if (s1[i] == s2[j]) {
+                dp_suf[i][j] = dp_suf[i + 1][j + 1];
+                ok_suf[i][j] = ok_suf[i + 1][j + 1] & 1;
+                cursor_pos[i][j] = cursor_pos[i + 1][j + 1];
+            } else {
+                dp_suf[i][j] = dp_suf[i][j + 1] + (short) (cursor_pos[i][j + 1] - j);
+                cursor_pos[i][j] = (short) j;
+                ok_suf[i][j] = ok_suf[i][j + 1];
+            }
+        }
+    }
+
+    short ans = (short) 32767;
+    for (int i: range(0, N + 1)) {
+        for (int j: range(0, M + 1)) {
+            if (ok_pre[i][j] && ok_suf[i + 1][j + 1]) {
+                short tag = (i != j) ? (short) 1 : (short) 0;
+                short cand = (short) (dp_pre[i][j] + dp_suf[i + 1][j + 1] + tag);
+                if (cand < ans)
+                    ans = cand;
+            }
+        }
+    }
+
+    if (ans == (short) 32767)
+        ans = (short) -1;
+    cout << ans << '\n';
 }
 
 signed main() {

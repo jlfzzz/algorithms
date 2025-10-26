@@ -130,86 +130,293 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, k;
-    rd(n, k);
+    int N, T;
+    rd(N, T);
 
-    vector<vector<pii>> g(n + 1);
-    for (int _: range(n - 1)) {
-        int u, v, t;
-        rd(u, v, t);
-        g[u].eb(v, t);
-        g[v].eb(u, t);
+    struct Mat {
+        int a[4][4]{};
+    };
+
+    auto I4 = [&]() {
+        Mat M;
+        M.a[0][0] = 1;
+        M.a[1][1] = 1;
+        M.a[2][2] = 1;
+        M.a[3][3] = 1;
+        return M;
+    };
+
+    auto mul = [&](const Mat &A, const Mat &B) {
+        Mat C;
+        for (int i = 0; i < 4; i++) {
+            for (int k = 0; k < 4; k++)
+                if (A.a[i][k] != 0) {
+                    for (int j = 0; j < 4; j++)
+                        if (B.a[k][j] != 0) {
+                            C.a[i][j] += A.a[i][k] * B.a[k][j];
+                        }
+                }
+        }
+        return C;
+    };
+
+    auto mat_for_run = [&](int len, bool activeR) {
+        // Build 4x4 from blocks using C^len and I - C^len
+        int m = ((len % 4) + 4) % 4;
+        int Ck[2][2];
+        if (m == 0) {
+            Ck[0][0] = 1;
+            Ck[0][1] = 0;
+            Ck[1][0] = 0;
+            Ck[1][1] = 1;
+        } else if (m == 1) {
+            Ck[0][0] = 0;
+            Ck[0][1] = 1;
+            Ck[1][0] = -1;
+            Ck[1][1] = 0;
+        } else if (m == 2) {
+            Ck[0][0] = -1;
+            Ck[0][1] = 0;
+            Ck[1][0] = 0;
+            Ck[1][1] = -1;
+        } else {
+            Ck[0][0] = 0;
+            Ck[0][1] = -1;
+            Ck[1][0] = 1;
+            Ck[1][1] = 0;
+        }
+        int I2[2][2] = {{1, 0}, {0, 1}};
+        int ImC[2][2] = {{I2[0][0] - Ck[0][0], I2[0][1] - Ck[0][1]}, {I2[1][0] - Ck[1][0], I2[1][1] - Ck[1][1]}};
+        Mat M;
+        auto put2 = [&](int r, int c, int v) { M.a[r][c] = v; };
+        if (activeR) {
+            // [ Ck,  I-Ck;  0,  I ]
+            put2(0, 0, Ck[0][0]);
+            put2(0, 1, Ck[0][1]);
+            put2(1, 0, Ck[1][0]);
+            put2(1, 1, Ck[1][1]);
+            put2(0, 2, ImC[0][0]);
+            put2(0, 3, ImC[0][1]);
+            put2(1, 2, ImC[1][0]);
+            put2(1, 3, ImC[1][1]);
+            put2(2, 0, 0);
+            put2(2, 1, 0);
+            put2(3, 0, 0);
+            put2(3, 1, 0);
+            put2(2, 2, 1);
+            put2(2, 3, 0);
+            put2(3, 2, 0);
+            put2(3, 3, 1);
+        } else {
+            // [ I,  0;  I-Ck,  Ck ]
+            put2(0, 0, 1);
+            put2(0, 1, 0);
+            put2(1, 0, 0);
+            put2(1, 1, 1);
+            put2(0, 2, 0);
+            put2(0, 3, 0);
+            put2(1, 2, 0);
+            put2(1, 3, 0);
+            put2(2, 0, ImC[0][0]);
+            put2(2, 1, ImC[0][1]);
+            put2(3, 0, ImC[1][0]);
+            put2(3, 1, ImC[1][1]);
+            put2(2, 2, Ck[0][0]);
+            put2(2, 3, Ck[0][1]);
+            put2(3, 2, Ck[1][0]);
+            put2(3, 3, Ck[1][1]);
+        }
+        return M;
+    };
+
+    struct Stats {
+        int cnt; // number of runs
+        Mat eff0, eff1; // product when starting parity at leftmost run is 0 or 1
+    };
+
+    auto combineStats = [&](const Stats &A, const Stats &B) {
+        // total = B then A (time concatenation)
+        Stats C;
+        C.cnt = A.cnt + B.cnt;
+        bool even = (A.cnt % 2 == 0);
+        const Mat &B0 = even ? B.eff0 : B.eff1;
+        const Mat &B1 = even ? B.eff1 : B.eff0;
+        C.eff0 = mul(B0, A.eff0);
+        C.eff1 = mul(B1, A.eff1);
+        return C;
+    };
+
+    struct Node {
+        int len; // length of this run in seconds
+        int sum; // total seconds in subtree
+        int cnt; // runs in subtree
+        Mat leaf0, leaf1; // for this run only
+        Mat eff0, eff1; // for subtree
+        bool flip; // lazy: toggle starting parity for entire subtree
+        unsigned pri;
+        Node *l, *r;
+        explicit Node(int _len, unsigned _pri) :
+            len(_len), sum(_len), cnt(1), flip(false), pri(_pri), l(nullptr), r(nullptr) {}
+    };
+
+    std::mt19937 rng((unsigned) chrono::steady_clock::now().time_since_epoch().count());
+
+    auto build_leaf = [&](int len) {
+        Node *u = new Node(len, rng());
+        u->leaf0 = mat_for_run(len, true);
+        u->leaf1 = mat_for_run(len, false);
+        u->eff0 = u->leaf0;
+        u->eff1 = u->leaf1;
+        return u;
+    };
+
+    auto applyFlip = [&](Node *u) {
+        if (!u)
+            return;
+        swap(u->eff0, u->eff1);
+        u->flip = !u->flip;
+    };
+
+    function<void(Node *)> push = [&](Node *u) {
+        if (!u || !u->flip)
+            return;
+        applyFlip(u->l);
+        applyFlip(u->r);
+        u->flip = false;
+    };
+
+    function<void(Node *)> pull = [&](Node *u) {
+        u->sum = u->len;
+        u->cnt = 1;
+        if (u->l) {
+            u->sum += u->l->sum;
+            u->cnt += u->l->cnt;
+        }
+        if (u->r) {
+            u->sum += u->r->sum;
+            u->cnt += u->r->cnt;
+        }
+
+        Stats leftS;
+        leftS.cnt = 0;
+        leftS.eff0 = I4();
+        leftS.eff1 = I4();
+        Stats midS;
+        midS.cnt = 1;
+        midS.eff0 = u->leaf0;
+        midS.eff1 = u->leaf1;
+        Stats rightS;
+        rightS.cnt = 0;
+        rightS.eff0 = I4();
+        rightS.eff1 = I4();
+        if (u->l) {
+            leftS.cnt = u->l->cnt;
+            leftS.eff0 = u->l->eff0;
+            leftS.eff1 = u->l->eff1;
+        }
+        if (u->r) {
+            rightS.cnt = u->r->cnt;
+            rightS.eff0 = u->r->eff0;
+            rightS.eff1 = u->r->eff1;
+        }
+
+        Stats lm = leftS.cnt ? combineStats(leftS, midS) : midS;
+        Stats lmr = rightS.cnt ? combineStats(lm, rightS) : lm;
+        u->eff0 = lmr.eff0;
+        u->eff1 = lmr.eff1;
+    };
+
+    function<pair<Node *, Node *>(Node *, int)> splitBySeconds = [&](Node *u,
+                                                                     int needLeftSeconds) -> pair<Node *, Node *> {
+        if (!u)
+            return {nullptr, nullptr};
+        push(u);
+        int leftSeconds = u->l ? u->l->sum : 0;
+        if (needLeftSeconds < leftSeconds) {
+            auto pr = splitBySeconds(u->l, needLeftSeconds);
+            u->l = pr.second;
+            pull(u);
+            return {pr.first, u};
+        }
+        if (needLeftSeconds > leftSeconds + u->len) {
+            auto pr = splitBySeconds(u->r, needLeftSeconds - leftSeconds - u->len);
+            u->r = pr.first;
+            pull(u);
+            return {u, pr.second};
+        }
+        // split inside this node: left part length = max(0, needLeftSeconds - leftSeconds)
+        int leftLen = max<int>(0, needLeftSeconds - leftSeconds);
+        int rightLen = u->len - leftLen;
+
+        Node *L = u->l;
+        Node *R = u->r;
+
+        Node *leftNode = nullptr, *rightNode = nullptr;
+        if (leftLen > 0) {
+            leftNode = build_leaf(leftLen);
+        }
+        if (rightLen > 0) {
+            rightNode = build_leaf(rightLen);
+        }
+
+        // We discard u and rebuild two sides: merge(L, leftNode) and merge(rightNode, R)
+        function<Node *(Node *, Node *)> merge = [&](Node *a, Node *b) -> Node * {
+            if (!a)
+                return b;
+            if (!b)
+                return a;
+            if (a->pri < b->pri) {
+                push(a);
+                a->r = merge(a->r, b);
+                pull(a);
+                return a;
+            } else {
+                push(b);
+                b->l = merge(a, b->l);
+                pull(b);
+                return b;
+            }
+        };
+
+        Node *leftTree = merge(L, leftNode);
+        Node *rightTree = merge(rightNode, R);
+        return {leftTree, rightTree};
+    };
+
+    function<Node *(Node *, Node *)> merge = [&](Node *a, Node *b) -> Node * {
+        if (!a)
+            return b;
+        if (!b)
+            return a;
+        if (a->pri < b->pri) {
+            push(a);
+            a->r = merge(a->r, b);
+            pull(a);
+            return a;
+        } else {
+            push(b);
+            b->l = merge(a, b->l);
+            pull(b);
+            return b;
+        }
+    };
+
+    // removed unused helper
+
+    Node *root = build_leaf(T);
+
+    for (int i = 0; i < N; i++) {
+        int b;
+        rd(b);
+        auto pr = splitBySeconds(root, (int) b);
+        Node *L = pr.first, *R = pr.second;
+        if (R)
+            applyFlip(R);
+        root = merge(L, R);
+        // Final product starting parity 0
+        const Mat &P = root->eff0;
+        cout << P.a[0][2] << ' ' << P.a[1][2] << '\n';
     }
-
-    vector<int> ans(n + 1);
-    vector<int> msk(n + 1);
-    auto build = [&](auto &&build, int u, int fa) -> void {
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            msk[v] = msk[u] ^ (1LL << (x - 1));
-            build(build, v, u);
-        }
-    };
-    build(build, 1, 0);
-
-    auto dfs = [&](auto &&dfs, int u, int fa) -> unordered_map<int, int> {
-        unordered_map<int, int> big;
-        for (auto [v, x]: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            auto sub = dfs(dfs, v, u);
-            ans[u] += ans[v];
-
-            if (sub.size() > big.size()) {
-                swap(sub, big);
-            }
-
-            for (auto &kv: sub) {
-                int s = kv.first;
-                int c = kv.second;
-                int add = 0;
-                auto it0 = big.find(s);
-                if (it0 != big.end()) {
-                    add += it0->second;
-                }
-                for (int i: range(20)) {
-                    int m = s ^ (1LL << i);
-                    auto it = big.find(m);
-                    if (it != big.end()) {
-                        add += it->second;
-                    }
-                }
-                ans[u] +=  c * add;
-            }
-
-            for (auto &kv: sub) {
-                big[kv.first] += kv.second;
-            }
-        }
-
-        int addU = 0;
-        auto it0 = big.find(msk[u]);
-        if (it0 != big.end()) {
-            addU += it0->second;
-        }
-        for (int i: range(20)) {
-            int m = msk[u] ^ (1LL << i);
-            auto it = big.find(m);
-            if (it != big.end()) {
-                addU += it->second;
-            }
-        }
-        ans[u] += addU;
-        big[msk[u]] += 1;
-        return big;
-    };
-
-    dfs(dfs, 1, 0);
-    prt_vec(ans, 1);
 }
 
 signed main() {
