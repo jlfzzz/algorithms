@@ -12,8 +12,8 @@ using pii = pair<ll, ll>;
 #define vp vector<pii>
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
-#define F(i, j, k) for (int (i) = (j); (i) <= (k); (i)++)
-#define D(i, j, k) for (int (i) = (j); (i) >= (k); (i)--)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
 #define fi first
@@ -103,12 +103,111 @@ constexpr int N = 1e6 + 5;
 
 #define int ll
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+
+    vvi g(2 * n + 1);
+
+    F(i, 1, m) {
+        int j, k;
+        char a, b;
+        rd(j, a, k, b);
+
+        int f1 = (a == 'Y');
+        int f2 = (b == 'Y');
+
+        g[j + f1 * n].pb(k + !f2 * n);
+        g[k + f2 * n].pb(j + !f1 * n);
+    }
+
+
+    int timestamp = 0;
+    vector<int> dfn(2 * n + 1), low(2 * n + 1), in_stack(2 * n + 1), comp(2 * n + 1);
+    vector<vector<int>> comps;
+    stack<int> stk;
+
+    auto tarjan = [&](this auto &&tarjan, int u) -> void {
+        dfn[u] = low[u] = ++timestamp;
+        stk.push(u);
+        in_stack[u] = true;
+
+        for (int v: g[u]) {
+            if (!dfn[v]) {
+                tarjan(v);
+                low[u] = min(low[u], low[v]);
+            } else if (in_stack[v]) {
+                low[u] = min(low[u], dfn[v]);
+            }
+        }
+
+        if (low[u] == dfn[u]) {
+            vector<int> scc;
+            while (true) {
+                int x = stk.top();
+                stk.pop();
+                in_stack[x] = false;
+                comp[x] = comps.size() + 1;
+                scc.push_back(x);
+                if (x == u)
+                    break;
+            }
+            comps.emplace_back(scc);
+        }
+    };
+
+    F(i, 1, 2 * n) {
+        if (!dfn[i]) {
+            tarjan(i);
+        }
+    }
+
+    F(i, 1, n) {
+        if (comp[i] == comp[i + n]) {
+            prt("IMPOSSIBLE");
+            return;
+        }
+    }
+
+    vector<bool> visited;
+    auto dfs_check = [&](this auto &&self, int u, int target) -> bool {
+        if (u == target)
+            return true;
+        visited[u] = true;
+        for (int v: g[u]) {
+            if (!visited[v]) {
+                if (self(v, target))
+                    return true;
+            }
+        }
+        return false;
+    };
+
+    auto can_reach = [&](int start, int target) -> bool {
+        visited.assign(2 * n + 1, false);
+        return dfs_check( start, target);
+    };
+
+    string s = "";
+    F(i, 1, n) {
+        bool f_implies_p = can_reach(i + n, i);
+        bool p_implies_f = can_reach(i, i + n);
+
+        if (f_implies_p) {
+            s += 'Y';
+        }
+        else if (p_implies_f) {
+            s += 'N';
+        }
+        else {
+            s += '?';
+        }
+    }
+    prt(s);
 }
 
 signed main() {

@@ -2,9 +2,11 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define db long double
-#define pb emplace_back
-#define pf emplace_front
+#define ld long double
+#define db double
+#define pb push_back
+#define pf push_front
+#define eb emplace_back
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
@@ -12,16 +14,9 @@ using pii = pair<ll, ll>;
 #define vp vector<pii>
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
-#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
-#define SZ(a) ((int) (a).size())
-#define prq priority_queue
-#define fi first
-#define se second
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
-constexpr long long iinf = 0x3f3f3f3f / 2;
 
 namespace utils {
     void dbg() { cerr << "\n"; }
@@ -95,11 +90,44 @@ namespace utils {
             rd(v[i]);
         }
     }
+
+    struct range : ranges::view_base {
+        struct Iterator {
+            using iterator_category = random_access_iterator_tag;
+            using value_type = long long;
+            using difference_type = ptrdiff_t;
+            ll val, d;
+            Iterator() = default;
+            Iterator(ll val, ll d) : val(val), d(d) {};
+            value_type operator*() const { return val; }
+            Iterator &operator++() { return val += d, *this; }
+            Iterator operator++(int) {
+                Iterator tmp = *this;
+                ++(*this);
+                return tmp;
+            }
+            Iterator &operator--() { return val -= d, *this; }
+            Iterator operator--(int) {
+                Iterator tmp = *this;
+                --(*this);
+                return tmp;
+            }
+            difference_type operator-(const Iterator &other) const { return (val - other.val) / d; }
+            bool operator==(const Iterator &other) const { return val == other.val; }
+        };
+        Iterator Begin, End;
+        explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
+        range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
+            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
+            End.val = a + max(cnt, ll(0)) * d;
+        };
+        [[nodiscard]] Iterator begin() const { return Begin; }
+        [[nodiscard]] Iterator end() const { return End; };
+        [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
+    };
 } // namespace utils
 
 using namespace utils;
-
-constexpr int N = 1e6 + 5;
 
 #define int ll
 
@@ -108,26 +136,40 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, m;
+    rd(n, m);
 
-    vp a(n + 1);
-    F(i, 1, n) { rd(a[i].fi); }
-    F(i, 1, n) { rd(a[i].se); }
-
-    int ans = -inf;
-    F(i, 1, n) {
-        int sum = a[i].first + a[i].second;
-        F(j, 1, n) {
-            if (i == j) {
-                continue;
+    vi v1, v2;
+    for (int i: range(1, n + 1)) {
+        for (int j: range(1, m + 1)) {
+            char c;
+            rd(c);
+            if (c == 'B') {
+                v1.pb(i + j);
+                v2.pb(i - j);
             }
-            sum += max(a[j].fi, a[j].se);
         }
-        ans = max(ans, sum);
     }
 
-    prt(ans);
+    ranges::sort(v1);
+    ranges::sort(v2);
+
+    pii ans;
+    int d = inf;
+
+    for (int i: range(1, n + 1)) {
+        for (int j: range(1, m + 1)) {
+            int x = i + j;
+            int y = i - j;
+            int cur = max({x - v1[0], v1.back() - x, y - v2[0], v2.back() - y});
+            if (cur < d) {
+                d = cur;
+                ans = {i, j};
+            }
+        }
+    }
+
+    prt(ans.first, ans.second);
 }
 
 signed main() {

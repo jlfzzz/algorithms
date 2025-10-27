@@ -1,5 +1,133 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+#define i128 __int128_t
+#define ld long double
+#define db double
+#define pb push_back
+#define pf push_front
+#define eb emplace_back
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
+
+namespace utils {
+    void dbg() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+
+    struct range : ranges::view_base {
+        struct Iterator {
+            using iterator_category = random_access_iterator_tag;
+            using value_type = long long;
+            using difference_type = ptrdiff_t;
+            ll val, d;
+            Iterator() = default;
+            Iterator(ll val, ll d) : val(val), d(d) {};
+            value_type operator*() const { return val; }
+            Iterator &operator++() { return val += d, *this; }
+            Iterator operator++(int) {
+                Iterator tmp = *this;
+                ++(*this);
+                return tmp;
+            }
+            Iterator &operator--() { return val -= d, *this; }
+            Iterator operator--(int) {
+                Iterator tmp = *this;
+                --(*this);
+                return tmp;
+            }
+            difference_type operator-(const Iterator &other) const { return (val - other.val) / d; }
+            bool operator==(const Iterator &other) const { return val == other.val; }
+        };
+        Iterator Begin, End;
+        explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
+        range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
+            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
+            End.val = a + max(cnt, ll(0)) * d;
+        };
+        [[nodiscard]] Iterator begin() const { return Begin; }
+        [[nodiscard]] Iterator end() const { return End; };
+        [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
+    };
+} // namespace utils
+
+using namespace utils;
 
 namespace atcoder {
 
@@ -536,25 +664,148 @@ namespace atcoder {
 
 } // namespace atcoder
 
-constexpr int N = int(1e5 + 5);
+using Z = atcoder::static_modint<MOD>;
 
-int INIT = [] { return 0; }();
+Z q_pow(Z base, long long exp) {
+    Z result(1);
+    while (exp > 0) {
+        if (exp & 1)
+            result *= base;
+        base *= base;
+        exp >>= 1;
+    }
+    return result;
+}
 
-using pll = pair<long long, long long>;
-#define i128 __int128_t
-#define ull unsigned long long
-constexpr int inf = 0x3f3f3f3f / 2;
-using pii = pair<int, int>;
-constexpr int MOD = int(1e9 + 7);
-using ll = long long;
+constexpr int N = 500'005;
 
+struct Comb {
+    int n;
+    std::vector<Z> _fac;
+    std::vector<Z> _invfac;
+    std::vector<Z> _inv;
 
+    Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
+    explicit Comb(int n) : Comb() { init(n); }
 
+    void init(int m) {
+        if (m <= n) {
+            return;
+        }
+        _fac.resize(m + 1);
+        _invfac.resize(m + 1);
+        _inv.resize(m + 1);
 
-int main() {
+        for (int i = n + 1; i <= m; i++) {
+            _fac[i] = _fac[i - 1] * i;
+        }
+        _invfac[m] = _fac[m].inv();
+        for (int i = m; i > n; i--) {
+            _invfac[i - 1] = _invfac[i] * i;
+            _inv[i] = _invfac[i] * _fac[i - 1];
+        }
+        n = m;
+    }
+
+    Z fac(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _fac[m];
+    }
+    Z invfac(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _invfac[m];
+    }
+    Z inv(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _inv[m];
+    }
+    Z C(int n, int m) {
+        if (n < m || m < 0) {
+            return 0;
+        }
+        return fac(n) * invfac(m) * invfac(n - m);
+    }
+    Z A(int n, int m) {
+        if (n < m || m < 0) {
+            return 0;
+        }
+        return fac(n) * invfac(n - m);
+    }
+} comb(N);
+
+int Multitest = 1;
+
+#define int ll
+
+void init() {}
+
+void solve() {
+    int a1, d1, len1;
+    rd(a1, d1, len1);
+    int a2, d2, len2;
+    rd(a2, d2, len2);
+
+    int end1 = a1 + d1 * (len1 - 1);
+    int end2 = a2 + d2 * (len2 - 1);
+
+    if (d2 % d1 != 0) {
+        prt(0);
+        return;
+    }
+
+    if ((a2 - a1) % d1 != 0) {
+        prt(0);
+        return;
+    }
+
+    if (a2 < a1 || end2 > end1) {
+        prt(0);
+        return;
+    }
+
+    int t1 = a2 - d2;
+    int t2 = end2 + d2;
+    if (t1 < a1 || t2 > end1) {
+        prt(-1);
+        return;
+    }
+
+    vi divs;
+    for (int i = 1; i * i <= d2; i++) {
+        if (d2 % i == 0) {
+            divs.pb(i);
+            if (d2 / i != i) {
+                divs.pb(d2 / i);
+            }
+        }
+    }
+
+    Z ans = 0;
+    for (int d: divs) {
+        if (d1 / gcd(d1, d) * d == d2) {
+            Z left = d2 / d;
+            ans += left * left;
+        }
+    }
+
+    prt(ans.val());
+}
+
+signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    // Solution sol1;
-    // ll n = 11;
-    // vector<int> nums1{}, nums{};
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--)
+        solve();
+    return 0;
 }
