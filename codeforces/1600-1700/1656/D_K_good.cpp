@@ -10,20 +10,18 @@ using pii = pair<ll, ll>;
 #define ull unsigned long long
 #define vi vector<int>
 #define vp vector<pii>
-#define vl vector<long long>
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
-#define vvl vector<vector<long long>>
-#define F(i, j, k) for (int (i) = (j); (i) <= (k); (i)++)
-#define D(i, j, k) for (int (i) = (j); (i) >= (k); (i)--)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
 #define fi first
 #define se second
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
-constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
-constexpr int inf = 0x3f3f3f3f;
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
+constexpr long long iinf = 0x3f3f3f3f / 2;
 
 namespace utils {
     void dbg() { cerr << "\n"; }
@@ -108,10 +106,24 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    ll n;
+    rd(n);
+    ll m = 2;
+    while (n % 2 == 0) {
+        n /= 2;
+        m *= 2;
+    }
+
+    if (n > m) {
+        prt(m);
+    } else if (n > 1) {
+        prt(n);
+    } else {
+        prt(-1);
+    }
 }
 
-int main() {
+signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     init();

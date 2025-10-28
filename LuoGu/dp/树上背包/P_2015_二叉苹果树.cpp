@@ -7,15 +7,14 @@ using ll = long long;
 #define pf emplace_front
 #define all(x) (x).begin(), (x).end()
 using pii = pair<ll, ll>;
-#define ull unsigned long long
 #define vi vector<int>
 #define vp vector<pii>
 #define vl vector<long long>
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
 #define vvl vector<vector<long long>>
-#define F(i, j, k) for (int (i) = (j); (i) <= (k); (i)++)
-#define D(i, j, k) for (int (i) = (j); (i) >= (k); (i)--)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
 #define fi first
@@ -103,12 +102,41 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, q;
+    rd(n, q);
+
+    vvp g(n + 1);
+    F(i, 1, n - 1) {
+        ll u, v, w;
+        rd(u, v, w);
+        g[u].pb(v, w);
+        g[v].pb(u, w);
+    }
+
+    vvl dp(n + 1, vl(q + 1, -inf));
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        dp[u][0] = 0;
+        for (auto [v, w]: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+            dfs(v, u);
+            D(i, q, 0) {
+                D(j, q, 0) {
+                    if (i - j - 1 >= 0 && dp[v][j] != -inf && dp[u][i - j - 1] != -inf) {
+                        dp[u][i] = max(dp[u][i], dp[u][i - j - 1] + dp[v][j] + w);
+                    }
+                }
+            }
+        }
+    };
+    dfs(1, 0);
+    prt(dp[1][q]);
 }
 
 int main() {

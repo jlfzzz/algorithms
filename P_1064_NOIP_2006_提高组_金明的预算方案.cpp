@@ -14,8 +14,8 @@ using pii = pair<ll, ll>;
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
 #define vvl vector<vector<long long>>
-#define F(i, j, k) for (int (i) = (j); (i) <= (k); (i)++)
-#define D(i, j, k) for (int (i) = (j); (i) >= (k); (i)--)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
 #define fi first
@@ -103,12 +103,51 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+
+    vvp g(m + 1);
+    vi mains(m + 1);
+    F(i, 1, m) {
+        int cost, val, fa;
+        rd(cost, val, fa);
+        if (fa == 0) {
+            mains[i] = 1;
+            g[i].pb(cost, val);
+            continue;
+        }
+        g[fa].pb(cost, val);
+    }
+
+    vl dp(n + 1, -inf);
+    dp[0] = 0;
+    F(i, 1, m) {
+        if (!mains[i]) {
+            continue;
+        }
+
+        ll cost = 0;
+        ll val = 0;
+        for (auto [c, v]: g[i]) {
+            cost += c;
+            val += c * v;
+        }
+
+        //dbg("i", i, "cost", cost, "val", val);
+        D(j, n, cost) {
+            if (dp[j - cost] == -inf) {
+                continue;
+            }
+            dp[j] = max(dp[j], dp[j - cost] + val);
+        }
+    }
+
+    prt(ranges::max(dp));
 }
 
 int main() {

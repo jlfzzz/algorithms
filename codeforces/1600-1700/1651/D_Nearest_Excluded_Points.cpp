@@ -10,20 +10,18 @@ using pii = pair<ll, ll>;
 #define ull unsigned long long
 #define vi vector<int>
 #define vp vector<pii>
-#define vl vector<long long>
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
-#define vvl vector<vector<long long>>
-#define F(i, j, k) for (int (i) = (j); (i) <= (k); (i)++)
-#define D(i, j, k) for (int (i) = (j); (i) >= (k); (i)--)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
 #define fi first
 #define se second
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
-constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
-constexpr int inf = 0x3f3f3f3f;
+constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
+constexpr long long iinf = 0x3f3f3f3f / 2;
 
 namespace utils {
     void dbg() { cerr << "\n"; }
@@ -103,15 +101,65 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
+const int dx[4] = {1, -1, 0, 0};
+const int dy[4] = {0, 0, 1, -1};
+
 void solve() {
-    
+    int n;
+    rd(n);
+    vp points(n + 1);
+    F(i, 1, n) { rd(points[i].fi, points[i].se); }
+
+    map<pii, int> id;
+    F(i, 1, n) {
+        auto [a, b] = points[i];
+        id[{a, b}] = i;
+    }
+
+    vp ans(n + 1, {iinf, iinf});
+    queue<int> q;
+
+    F(i, 1, n) {
+        auto [x, y] = points[i];
+        F(d, 0, 3) {
+            int nx = x + dx[d];
+            int ny = y + dy[d];
+            if (id.find({nx, ny}) == id.end()) {
+                ans[i] = {nx, ny};
+                q.push(i);
+                break;
+            }
+        }
+    }
+
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        auto [x, y] = points[u];
+        F(d, 0, 3) {
+            int nx = x + dx[d];
+            int ny = y + dy[d];
+            auto it = id.find({nx, ny});
+            if (it == id.end()) {
+                continue;
+            }
+
+            int v = it->second;
+            if (ans[v].fi == iinf) {
+                ans[v] = ans[u];
+                q.push(v);
+            }
+        }
+    }
+
+    F(i, 1, n) { prt(ans[i].fi, ans[i].se); }
 }
 
-int main() {
+signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     init();

@@ -14,8 +14,8 @@ using pii = pair<ll, ll>;
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
 #define vvl vector<vector<long long>>
-#define F(i, j, k) for (int (i) = (j); (i) <= (k); (i)++)
-#define D(i, j, k) for (int (i) = (j); (i) >= (k); (i)--)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
 #define fi first
@@ -108,7 +108,58 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, k;
+    rd(n, k);
+
+    vl a(n + 1);
+    rv(a, 1);
+    sort(a.begin() + 1, a.end());
+
+    vl pref(n + 1);
+    F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
+
+    ll ans = accumulate(all(a), 0ll);
+    F(i, 1, n) {
+        ll med = a[i];
+        ll lo = 0;
+        ll hi = n - i;
+
+        auto calc = [&](ll y) {
+            ll left = min(k * y, (ll) i - 1);
+
+            ll res = pref[n];
+
+            ll rightS = pref[i + y] - pref[i];
+            res -= rightS;
+            res += med * y;
+
+            ll leftS = pref[left];
+            res -= leftS;
+            res += med * left;
+
+            return res;
+        };
+
+        while (lo + 3 < hi) {
+            ll m1 = lo + (hi - lo) / 3;
+            ll m2 = hi - (hi - lo) / 3;
+
+            ll val1 = calc(m1);
+            ll val2 = calc(m2);
+            if (val1 == val2) {
+                lo = m1 + 1;
+                hi = m2 - 1;
+            } else if (val1 < val2) {
+                lo = m1 + 1;
+            } else {
+                hi = m2 - 1;
+            }
+        }
+
+        F(j, lo, hi) { ans = max(ans, calc(j)); }
+    }
+
+    prt(ans);
 }
 
 int main() {

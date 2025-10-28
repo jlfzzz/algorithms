@@ -10,12 +10,10 @@ using pii = pair<ll, ll>;
 #define ull unsigned long long
 #define vi vector<int>
 #define vp vector<pii>
-#define vl vector<long long>
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
-#define vvl vector<vector<long long>>
-#define F(i, j, k) for (int (i) = (j); (i) <= (k); (i)++)
-#define D(i, j, k) for (int (i) = (j); (i) >= (k); (i)--)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
 #define fi first
@@ -103,12 +101,92 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+    vp segs(m + 1);
+    F(i, 1, m) {
+        rd(segs[i].fi, segs[i].se);
+        if (segs[i].se < segs[i].fi) {
+            swap(segs[i].se, segs[i].fi);
+        }
+    }
+
+    vvi g(2 * m + 1);
+    F(i, 1, m) {
+        auto [x1, y1] = segs[i];
+        F(j, 1, m) {
+            if (i == j) {
+                continue;
+            }
+
+            auto [x2, y2] = segs[j];
+            if ((x1 < x2 && x2 < y1 && y1 < y2) || (x2 < x1 && x1 < y2 && y2 < y1)) {
+                g[i].pb(j + m);
+                g[i + m].pb(j);
+            }
+        }
+    }
+
+    int timestamp = 0;
+    vector<int> dfn(2 * m + 1), low(2 * m + 1), in_stack(2 * m + 1), comp(2 * m + 1);
+    vector<vector<int>> comps;
+    stack<int> stk;
+
+    auto tarjan = [&](this auto &&tarjan, int u) -> void {
+        dfn[u] = low[u] = ++timestamp;
+        stk.push(u);
+        in_stack[u] = true;
+
+        for (int v: g[u]) {
+            if (!dfn[v]) {
+                tarjan(v);
+                low[u] = min(low[u], low[v]);
+            } else if (in_stack[v]) {
+                low[u] = min(low[u], dfn[v]);
+            }
+        }
+
+        if (low[u] == dfn[u]) {
+            vector<int> scc;
+            while (true) {
+                int x = stk.top();
+                stk.pop();
+                in_stack[x] = false;
+                comp[x] = comps.size() + 1;
+                scc.push_back(x);
+                if (x == u)
+                    break;
+            }
+            comps.emplace_back(scc);
+        }
+    };
+
+    F(i, 1, 2 * m) {
+        if (!dfn[i]) {
+            tarjan(i);
+        }
+    }
+
+    F(i, 1, m) {
+        if (comp[i] == comp[i + m]) {
+            prt("Impossible");
+            return;
+        }
+    }
+
+    F(i, 1, m) {
+        if (comp[i] > comp[i + m]) {
+            cout << "i";
+        } else {
+            cout << "o";
+        }
+    }
+    cout << endl;
 }
 
 int main() {

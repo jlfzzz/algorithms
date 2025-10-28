@@ -10,12 +10,10 @@ using pii = pair<ll, ll>;
 #define ull unsigned long long
 #define vi vector<int>
 #define vp vector<pii>
-#define vl vector<long long>
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
-#define vvl vector<vector<long long>>
-#define F(i, j, k) for (int (i) = (j); (i) <= (k); (i)++)
-#define D(i, j, k) for (int (i) = (j); (i) >= (k); (i)--)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
 #define fi first
@@ -108,7 +106,46 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    ll n;
+    rd(n);
+    string s;
+    rd(s);
+
+    bool hasR = false, hasD = false;
+    for (char ch: s) {
+        if (ch == 'R')
+            hasR = true;
+        else
+            hasD = true;
+    }
+    if (!hasR || !hasD) {
+        prt(n);
+        return;
+    }
+
+    auto calc = [&](string &s) {
+        int m = SZ(s);
+        int ld = 0;
+        while (ld < m && s[ld] != 'R')
+            ld++;
+        ll res = (ll) ld * (n - 1);
+        ll y = 0;
+        for (int i = m - 1; i >= ld; i--) {
+            if (s[i] == 'D')
+                res += y;
+            else
+                y += 1;
+        }
+        return res;
+    };
+
+    ll ans = n * n;
+    ans -= calc(s);
+    string t = s;
+    for (char &ch: t)
+        ch = (ch == 'R' ? 'D' : 'R');
+    ans -= calc(t);
+    prt(ans);
 }
 
 int main() {

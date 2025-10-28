@@ -548,7 +548,69 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
+using ll = long long;
+using pii = pair<int, int>;
+class Solution {
+public:
+    long long countStableSubarrays(vector<int> &capacity) {
+        int n = capacity.size();
+        vector<ll> pref(n + 1);
+        for (int i = 0; i < n; i++) {
+            pref[i + 1] = pref[i] + capacity[i];
+        }
 
+        unordered_map<int, pii> pos;
+        ll ans = 0;
+
+        {
+            int i = 0;
+            while (i < n) {
+                if (capacity[i] != 0) {
+                    i++;
+                    continue;
+                }
+
+                int j = i + 1;
+                while (j < n && capacity[j] == 0) {
+                    j++;
+                }
+
+                ll cnt = j - i;
+                if (cnt <= 2) {
+                    i = j;
+                    continue;
+                }
+
+                ans += (cnt - 3) * (cnt - 2) / 2;
+
+                i = j;
+            }
+        }
+
+        for (int i = 0; i < n; i++) {
+            int x = capacity[i];
+            if (x == 0) {
+                continue;
+            }
+            if (pos.contains(x)) {
+                auto [l1, l2] = pos[x];
+                ll sum1 = pref[i] - pref[l2 + 1];
+                if ((i - l2 - 1) >= 1 && sum1 == x) {
+                    ans++;
+                }
+                if (l1 != INT_MAX && l1 + 1 == l2 && l2 + 1 == i) {
+                    ans++;
+                }
+                pos[x].first = pos[x].second;
+                pos[x].second = i;
+            } else {
+                pos[x] = {INT_MAX, i};
+            }
+        }
+
+        return ans;
+    }
+};
 
 
 int main() {
