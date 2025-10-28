@@ -2,68 +2,154 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define int ll
-using pii = pair<int, int>;
-using pll = pair<ll, ll>;
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+#define vi vector<int>
+#define vp vector<pii>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
 constexpr int MOD = int(1e9 + 7);
-const ll MOD2 = 4611686018427387847;
+constexpr int MOD2 = int(998244353);
 constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
+constexpr long long iinf = 0x3f3f3f3f / 2;
+
+namespace utils {
+    void dbg() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+using namespace utils;
+
+constexpr int N = 1e6 + 5;
+
+#define int ll
+
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
     int n;
-    cin >> n;
+    rd(n);
 
-    vector<int> r(n + 1);
-    for (int i = 1; i <= n; i++) {
-        cin >> r[i];
-    }
+    vi r(n + 1);
+    rv(r, 1);
 
     int ans = 0;
-    vector<int> in(n + 1);
-    for (int i = 1; i <= n; i++) {
-        in[r[i]]++;
-    }
+    vi dp(n + 1, 1);
+    vi deg(n + 1);
+    F(i, 1, n) { deg[r[i]]++; }
 
     deque<int> dq;
-    for (int i = 1; i <= n; i++) {
-        if (in[i] == 0)
-            dq.push_back(i);
-    }
-
-    vector<bool> vis(n + 1);
-    vector<int> dp(n + 1);
-
-    while (!dq.empty()) {
-        int x = dq.front();
-        dq.pop_front();
-
-        int target = r[x];
-        // if (!vis[target]) {
-        //     dp[target] = dp[x] + 1;
-        //     vis[target] = true;
-        // }
-        ans = max(ans, ++dp[x]);
-        dp[target] += dp[x];
-
-        
-        in[target]--;
-        if (in[target] == 0) {
-            dq.push_back(target);
+    F(i, 1, n) {
+        if (deg[i] == 0) {
+            dq.pb(i);
         }
     }
-    cout << ans + 2 << '\n';
+
+    while (!dq.empty()) {
+        int u = dq.front();
+        dq.pop_front();
+
+        dp[r[u]] += dp[u];
+        ans = max(ans, dp[u]);
+        deg[r[u]]--;
+        if (deg[r[u]] == 0) {
+            dq.pb(r[u]);
+        }
+    }
+
+    prt(ans + 2);
 }
+
 
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     init();
     int T = 1;
-    cin >> T;
+    if (Multitest) {
+        rd(T);
+    }
     while (T--)
         solve();
     return 0;
