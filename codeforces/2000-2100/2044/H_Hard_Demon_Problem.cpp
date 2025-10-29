@@ -108,7 +108,39 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n, q;
+    rd(n, q);
+
+    vvl mat(n + 1, vl(n + 1));
+    F(i, 1, n) {
+        F(j, 1, n) { rd(mat[i][j]); }
+    }
+
+    vvl pre0(n + 1, vl(n + 1)), pre1(n + 1, vl(n + 1));
+    vvl prei(n + 1, vl(n + 1)), prej(n + 1, vl(n + 1));
+
+    F(i, 1, n) {
+        F(j, 1, n) {
+            pre0[i][j] = mat[i][j] + pre0[i - 1][j] + pre0[i][j - 1] - pre0[i - 1][j - 1];
+            pre1[i][j] = mat[i][j] * ((i - 1) * n + j) + pre1[i - 1][j] + pre1[i][j - 1] - pre1[i - 1][j - 1];
+            prei[i][j] = mat[i][j] * i + prei[i - 1][j] + prei[i][j - 1] - prei[i - 1][j - 1];
+            prej[i][j] = mat[i][j] * j + prej[i - 1][j] + prej[i][j - 1] - prej[i - 1][j - 1];
+        }
+    }
+
+    vl ans;
+    while (q--) {
+        ll x1, y1, x2, y2;
+        rd(x1, y1, x2, y2);
+
+        ll sum0 = pre0[x2][y2] - pre0[x2][y1 - 1] - pre0[x1 - 1][y2] + pre0[x1 - 1][y1 - 1];
+        ll sumI = prei[x2][y2] - prei[x2][y1 - 1] - prei[x1 - 1][y2] + prei[x1 - 1][y1 - 1];
+        ll sumJ = prej[x2][y2] - prej[x2][y1 - 1] - prej[x1 - 1][y2] + prej[x1 - 1][y1 - 1];
+        ll w = y2 - y1 + 1;
+        ll sum1 = sumJ + w * sumI + sum0 * (1 - y1 - w * x1);
+        ans.pb(sum1);
+    }
+    prv(ans);
 }
 
 int main() {

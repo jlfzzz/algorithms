@@ -107,47 +107,71 @@ int Multitest = 0;
 
 void init() {}
 
+struct Node {
+    int ls, rs; // child indices in pool
+    ll sum; // sum of working days in this segment
+    int lazy; // -1: no tag; 0/1: assign
+};
+
+static const int MAXNODE = 3200000; // ~3.2M nodes, enough for 1e5 ops on 1e9
+static Node tree[MAXNODE];
+static int tot, root;
+
+inline void apply(int o, int seg_len, int val) {
+    tree[o].sum = 1LL * seg_len * val;
+    tree[o].lazy = val;
+}
+
+inline void pushdown(int o, int l, int r) {
+    if (tree[o].lazy == -1 || l == r)
+        return;
+    int mid = (l + r) >> 1;
+    if (!tree[o].ls)
+        tree[o].ls = ++tot;
+    if (!tree[o].rs)
+        tree[o].rs = ++tot;
+    apply(tree[o].ls, mid - l + 1, tree[o].lazy);
+    apply(tree[o].rs, r - mid, tree[o].lazy);
+    tree[o].lazy = -1;
+}
+
+void insert(int &o, int l, int r, int ql, int qr, int val) {
+    if (!o) {
+        o = ++tot;
+        tree[o].ls = tree[o].rs = 0;
+        tree[o].sum = 0;
+        tree[o].lazy = -1;
+    }
+    if (ql <= l && r <= qr) {
+        apply(o, r - l + 1, val);
+        return;
+    }
+    pushdown(o, l, r);
+    int mid = (l + r) >> 1;
+    if (ql <= mid)
+        insert(tree[o].ls, l, mid, ql, qr, val);
+    if (qr > mid)
+        insert(tree[o].rs, mid + 1, r, ql, qr, val);
+    ll left_sum = tree[o].ls ? tree[tree[o].ls].sum : 0;
+    ll right_sum = tree[o].rs ? tree[tree[o].rs].sum : 0;
+    tree[o].sum = left_sum + right_sum;
+}
+
+
 void solve() {
-    int n, m;
-    rd(n, m);
-
-    vvp g(m + 1);
-    vi mains(m + 1);
-    F(i, 1, m) {
-        int cost, val, fa;
-        rd(cost, val, fa);
-        if (fa == 0) {
-            mains[i] = 1;
-            g[i].pb(cost, val);
-            continue;
-        }
-        g[fa].pb(cost, val);
+    tot = 0;
+    int n, q;
+    rd(n, q);
+    root = ++tot;
+    tree[root].ls = tree[root].rs = 0;
+    tree[root].sum = n;
+    tree[root].lazy = 1; // whole range initially working
+    F(i, 1, q) {
+        int l, r, k;
+        rd(l, r, k);
+        insert(root, 1, n, l, r, k == 1 ? 0 : 1);
+        prt(tree[root].sum);
     }
-
-    vl dp(n + 1, -inf);
-    dp[0] = 0;
-    F(i, 1, m) {
-        if (!mains[i]) {
-            continue;
-        }
-
-        ll cost = 0;
-        ll val = 0;
-        for (auto [c, v]: g[i]) {
-            cost += c;
-            val += c * v;
-        }
-
-        //dbg("i", i, "cost", cost, "val", val);
-        D(j, n, cost) {
-            if (dp[j - cost] == -inf) {
-                continue;
-            }
-            dp[j] = max(dp[j], dp[j - cost] + val);
-        }
-    }
-
-    prt(ranges::max(dp));
 }
 
 int main() {
@@ -158,7 +182,7 @@ int main() {
     if (Multitest) {
         rd(T);
     }
-    while (T--)
+    while (T--) {
         solve();
-    return 0;
+    }
 }

@@ -103,12 +103,48 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int q;
+    rd(q);
+
+    map<int, set<int>> pos;
+    int cnt = 0;
+    while (q--) {
+        int op;
+        rd(op);
+
+        if (op == 1) {
+            int x;
+            rd(x);
+            cnt++;
+            pos[x].insert(cnt);
+        } else {
+            int x, y;
+            rd(x, y);
+            if (x == y) {
+                continue;
+            }
+
+            if (pos[x].size() > pos[y].size()) {
+                swap(pos[x], pos[y]);
+            }
+            pos[y].insert(all(pos[x]));
+            pos.erase(x);
+        }
+    }
+
+    vi ans(cnt + 1);
+    for (auto &[k, st]: pos) {
+        for (int i: st) {
+            ans[i] = k;
+        }
+    }
+
+    prv(ans, 1);
 }
 
 int main() {
@@ -119,7 +155,6 @@ int main() {
     if (Multitest) {
         rd(T);
     }
-    while (T--) {
+    while (T--)
         solve();
-    }
 }

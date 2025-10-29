@@ -1,102 +1,102 @@
-***Begin Patch ***Update File : D_MEX_Sequences.cpp @ @ void solve() {
-    -int n;
-    -rd(n);
-    -vi a(n);
-    -rv(a);
-    - -int mx = ranges::max(a);
-    -vector<pair<Z, Z>> dp(mx + 1);
-    - -for (int x: a) {
-        -if (x == 0) {
-            -dp[0].second = dp[0].second * 2 + 1;
-            -
-        }
-        else if (x == 1) {
-            -dp[1].first = dp[1].first * 2 + 1;
-            -dp[1].second += dp[0].second;
-            -
-        }
-        else {
-            -dp[x].first = dp[x].first * 2;
-            -dp[x].second = dp[x].second * 2;
-            -dp[x].first += dp[x - 2].second;
-            -dp[x].second += dp[x - 1].second;
-            -
-        }
-        -dp[x + 1].second += dp[x].second;
-        -
-    }
-    - -Z ans = 0;
-    -for (auto [a, b]: dp) {
-        -ans += a + b;
-        -
-    }
-    - -prt(ans.val());
-    +int n;
-    +rd(n);
-    +vi a(n);
-    +rv(a);
-    + + // dp0[m]: 子序列的 mex 为 m，且未出现过 m+1
-      + // dp1[m]: 子序列的 mex 为 m，且已经出现过 m+1
-      +vector<Z> dp0(n + 5),
-        dp1(n + 5);
-    +dp0[0] = 1; // 空子序列（最终答案要减去它）
-    + +for (int x: a) {
-        +if (x == 0) {
-            + // 对应 m = 1: x = m-1，两个状态都可选或不选（翻倍）
-                +Z old0 = dp0[1],
-                   old1 = dp1[1];
-            +dp0[1] = old0 * 2 + dp0[0]; // 还可把 0 作为 mex=0 的“填补 m”转移到 mex=1
-            +dp1[1] = old1 * 2;
-            +
-        }
-        else {
-            + // x == m+1，m = x-1：把“未见过 m+1”的状态并入“已见过”并且已见过状态翻倍
-                +{
-                +Z old0 = dp0[x - 1], old1 = dp1[x - 1];
-                +dp1[x - 1] = old1 * 2 + old0;
-                +
-            }
-            + // x == m-1，m = x+1：两个状态都翻倍
-                +{
-                +Z old0 = dp0[x + 1], old1 = dp1[x + 1];
-                +dp0[x + 1] = old0 * 2;
-                +dp1[x + 1] = old1 * 2;
-                +
-            }
-            + // x == m，m = x：只有“未见过 m+1”的状态可以把 m 补上，使 mex 增为 m+1，且新 mex 的“+1”必未出现
-                +dp0[x + 1] += dp0[x];
-            +
-        }
-        +
-    }
-    + +Z ans = 0;
-    +for (int i = 0; i < (int) dp0.size(); i++) ans += dp0[i] + dp1[i];
-    +ans -= 1; // 去掉空子序列
-    + +prt(ans.val());
-}
-***End Patchvoid rd(T &x, Args &...args) {
-    cin >> x;
-    rd(args...);
-}
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
 
-template<typename A, typename B>
-void rd(pair<A, B> &p) {
-    cin >> p.first >> p.second;
-}
+namespace utils {
+    void dbg() { cerr << "\n"; }
 
-template<typename T>
-void rv(vector<T> &v) {
-    for (auto &x: v) {
-        rd(x);
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
     }
-}
 
-template<typename T>
-void rv(vector<T> &v, int start_index) {
-    for (int i = start_index; i < (int) v.size(); i++) {
-        rd(v[i]);
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
     }
-}
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
 } // namespace utils
 
 using namespace utils;
@@ -662,38 +662,34 @@ void solve() {
     vi a(n);
     rv(a);
 
-    // dp0[m]: 子序列的 mex 为 m，且未出现过 m+1
-    // dp1[m]: 子序列的 mex 为 m，且已经出现过 m+1
+
     vector<Z> dp0(n + 5), dp1(n + 5);
-    dp0[0] = 1; // 空子序列（最终答案要减去它）
+    dp0[0] = 1;
 
     for (int x: a) {
         if (x == 0) {
-            // 对应 m = 1: x = m-1，两个状态都可选或不选（翻倍）
             Z old0 = dp0[1], old1 = dp1[1];
-            dp0[1] = old0 * 2 + dp0[0]; // 还可把 0 作为 mex=0 的“填补 m”转移到 mex=1
+            dp0[1] = old0 * 2 + dp0[0];
             dp1[1] = old1 * 2;
         } else {
-            // x == m+1，m = x-1：把“未见过 m+1”的状态并入“已见过”并且已见过状态翻倍
             {
                 Z old0 = dp0[x - 1], old1 = dp1[x - 1];
                 dp1[x - 1] = old1 * 2 + old0;
             }
-            // x == m-1，m = x+1：两个状态都翻倍
             {
                 Z old0 = dp0[x + 1], old1 = dp1[x + 1];
                 dp0[x + 1] = old0 * 2;
                 dp1[x + 1] = old1 * 2;
             }
-            // x == m，m = x：只有“未见过 m+1”的状态可以把 m 补上，使 mex 增为 m+1，且新 mex 的“+1”必未出现
             dp0[x + 1] += dp0[x];
         }
     }
 
     Z ans = 0;
-    for (int i = 0; i < (int) dp0.size(); i++)
+    F(i, 0, n) {
         ans += dp0[i] + dp1[i];
-    ans -= 1; // 去掉空子序列
+    }
+    ans -= 1;
 
     prt(ans.val());
 }

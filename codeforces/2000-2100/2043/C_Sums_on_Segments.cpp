@@ -2,129 +2,186 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define int ll
-using pii = pair<int, int>;
-using pll = pair<ll, ll>;
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
 constexpr int MOD = int(1e9 + 7);
-const ll MOD2 = 4611686018427387847;
-constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
+constexpr int MOD2 = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+
+namespace utils {
+    void dbg() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+using namespace utils;
+
+constexpr int N = 1e6 + 5;
+
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
     int n;
-    cin >> n;
-    vector<int> a(n);
-    For(i, n) { cin >> a[i]; }
-
-    unordered_set<int> ans;
-    ans.insert(0); // 空子数组的和为 0
+    rd(n);
+    vi a(n + 1);
+    rv(a, 1);
 
     int pos = -1;
-    For(i, n) {
+    set<int> ans;
+    ans.insert(0);
+    F(i, 1, n) {
         if (a[i] != -1 && a[i] != 1) {
             pos = i;
             break;
         }
     }
 
-    // 情况一：没有特殊数
+    auto calc = [&](int l, int r) {
+        if (l > r) {
+            return;
+        }
+        int mn = a[l];
+        int mx = a[l];
+        int curMn = a[l], curMx = a[l];
+        F(i, l + 1, r) {
+            curMn = min(curMn + a[i], a[i]);
+            curMx = max(curMx + a[i], a[i]);
+            mn = min(mn, curMn);
+            mx = max(mx, curMx);
+        }
+
+        F(i, mn, mx) { ans.insert(i); }
+    };
+
     if (pos == -1) {
-        if (n > 0) {
-            // 对整个数组使用 Kadane 算法找到最小和最大的子数组和
-            int min_sum = a[0], max_sum = a[0];
-            int current_min = a[0], current_max = a[0];
-            for (int i = 1; i < n; i++) {
-                current_min = min(a[i], current_min + a[i]);
-                current_max = max(a[i], current_max + a[i]);
-                min_sum = min(min_sum, current_min);
-                max_sum = max(max_sum, current_max);
-            }
-            // 因为 1/-1 数组的和是连续的，所以直接添加范围
-            for (int i = min_sum; i <= max_sum; i++) {
-                ans.insert(i);
-            }
-        }
-    }
-    // 情况二：有特殊数
-    else {
-        // 1. 计算左边部分的子数组和
-        if (pos > 0) {
-            int left_min = a[0], left_max = a[0];
-            int current_min = a[0], current_max = a[0];
-            for (int i = 1; i < pos; i++) {
-                current_min = min(a[i], current_min + a[i]);
-                current_max = max(a[i], current_max + a[i]);
-                left_min = min(left_min, current_min);
-                left_max = max(left_max, current_max);
-            }
-            for (int i = left_min; i <= left_max; i++) {
-                ans.insert(i);
-            }
+        calc(1, n);
+    } else {
+        calc(1, pos - 1);
+        calc(pos + 1, n);
+
+        int lmn = 0, lmx = 0, s = 0;
+        D(i, pos - 1, 1) {
+            s += a[i];
+            lmn = min(lmn, s);
+            lmx = max(lmx, s);
         }
 
-        // 2. 计算右边部分的子数组和
-        if (pos < n - 1) {
-            int right_min = a[pos + 1], right_max = a[pos + 1];
-            int current_min = a[pos + 1], current_max = a[pos + 1];
-            for (int i = pos + 2; i < n; i++) {
-                current_min = min(a[i], current_min + a[i]);
-                current_max = max(a[i], current_max + a[i]);
-                right_min = min(right_min, current_min);
-                right_max = max(right_max, current_max);
-            }
-            for (int i = right_min; i <= right_max; i++) {
-                ans.insert(i);
-            }
+        int rmn = 0, rmx = 0;
+        s = 0;
+        F(i, pos + 1, n) {
+            s += a[i];
+            rmn = min(rmn, s);
+            rmx = max(rmx, s);
         }
 
-        // 3. 计算跨越 pos 的子数组和
-        // 公式: (左边后缀和) + a[pos] + (右边前缀和)
-        int current_sum = 0;
-        int left_mn = 0, left_mx = 0;
-        for (int i = pos - 1; i >= 0; i--) {
-            current_sum += a[i];
-            left_mx = max(left_mx, current_sum);
-            left_mn = min(left_mn, current_sum);
-        }
-
-        current_sum = 0;
-        int right_mn = 0, right_mx = 0;
-        for (int i = pos + 1; i < n; i++) {
-            current_sum += a[i];
-            right_mx = max(right_mx, current_sum);
-            right_mn = min(right_mn, current_sum);
-        }
-
-        for (int j = left_mn + right_mn + a[pos]; j <= left_mx + right_mx + a[pos]; j++) {
-            ans.insert(j);
-        }
+        int L = a[pos] + lmn + rmn;
+        int R = a[pos] + lmx + rmx;
+        F(i, L, R) { ans.insert(i); }
     }
 
-    // 输出结果
-    vector<int> t;
-    t.reserve(ans.size());
+    prt(SZ(ans));
     for (int x: ans) {
-        t.push_back(x);
+        cout << x << ' ';
     }
-
-    cout << t.size() << '\n';
-    sort(t.begin(), t.end());
-    for (size_t i = 0; i < t.size(); ++i) {
-        cout << t[i] << (i == t.size() - 1 ? "" : " ");
-    }
-    cout << '\n';
+    prt("");
 }
 
-signed main() {
+int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     init();
     int T = 1;
-    cin >> T;
-    while (T--)
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
         solve();
-    return 0;
+    }
 }

@@ -105,10 +105,109 @@ constexpr int N = 1e6 + 5;
 
 int Multitest = 1;
 
+class UnionFind {
+public:
+    vector<int> parent;
+    vector<int> rank;
+    int count;
+
+    explicit UnionFind(const int n) : count(n) {
+        parent.resize(n);
+        rank.resize(n);
+        ranges::fill(rank, 1);
+        iota(parent.begin(), parent.end(), 0);
+    }
+
+    int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
+        }
+        return parent[x];
+    }
+
+    bool unite(int x, int y) {
+        int root_x = find(x);
+        int root_y = find(y);
+
+        if (root_x == root_y) {
+            return false;
+        }
+
+        if (rank[root_x] == rank[root_y]) {
+            parent[root_x] = root_y;
+            rank[root_y] += 1;
+        } else if (rank[root_x] > rank[root_y]) {
+            parent[root_y] = root_x;
+        } else {
+            parent[root_x] = root_y;
+        }
+        count--;
+        return true;
+    }
+};
+
+
 void init() {}
 
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+
+    struct Edge {
+        int u, v, w;
+    };
+    vector<Edge> edges(m + 1);
+    F(i, 1, m) {
+        int u, v, w;
+        rd(u, v, w);
+        edges[i] = {u, v, w};
+    }
+    // dbg("1", 1);
+    F(i, 0, 29) {
+        UnionFind uf(n);
+        int t = 1 << (i + 1);
+        F(j, 1, m) {
+            auto [u, v, w] = edges[j];
+            if (w < t) {
+                uf.unite(u - 1, v - 1);
+            }
+        }
+
+        if (uf.count != 1) {
+            continue;
+        }
+
+        vector<Edge> cur;
+        F(j, 1, m) {
+            auto [u, v, w] = edges[j];
+            if (w < t) {
+                cur.pb(edges[j]);
+            }
+        }
+
+        int ans = 1 << i;
+        D(j, i - 1, 0) {
+            t = 1 << j;
+            UnionFind uf2(n);
+            vector<Edge> nxt;
+            for (auto [u, v, w]: cur) {
+                if (w >> j & 1) {
+                    continue;
+                }
+                nxt.pb(u, v, w);
+                uf2.unite(u - 1, v - 1);
+            }
+
+            if (uf2.count == 1) {
+                cur.swap(nxt);
+            } else {
+                ans |= 1 << j;
+            }
+        }
+
+        prt(ans);
+        return;
+    }
 }
 
 int main() {
@@ -119,7 +218,7 @@ int main() {
     if (Multitest) {
         rd(T);
     }
-    while (T--) {
+    while (T--)
         solve();
-    }
+    return 0;
 }

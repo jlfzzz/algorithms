@@ -103,12 +103,41 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    vi a(n);
+    rv(a);
+
+    vi have(N);
+    for (int x: a) {
+        have[x] = 1;
+    }
+
+    int ans = 0;
+    D(i, 1e6, 1) {
+        if (have[i]) {
+            continue;
+        }
+
+        int g = 0;
+        for (int j = i + i; j < N; j += i) {
+            if (have[j]) {
+                g = gcd(g, j);
+            }
+        }
+        if (g == i) {
+            have[i] = 1;
+            ans++;
+        }
+    }
+
+    prt(ans);
 }
 
 int main() {
@@ -119,7 +148,7 @@ int main() {
     if (Multitest) {
         rd(T);
     }
-    while (T--) {
+    while (T--)
         solve();
-    }
+    return 0;
 }
