@@ -108,34 +108,73 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int h, d;
-    rd(h, d);
+    int n, k;
 
-    int lo = 0;
-    int hi = d + 1;
-
-    int ans = 0;
-    while (lo < hi) {
-        int mid = lo + (hi - lo) / 2;
-
-        auto check = [&](ll f) {
-            i128 m = d / (f + 1), len = d % (f + 1);
-            i128 cost1 = (i128) (1 + m + 1) * (m + 1) / 2;
-            i128 cost2 = (i128) (1 + m) * m / 2;
-            i128 tot = cost1 * len + (f + 1 - len) * cost2;
-            return tot < (i128) (h + f);
-        };
-
-        if (check(mid)) {
-            hi = mid;
-            ans = mid;
-        } else {
-            lo = mid + 1;
-        }
+    rd(n, k);
+    vi pos(n + 1);
+    F(i, 1, k) {
+        int t;
+        rd(t);
+        pos[t] = 1;
     }
 
-    ll res = d + ans;
-    prt(res);
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+
+    vi dis(n + 1, inf);
+    auto dfs1 = [&](this auto &&dfs, int u, int fa) -> void {
+        if (pos[u]) {
+            dis[u] = 0;
+        }
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+            dfs(v, u);
+            dis[u] = min(dis[u], dis[v] + 1);
+        }
+    };
+    dfs1(1, 0);
+
+    int ans = 0;
+    bool f = true;
+    auto dfs2 = [&](this auto &&dfs, int u, int fa, int d) -> void {
+        if (g[u].size() == 1 && u != 1) {
+            f = false;
+            return;
+        }
+
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            if (dis[v] < d + 1) {
+                ans++;
+                continue;
+            } else if (dis[v] == d + 1) {
+                // if (g[v].size() == 1) {
+                //     f = false;
+                //     return;
+                // }
+                ans++;
+                continue;
+            }
+            dfs(v, u, d + 1);
+        }
+    };
+    dfs2(1, 0, 0);
+
+    if (f) {
+        prt(ans);
+    } else {
+        prt(-1);
+    }
 }
 
 int main() {

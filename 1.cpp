@@ -1,105 +1,106 @@
-***Begin Patch ***Update File : D_MEX_Sequences.cpp @ @ void solve() {
-    -int n;
-    -rd(n);
-    -vi a(n);
-    -rv(a);
-    - -int mx = ranges::max(a);
-    -vector<pair<Z, Z>> dp(mx + 1);
-    - -for (int x: a) {
-        -if (x == 0) {
-            -dp[0].second = dp[0].second * 2 + 1;
-            -
-        }
-        else if (x == 1) {
-            -dp[1].first = dp[1].first * 2 + 1;
-            -dp[1].second += dp[0].second;
-            -
-        }
-        else {
-            -dp[x].first = dp[x].first * 2;
-            -dp[x].second = dp[x].second * 2;
-            -dp[x].first += dp[x - 2].second;
-            -dp[x].second += dp[x - 1].second;
-            -
-        }
-        -dp[x + 1].second += dp[x].second;
-        -
-    }
-    - -Z ans = 0;
-    -for (auto [a, b]: dp) {
-        -ans += a + b;
-        -
-    }
-    - -prt(ans.val());
-    +int n;
-    +rd(n);
-    +vi a(n);
-    +rv(a);
-    + + // dp0[m]: 子序列的 mex 为 m，且未出现过 m+1
-      + // dp1[m]: 子序列的 mex 为 m，且已经出现过 m+1
-      +vector<Z> dp0(n + 5),
-        dp1(n + 5);
-    +dp0[0] = 1; // 空子序列（最终答案要减去它）
-    + +for (int x: a) {
-        +if (x == 0) {
-            + // 对应 m = 1: x = m-1，两个状态都可选或不选（翻倍）
-                +Z old0 = dp0[1],
-                   old1 = dp1[1];
-            +dp0[1] = old0 * 2 + dp0[0]; // 还可把 0 作为 mex=0 的“填补 m”转移到 mex=1
-            +dp1[1] = old1 * 2;
-            +
-        }
-        else {
-            + // x == m+1，m = x-1：把“未见过 m+1”的状态并入“已见过”并且已见过状态翻倍
-                +{
-                +Z old0 = dp0[x - 1], old1 = dp1[x - 1];
-                +dp1[x - 1] = old1 * 2 + old0;
-                +
-            }
-            + // x == m-1，m = x+1：两个状态都翻倍
-                +{
-                +Z old0 = dp0[x + 1], old1 = dp1[x + 1];
-                +dp0[x + 1] = old0 * 2;
-                +dp1[x + 1] = old1 * 2;
-                +
-            }
-            + // x == m，m = x：只有“未见过 m+1”的状态可以把 m 补上，使 mex 增为 m+1，且新 mex 的“+1”必未出现
-                +dp0[x + 1] += dp0[x];
-            +
-        }
-        +
-    }
-    + +Z ans = 0;
-    +for (int i = 0; i < (int) dp0.size(); i++) ans += dp0[i] + dp1[i];
-    +ans -= 1; // 去掉空子序列
-    + +prt(ans.val());
-}
-***End Patchvoid rd(T &x, Args &...args) {
-    cin >> x;
-    rd(args...);
-}
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
 
-template<typename A, typename B>
-void rd(pair<A, B> &p) {
-    cin >> p.first >> p.second;
-}
+namespace utils {
+    void dbg() { cerr << "\n"; }
 
-template<typename T>
-void rv(vector<T> &v) {
-    for (auto &x: v) {
-        rd(x);
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
     }
-}
 
-template<typename T>
-void rv(vector<T> &v, int start_index) {
-    for (int i = start_index; i < (int) v.size(); i++) {
-        rd(v[i]);
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
     }
-}
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
 } // namespace utils
 
 using namespace utils;
+
+constexpr int N = 1e6 + 5;
 
 namespace atcoder {
 
@@ -638,19 +639,284 @@ namespace atcoder {
 
 using Z = atcoder::static_modint<MOD2>;
 
-Z q_pow(Z base, long long exp) {
-    Z result(1);
-    while (exp > 0) {
-        if (exp & 1)
-            result *= base;
-        base *= base;
-        exp >>= 1;
+namespace atcoder::internal {
+
+#if __cplusplus >= 202002L
+
+    using std::bit_ceil;
+
+#else
+
+    unsigned int bit_ceil(unsigned int n) {
+        unsigned int x = 1;
+        while (x < (unsigned int) (n))
+            x *= 2;
+        return x;
     }
-    return result;
+
+#endif
+
+    int countr_zero(unsigned int n) {
+#ifdef _MSC_VER
+        unsigned long index;
+        _BitScanForward(&index, n);
+        return index;
+#else
+        return __builtin_ctz(n);
+#endif
+    }
+
+    constexpr int countr_zero_constexpr(unsigned int n) {
+        int x = 0;
+        while (!(n & (1 << x)))
+            x++;
+        return x;
+    }
+
+} // namespace atcoder::internal
+
+namespace atcoder {
+
+#if __cplusplus >= 201703L
+
+    template<class S, auto op, auto e, class F, auto mapping, auto composition, auto id>
+    struct lazy_segtree {
+        static_assert(std::is_convertible_v<decltype(op), std::function<S(S, S)>>, "op must work as S(S, S)");
+        static_assert(std::is_convertible_v<decltype(e), std::function<S()>>, "e must work as S()");
+        static_assert(std::is_convertible_v<decltype(mapping), std::function<S(F, S)>>, "mapping must work as S(F, S)");
+        static_assert(std::is_convertible_v<decltype(composition), std::function<F(F, F)>>,
+                      "composition must work as F(F, F)");
+        static_assert(std::is_convertible_v<decltype(id), std::function<F()>>, "id must work as F()");
+
+#else
+
+    template<class S, S (*op)(S, S), S (*e)(), class F, S (*mapping)(F, S), F (*composition)(F, F), F (*id)()>
+    struct lazy_segtree {
+
+#endif
+
+    public:
+        lazy_segtree() : lazy_segtree(0) {}
+        explicit lazy_segtree(int n) : lazy_segtree(std::vector<S>(n, e())) {}
+        explicit lazy_segtree(const std::vector<S> &v) : _n(int(v.size())) {
+            size = (int) internal::bit_ceil((unsigned int) (_n));
+            log = internal::countr_zero((unsigned int) size);
+            d = std::vector<S>(2 * size, e());
+            lz = std::vector<F>(size, id());
+            for (int i = 0; i < _n; i++)
+                d[size + i] = v[i];
+            for (int i = size - 1; i >= 1; i--) {
+                update(i);
+            }
+        }
+
+        void set(int p, S x) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            d[p] = x;
+            for (int i = 1; i <= log; i++)
+                update(p >> i);
+        }
+
+        S get(int p) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            return d[p];
+        }
+
+        S prod(int l, int r) {
+            assert(0 <= l && l <= r && r <= _n);
+            if (l == r)
+                return e();
+
+            l += size;
+            r += size;
+
+            for (int i = log; i >= 1; i--) {
+                if (((l >> i) << i) != l)
+                    push(l >> i);
+                if (((r >> i) << i) != r)
+                    push((r - 1) >> i);
+            }
+
+            S sml = e(), smr = e();
+            while (l < r) {
+                if (l & 1)
+                    sml = op(sml, d[l++]);
+                if (r & 1)
+                    smr = op(d[--r], smr);
+                l >>= 1;
+                r >>= 1;
+            }
+
+            return op(sml, smr);
+        }
+
+        S all_prod() { return d[1]; }
+
+        void apply(int p, F f) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            d[p] = mapping(f, d[p]);
+            for (int i = 1; i <= log; i++)
+                update(p >> i);
+        }
+        void apply(int l, int r, F f) {
+            assert(0 <= l && l <= r && r <= _n);
+            if (l == r)
+                return;
+
+            l += size;
+            r += size;
+
+            for (int i = log; i >= 1; i--) {
+                if (((l >> i) << i) != l)
+                    push(l >> i);
+                if (((r >> i) << i) != r)
+                    push((r - 1) >> i);
+            }
+
+            {
+                int l2 = l, r2 = r;
+                while (l < r) {
+                    if (l & 1)
+                        all_apply(l++, f);
+                    if (r & 1)
+                        all_apply(--r, f);
+                    l >>= 1;
+                    r >>= 1;
+                }
+                l = l2;
+                r = r2;
+            }
+
+            for (int i = 1; i <= log; i++) {
+                if (((l >> i) << i) != l)
+                    update(l >> i);
+                if (((r >> i) << i) != r)
+                    update((r - 1) >> i);
+            }
+        }
+
+        template<bool (*g)(S)>
+        int max_right(int l) {
+            return max_right(l, [](S x) { return g(x); });
+        }
+        template<class G>
+        int max_right(int l, G g) {
+            assert(0 <= l && l <= _n);
+            assert(g(e()));
+            if (l == _n)
+                return _n;
+            l += size;
+            for (int i = log; i >= 1; i--)
+                push(l >> i);
+            S sm = e();
+            do {
+                while (l % 2 == 0)
+                    l >>= 1;
+                if (!g(op(sm, d[l]))) {
+                    while (l < size) {
+                        push(l);
+                        l = (2 * l);
+                        if (g(op(sm, d[l]))) {
+                            sm = op(sm, d[l]);
+                            l++;
+                        }
+                    }
+                    return l - size;
+                }
+                sm = op(sm, d[l]);
+                l++;
+            } while ((l & -l) != l);
+            return _n;
+        }
+
+        template<bool (*g)(S)>
+        int min_left(int r) {
+            return min_left(r, [](S x) { return g(x); });
+        }
+        template<class G>
+        int min_left(int r, G g) {
+            assert(0 <= r && r <= _n);
+            assert(g(e()));
+            if (r == 0)
+                return 0;
+            r += size;
+            for (int i = log; i >= 1; i--)
+                push((r - 1) >> i);
+            S sm = e();
+            do {
+                r--;
+                while (r > 1 && (r % 2))
+                    r >>= 1;
+                if (!g(op(d[r], sm))) {
+                    while (r < size) {
+                        push(r);
+                        r = (2 * r + 1);
+                        if (g(op(d[r], sm))) {
+                            sm = op(d[r], sm);
+                            r--;
+                        }
+                    }
+                    return r + 1 - size;
+                }
+                sm = op(d[r], sm);
+            } while ((r & -r) != r);
+            return 0;
+        }
+
+    private:
+        int _n, size, log;
+        std::vector<S> d;
+        std::vector<F> lz;
+
+        void update(int k) { d[k] = op(d[2 * k], d[2 * k + 1]); }
+        void all_apply(int k, F f) {
+            d[k] = mapping(f, d[k]);
+            if (k < size)
+                lz[k] = composition(f, lz[k]);
+        }
+        void push(int k) {
+            all_apply(2 * k, lz[k]);
+            all_apply(2 * k + 1, lz[k]);
+            lz[k] = id();
+        }
+    };
+
+} // namespace atcoder
+
+struct S {
+    Z sum;
+};
+
+struct F {
+    Z lazy;
+};
+
+S op(S a, S b) { return {a.sum + b.sum}; }
+
+S e() { return {0}; }
+
+S mapping(F f, S x) {
+    x.sum *= f.lazy;
+    return x;
 }
 
+F composition(F f, F g) {
+    g.lazy *= f.lazy;
+    return g;
+}
 
-constexpr int N = 1e6 + 5;
+F id() { return {1}; }
+
+
 
 int Multitest = 1;
 
@@ -659,41 +925,115 @@ void init() {}
 void solve() {
     int n;
     rd(n);
-    vi a(n);
+    vl a(n);
     rv(a);
 
-    // dp0[m]: 子序列的 mex 为 m，且未出现过 m+1
-    // dp1[m]: 子序列的 mex 为 m，且已经出现过 m+1
-    vector<Z> dp0(n + 5), dp1(n + 5);
-    dp0[0] = 1; // 空子序列（最终答案要减去它）
-
-    for (int x: a) {
-        if (x == 0) {
-            // 对应 m = 1: x = m-1，两个状态都可选或不选（翻倍）
-            Z old0 = dp0[1], old1 = dp1[1];
-            dp0[1] = old0 * 2 + dp0[0]; // 还可把 0 作为 mex=0 的“填补 m”转移到 mex=1
-            dp1[1] = old1 * 2;
-        } else {
-            // x == m+1，m = x-1：把“未见过 m+1”的状态并入“已见过”并且已见过状态翻倍
-            {
-                Z old0 = dp0[x - 1], old1 = dp1[x - 1];
-                dp1[x - 1] = old1 * 2 + old0;
+    vl left;
+    left.pb(-1);
+    {
+        ll cur = -INF;
+        for (int i = 0; i < n; i++) {
+            if (a[i] > cur) {
+                left.push_back(a[i]);
+                cur = a[i];
             }
-            // x == m-1，m = x+1：两个状态都翻倍
-            {
-                Z old0 = dp0[x + 1], old1 = dp1[x + 1];
-                dp0[x + 1] = old0 * 2;
-                dp1[x + 1] = old1 * 2;
-            }
-            // x == m，m = x：只有“未见过 m+1”的状态可以把 m 补上，使 mex 增为 m+1，且新 mex 的“+1”必未出现
-            dp0[x + 1] += dp0[x];
         }
     }
 
-    Z ans = 0;
-    for (int i = 0; i < (int) dp0.size(); i++)
-        ans += dp0[i] + dp1[i];
-    ans -= 1; // 去掉空子序列
+    vl right;
+    right.pb(-1);
+    {
+        ll cur = -INF;
+        D(i, n - 1, 0) {
+            if (a[i] > cur) {
+                right.push_back(a[i]);
+                cur = a[i];
+            }
+        }
+    }
+
+    const ll mx = left.back();
+    vi mxPos;
+    for (int i = 0; i < n; i++)
+        if (a[i] == mx)
+            mxPos.push_back(i);
+
+    vector<Z> pow2(n + 1);
+    pow2[0] = Z(1);
+    for (int i = 1; i <= n; i++)
+        pow2[i] = pow2[i - 1] + pow2[i - 1];
+
+    int L = (int) left.size() - 1; // visible count (exclude sentinel)
+
+    // dpL over indices [0..L], dpL[0]=1 initially
+    vector<S> tree_arr(L + 1, {0});
+    tree_arr[0] = {1};
+    atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(tree_arr);
+    vector<Z> preL(n + 1, Z(0));
+    preL[0] = seg.get(L - 1).sum;
+    for (int i = 0; i < n; i++) {
+        ll x = a[i];
+        // Always multiply dp[L] by 2
+        seg.apply(L, L + 1, {2});
+        // Multiply dp[j] by 2 for j in [pos..L-1], where left[j] >= x
+        int pos = (int) (lower_bound(left.begin(), left.end(), x) - left.begin());
+        if (pos <= L - 1) {
+            seg.apply(pos, L, {2});
+        }
+        // If x equals next required for j=pos-1, i.e., left[pos] == x
+        if (pos <= L && pos - 1 >= 0 && left[pos] == x) {
+            Z cur = seg.get(pos).sum;
+            Z add = seg.get(pos - 1).sum;
+            seg.set(pos, {cur + add});
+        }
+        // store dp[L-1]
+        preL[i + 1] = seg.get(L - 1).sum;
+    }
+
+    int R = (int) right.size() - 1;
+
+    // dpR over indices [0..R], dpR[0]=1 initially
+    vector<S> tree_arr_r(R + 1, {0});
+    tree_arr_r[0] = {1};
+    atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> segR(tree_arr_r);
+    vector<Z> preR(n + 1, Z(0));
+    // preR[n] is dpR[R-1] initially
+    preR[n] = segR.get(R - 1).sum;
+    for (int i = n - 1; i >= 0; i--) {
+        ll x = a[i];
+        // Always multiply dpR[R] by 2
+        segR.apply(R, R + 1, {2});
+        int pos = (int) (lower_bound(right.begin(), right.end(), x) - right.begin());
+        if (pos <= R - 1) {
+            segR.apply(pos, R, {2});
+        }
+        if (pos <= R && pos - 1 >= 0 && right[pos] == x) {
+            Z cur = segR.get(pos).sum;
+            Z add = segR.get(pos - 1).sum;
+            segR.set(pos, {cur + add});
+        }
+        preR[i] = segR.get(R - 1).sum;
+    }
+
+    // Combine in O(n): build weighted suffix Suf2[i] = sum_{q>=i, a[q]=mx} preR[q+1]*2^q
+    vector<Z> invPow2(n + 1);
+    Z inv2 = Z(2).inv();
+    invPow2[0] = Z(1);
+    for (int i = 1; i <= n; i++)
+        invPow2[i] = invPow2[i - 1] * inv2;
+
+    vector<Z> Suf2(n + 2, Z(0));
+    for (int i = n - 1; i >= 0; i--) {
+        Suf2[i] = Suf2[i + 1];
+        if (a[i] == mx) {
+            Suf2[i] = Suf2[i] + preR[i + 1] * pow2[i];
+        }
+    }
+
+    Z ans = Z(0);
+    for (int p: mxPos) {
+        ans += preL[p] * (preR[p + 1] + Suf2[p + 1] * invPow2[p + 1]);
+    }
 
     prt(ans.val());
 }

@@ -108,34 +108,120 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int h, d;
-    rd(h, d);
+    int n, m;
+    rd(n, m);
 
-    int lo = 0;
-    int hi = d + 1;
-
-    int ans = 0;
-    while (lo < hi) {
-        int mid = lo + (hi - lo) / 2;
-
-        auto check = [&](ll f) {
-            i128 m = d / (f + 1), len = d % (f + 1);
-            i128 cost1 = (i128) (1 + m + 1) * (m + 1) / 2;
-            i128 cost2 = (i128) (1 + m) * m / 2;
-            i128 tot = cost1 * len + (f + 1 - len) * cost2;
-            return tot < (i128) (h + f);
-        };
-
-        if (check(mid)) {
-            hi = mid;
-            ans = mid;
-        } else {
-            lo = mid + 1;
+    vp edges(m + 1);
+    F(i, 1, m) {
+        rd(edges[i].fi, edges[i].se);
+        if (edges[i].fi > edges[i].se) {
+            swap(edges[i].fi, edges[i].se);
         }
     }
 
-    ll res = d + ans;
-    prt(res);
+    map<int, int> id;
+    F(i, 1, n) {
+        int t;
+        rd(t);
+        id[t] = i;
+    }
+
+    if (m > 5 * n) {
+        prt("NO");
+        return;
+    }
+
+    // 将非环边映射为环上的弦 (a,b)，a<b，且去除环边
+    vp chords;
+    chords.reserve(m);
+    F(i, 1, m) {
+        int u = edges[i].fi, v = edges[i].se;
+        int a = id[u], b = id[v];
+        if (a > b)
+            swap(a, b);
+        // 跳过环边：相邻或 (1,n)
+        if (b - a == 1 || (a == 1 && b == n))
+            continue;
+        chords.pb(a, b);
+    }
+
+    int K = (int) chords.size();
+    if (K == 0) {
+        prt("YES");
+        return;
+    }
+
+    // 2-SAT：变量为每条弦是否在某一侧，索引 1..K，取反偏移 +K
+    vvi g(2 * K + 1);
+    auto var = [&](int i) { return i; };
+    auto neg = [&](int i) { return i + K; };
+
+    auto cross = [&](const pii &A, const pii &B) -> bool {
+        int a = (int) A.fi, b = (int) A.se;
+        int c = (int) B.fi, d = (int) B.se;
+        return (a < c && c < b && b < d) || (c < a && a < d && d < b);
+    };
+
+    F(i, 1, K) {
+        F(j, 1, K) {
+            if (i == j) {
+                continue;
+            }
+            if (cross(chords[i - 1], chords[j - 1])) {
+                g[var(i)].pb(neg(j));
+                g[neg(i)].pb(var(j));
+            }
+        }
+    }
+
+    int timestamp = 0;
+    vector<int> dfn(2 * K + 1), low(2 * K + 1), in_stack(2 * K + 1), comp(2 * K + 1);
+    vector<vector<int>> comps;
+    stack<int> stk;
+
+    auto tarjan = [&](this auto &&tarjan, int u) -> void {
+        dfn[u] = low[u] = ++timestamp;
+        stk.push(u);
+        in_stack[u] = true;
+
+        for (int v: g[u]) {
+            if (!dfn[v]) {
+                tarjan(v);
+                low[u] = min(low[u], low[v]);
+            } else if (in_stack[v]) {
+                low[u] = min(low[u], dfn[v]);
+            }
+        }
+
+        if (low[u] == dfn[u]) {
+            vi scc;
+            while (true) {
+                int x = stk.top();
+                stk.pop();
+                in_stack[x] = false;
+                comp[x] = comps.size() + 1;
+                scc.pb(x);
+                if (x == u)
+                    break;
+            }
+            comps.emplace_back(scc);
+        }
+    };
+
+    F(i, 1, 2 * K) {
+        if (!dfn[i]) {
+            tarjan(i);
+        }
+    }
+
+    F(i, 1, K) {
+        if (comp[i] == comp[i + K]) {
+            prt("NO");
+            return;
+        }
+    }
+
+    prt("YES");
 }
 
 int main() {

@@ -1,10 +1,107 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
-using namespace __gnu_pbds;
 using namespace std;
-using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+
+namespace utils {
+    void dbg() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+using namespace utils;
+
+constexpr int N = 1e6 + 5;
 
 namespace atcoder {
 
@@ -541,23 +638,134 @@ namespace atcoder {
 
 } // namespace atcoder
 
-constexpr int N = int(1e5 + 5);
+using Z = atcoder::static_modint<MOD2>;
 
-int INIT = [] { return 0; }();
+int Multitest = 1;
 
-using pll = pair<long long, long long>;
-#define i128 __int128_t
-#define ull unsigned long long
-constexpr int inf = 0x3f3f3f3f / 2;
-using pii = pair<int, int>;
-constexpr int MOD = int(1e9 + 7);
-using ll = long long;
+void init() {}
 
+void solve() {
+    int n;
+    rd(n);
+    vl a(n);
+    rv(a);
+
+    vl left;
+    {
+        ll cur = -INF;
+        F(i, 0, n - 1) {
+            if (a[i] > cur) {
+                left.push_back(a[i]);
+                cur = a[i];
+            }
+        }
+    }
+
+    vl right;
+    {
+        ll cur = -INF;
+        D(i, n - 1, 0) {
+            if (a[i] > cur) {
+                right.push_back(a[i]);
+                cur = a[i];
+            }
+        }
+    }
+
+    const ll mx = left.back();
+    vi mxPos;
+    F(i, 0, n - 1)
+    if (a[i] == mx)
+        mxPos.push_back(i);
+
+    vector<Z> pow2(n + 1);
+    pow2[0] = Z(1);
+    F(i, 1, n)
+    pow2[i] = pow2[i - 1] + pow2[i - 1];
+
+    int k = (int) left.size();
+
+    vector<Z> dpL(k + 1, Z(0)), ndpL(k + 1, Z(0));
+    dpL[0] = Z(1);
+    vector<Z> preL(n + 1, Z(0));
+    preL[0] = dpL[k - 1];
+    F(i, 0, n - 1) {
+        F(j, 0, k)
+        ndpL[j] = Z(0);
+        ll x = a[i];
+        F(j, 0, k) {
+            if (j == k) {
+                ndpL[k] += dpL[k] + dpL[k];
+            } else {
+                ll curMax = (j == 0 ? -INF : left[j - 1]);
+                ll nextReq = left[j];
+                if (x <= curMax) {
+                    ndpL[j] += dpL[j] + dpL[j];
+                } else if (x == nextReq) {
+                    ndpL[j] += dpL[j];
+                    ndpL[j + 1] += dpL[j];
+                } else {
+                    ndpL[j] += dpL[j];
+                }
+            }
+        }
+        dpL.swap(ndpL);
+        preL[i + 1] = dpL[k - 1];
+    }
+
+    int l = (int) right.size();
+
+    vector<Z> dpR(l + 1, Z(0)), ndpR(l + 1, Z(0));
+    dpR[0] = Z(1);
+    vector<Z> preR(n + 1, Z(0));
+    preR[n] = dpR[l - 1];
+    D(i, n - 1, 0) {
+        F(t, 0, l)
+        ndpR[t] = Z(0);
+        ll x = a[i];
+        F(t, 0, l) {
+            if (t == l) {
+                ndpR[l] += dpR[l] + dpR[l];
+            } else {
+                ll curMax = (t == 0 ? -INF : right[t - 1]);
+                ll nextReq = right[t];
+                if (x <= curMax) {
+                    ndpR[t] += dpR[t] + dpR[t];
+                } else if (x == nextReq) {
+                    ndpR[t] += dpR[t];
+                    ndpR[t + 1] += dpR[t];
+                } else {
+                    ndpR[t] += dpR[t];
+                }
+            }
+        }
+        dpR.swap(ndpR);
+        preR[i] = dpR[l - 1];
+    }
+
+    Z ans = Z(0);
+    int m = mxPos.size();
+    F(s, 0, m - 1) {
+        F(t, s, m - 1) {
+            int p = mxPos[s];
+            int q = mxPos[t];
+            int gap = q > p ? q - p - 1 : 0;
+            ans += preL[p] * preR[q + 1] * pow2[gap];
+        }
+    }
+
+    prt(ans.val());
+}
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    // Solution sol1;
-    // ll n = 11;
-    // vector<int> nums1{}, nums{};
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
 }

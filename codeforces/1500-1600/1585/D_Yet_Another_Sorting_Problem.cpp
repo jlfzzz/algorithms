@@ -107,35 +107,87 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {
-    int h, d;
-    rd(h, d);
+template<typename T>
+class FenwickTree {
+    vector<T> tree;
 
-    int lo = 0;
-    int hi = d + 1;
+public:
+    FenwickTree(int n) : tree(n + 1) {}
 
-    int ans = 0;
-    while (lo < hi) {
-        int mid = lo + (hi - lo) / 2;
-
-        auto check = [&](ll f) {
-            i128 m = d / (f + 1), len = d % (f + 1);
-            i128 cost1 = (i128) (1 + m + 1) * (m + 1) / 2;
-            i128 cost2 = (i128) (1 + m) * m / 2;
-            i128 tot = cost1 * len + (f + 1 - len) * cost2;
-            return tot < (i128) (h + f);
-        };
-
-        if (check(mid)) {
-            hi = mid;
-            ans = mid;
-        } else {
-            lo = mid + 1;
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
         }
     }
 
-    ll res = d + ans;
-    prt(res);
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+
+    // 点更新取 max
+    void updateMax(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            if (val > tree[i]) {
+                tree[i] = val;
+            }
+        }
+    }
+
+    T preMax(int i) const {
+        T res = numeric_limits<T>::min();
+        for (; i > 0; i &= i - 1) {
+            res = max(res, tree[i]);
+        }
+        return res;
+    }
+};
+
+
+void solve() {
+    int n;
+    rd(n);
+    vi a(n);
+    rv(a);
+
+    {
+        map<int, int> cnt;
+        for (int x: a) {
+            if (cnt.contains(x)) {
+                prt("YES");
+                return;
+            }
+            cnt[x] = 1;
+        }
+    }
+
+    FenwickTree<int> bit(n + 1);
+    int cnt = 0;
+    int tot = 0;
+    for (int x: a) {
+        cnt += tot - bit.pre(x);
+        bit.update(x, 1);
+        tot++;
+    }
+
+    if (cnt % 2 == 0) {
+        prt("YES");
+    } else {
+        prt("NO");
+    }
 }
 
 int main() {

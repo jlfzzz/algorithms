@@ -103,39 +103,104 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int h, d;
-    rd(h, d);
+    int n;
+    rd(n);
+    vi a(n + 1), b(n + 1);
+    rv(a, 1);
+    rv(b, 1);
 
-    int lo = 0;
-    int hi = d + 1;
+    struct SegTree {
+        int n;
+        vi mn;
+        vi id;
+        void init(int _n) {
+            n = _n;
+            mn.assign(4 * (n + 1), inf);
+            id.assign(4 * (n + 1), -1);
+        }
+        void pull(int p) {
+            if (mn[p << 1] <= mn[p << 1 | 1]) {
+                mn[p] = mn[p << 1];
+                id[p] = id[p << 1];
+            } else {
+                mn[p] = mn[p << 1 | 1];
+                id[p] = id[p << 1 | 1];
+            }
+        }
+        void upd(int p, int l, int r, int idx, int val, int who) {
+            if (l == r) {
+                if (val < mn[p]) {
+                    mn[p] = val;
+                    id[p] = who;
+                }
+                return;
+            }
+            int m = (l + r) >> 1;
+            if (idx <= m)
+                upd(p << 1, l, m, idx, val, who);
+            else
+                upd(p << 1 | 1, m + 1, r, idx, val, who);
+            pull(p);
+        }
+        void upd(int idx, int val, int who) { upd(1, 0, n, idx, val, who); }
+        pii rangeMin(int p, int l, int r, int L, int R) {
+            if (L > R || r < L || l > R)
+                return {inf, -1};
+            if (L <= l && r <= R)
+                return {mn[p], id[p]};
+            int m = (l + r) >> 1;
+            auto a = rangeMin(p << 1, l, m, L, R);
+            auto b = rangeMin(p << 1 | 1, m + 1, r, L, R);
+            return (a.first <= b.first) ? a : b;
+        }
+        pii rangeMin(int L, int R) { return rangeMin(1, 0, n, L, R); }
+    } st;
 
-    int ans = 0;
-    while (lo < hi) {
-        int mid = lo + (hi - lo) / 2;
+    vi dp(n + 1, inf), parent(n + 1, -1), chooseY(n + 1, -1);
+    st.init(n);
 
-        auto check = [&](ll f) {
-            i128 m = d / (f + 1), len = d % (f + 1);
-            i128 cost1 = (i128) (1 + m + 1) * (m + 1) / 2;
-            i128 cost2 = (i128) (1 + m) * m / 2;
-            i128 tot = cost1 * len + (f + 1 - len) * cost2;
-            return tot < (i128) (h + f);
-        };
+    auto idx = [&](int i) { return max(0, i - a[i]); };
 
-        if (check(mid)) {
-            hi = mid;
-            ans = mid;
-        } else {
-            lo = mid + 1;
+    dp[n] = 0;
+    st.upd(idx(n), 0, n);
+
+    bool f = false;
+    for (int i = n; i >= 0; --i) {
+        auto best = st.rangeMin(0, i);
+        if (best.first >= inf)
+            continue;
+
+        if (i == 0) {
+            int ans = best.first + 1;
+            vi seq;
+            for (int v = best.second; v != n; v = parent[v])
+                seq.pb(chooseY[v]);
+            reverse(all(seq));
+            seq.pb(0);
+            prt(ans);
+            prv(seq);
+            f = true;
+            break;
+        }
+
+        int cur = best.second;
+        int nxt = i + b[i];
+        int cand = best.first + 1;
+        if (cand < dp[nxt]) {
+            dp[nxt] = cand;
+            parent[nxt] = cur;
+            chooseY[nxt] = i;
+            st.upd(idx(nxt), cand, nxt);
         }
     }
 
-    ll res = d + ans;
-    prt(res);
+    if (!f)
+        prt(-1);
 }
 
 int main() {

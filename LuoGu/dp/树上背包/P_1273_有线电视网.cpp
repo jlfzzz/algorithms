@@ -103,39 +103,73 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int h, d;
-    rd(h, d);
+    int n, m;
+    rd(n, m);
 
-    int lo = 0;
-    int hi = d + 1;
-
-    int ans = 0;
-    while (lo < hi) {
-        int mid = lo + (hi - lo) / 2;
-
-        auto check = [&](ll f) {
-            i128 m = d / (f + 1), len = d % (f + 1);
-            i128 cost1 = (i128) (1 + m + 1) * (m + 1) / 2;
-            i128 cost2 = (i128) (1 + m) * m / 2;
-            i128 tot = cost1 * len + (f + 1 - len) * cost2;
-            return tot < (i128) (h + f);
-        };
-
-        if (check(mid)) {
-            hi = mid;
-            ans = mid;
-        } else {
-            lo = mid + 1;
+    vvp g(n + 1);
+    F(i, 1, n - m) {
+        int k;
+        rd(k);
+        F(j, 1, k) {
+            int a, c;
+            rd(a, c);
+            g[i].pb(a, c);
         }
     }
 
-    ll res = d + ans;
-    prt(res);
+    vi money(n + 1, 0);
+    F(i, 1, m) {
+        int w;
+        rd(w);
+        money[n - m + i] = w;
+    }
+
+    vector<vl> dp(n + 1);
+
+    const long long NEG_INF = -(1LL << 60);
+
+    function<int(int)> dfs = [&](int u) -> int {
+        if (u >= n - m + 1) {
+            dp[u] = vl(2, NEG_INF);
+            dp[u][0] = 0;
+            dp[u][1] = money[u];
+            return 1;
+        }
+
+        dp[u] = vl(1, 0);
+        int totalLeaves = 0;
+        for (auto [v, cost]: g[u]) {
+            int childLeaves = dfs(v);
+            vl newDp(totalLeaves + childLeaves + 1, NEG_INF);
+            for (int i = 0; i <= totalLeaves; i++) {
+                for (int t = 0; t <= childLeaves; t++) {
+                    long long add = dp[v][t];
+                    if (t > 0)
+                        add -= cost;
+                    newDp[i + t] = max(newDp[i + t], dp[u][i] + add);
+                }
+            }
+            dp[u].swap(newDp);
+            totalLeaves += childLeaves;
+        }
+        return totalLeaves;
+    };
+
+    dfs(1);
+
+    int ans = 0;
+    for (int k = m; k >= 0; k--) {
+        if ((int) dp[1].size() > k && dp[1][k] >= 0) {
+            ans = k;
+            break;
+        }
+    }
+    prt(ans);
 }
 
 int main() {

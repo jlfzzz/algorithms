@@ -103,39 +103,58 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int h, d;
-    rd(h, d);
+    int n;
+    rd(n);
 
-    int lo = 0;
-    int hi = d + 1;
-
-    int ans = 0;
-    while (lo < hi) {
-        int mid = lo + (hi - lo) / 2;
-
-        auto check = [&](ll f) {
-            i128 m = d / (f + 1), len = d % (f + 1);
-            i128 cost1 = (i128) (1 + m + 1) * (m + 1) / 2;
-            i128 cost2 = (i128) (1 + m) * m / 2;
-            i128 tot = cost1 * len + (f + 1 - len) * cost2;
-            return tot < (i128) (h + f);
-        };
-
-        if (check(mid)) {
-            hi = mid;
-            ans = mid;
-        } else {
-            lo = mid + 1;
-        }
+    if (n == 1) {
+        prt(0);
+        return;
     }
 
-    ll res = d + ans;
-    prt(res);
+    int ans = inf;
+    F(i, 1, n - 1) {
+        int a = i;
+        int b = n;
+
+        int cnt = 0;
+        while (true) {
+            if (a == 1 && b == 1) {
+                break;
+            }
+
+            if (a < 1 || b < 1) {
+                cnt = inf;
+                break;
+            }
+
+            if (a == 1) {
+                cnt += b - a;
+                break;
+            }
+            if (b == 1) {
+                cnt += a - 1;
+                break;
+            }
+
+            if (a > b) {
+                cnt += a / b;
+                a %= b;
+            } else if (a < b) {
+                cnt += b / a;
+                b %= a;
+            } else {
+                cnt = inf;
+                break;
+            }
+        }
+        ans = min(ans, cnt);
+    }
+    prt(ans);
 }
 
 int main() {

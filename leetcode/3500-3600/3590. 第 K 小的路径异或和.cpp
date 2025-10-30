@@ -1,10 +1,6 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
-using namespace __gnu_pbds;
 using namespace std;
-using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+
 
 namespace atcoder {
 
@@ -552,6 +548,82 @@ constexpr int inf = 0x3f3f3f3f / 2;
 using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
+
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace std;
+using namespace __gnu_pbds;
+using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+
+class Solution {
+public:
+    vector<int> kthSmallest(vector<int> &par, vector<int> &vals, vector<vector<int>> &queries) {
+        int n = par.size();
+        vector<vector<int>> g(n);
+        for (int i = 1; i < n; i++) {
+            g[par[i]].push_back(i);
+        }
+
+        vector<int> ans((int) queries.size());
+        vector<vector<pair<int, int>>> query(n);
+        for (int i = 0; i < queries.size(); i++) {
+            int u = queries[i][0];
+            int k = queries[i][1];
+            query[u].emplace_back(i, k);
+        }
+
+        vector<int> sz(n);
+        auto dfs1 = [&](auto &&self, int u) -> void {
+            sz[u] = 1;
+            for (int v: g[u]) {
+                self(self, v);
+                sz[u] += sz[v];
+            }
+        };
+        dfs1(dfs1, 0);
+
+        auto dfs = [&](auto &&self, int u, int sum) -> ordered_set * {
+            sum ^= vals[u];
+            int son = -1;
+            for (int v: g[u]) {
+                if (son == -1 || sz[v] > sz[son]) {
+                    son = v;
+                }
+            }
+
+            ordered_set *os;
+            if (son == -1) {
+                os = new ordered_set;
+            } else {
+                os = self(self, son, sum);
+            }
+
+            for (int v: g[u]) {
+                if (v == son)
+                    continue;
+                ordered_set *tmp = self(self, v, sum);
+                for (int x: *tmp)
+                    os->insert(x);
+                delete tmp;
+            }
+
+            os->insert(sum);
+
+            for (auto [id, k]: query[u]) {
+                if (k > (int) os->size())
+                    ans[id] = -1;
+                else {
+                    auto it = os->find_by_order(k - 1);
+                    ans[id] = *it;
+                }
+            }
+
+            return os;
+        };
+        dfs(dfs, 0, 0);
+        return ans;
+    }
+};
 
 
 int main() {

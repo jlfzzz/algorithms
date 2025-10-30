@@ -101,41 +101,102 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 1e5 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve() {
-    int h, d;
-    rd(h, d);
+struct Node {
+    char c;
+    int cnt;
+} tree[25 * N];
 
-    int lo = 0;
-    int hi = d + 1;
+int ls[25 * N];
+int rs[25 * N];
 
-    int ans = 0;
-    while (lo < hi) {
-        int mid = lo + (hi - lo) / 2;
+int tot;
+int root[N];
+int len[N];
+int idForMod[N];
+int modCnt;
 
-        auto check = [&](ll f) {
-            i128 m = d / (f + 1), len = d % (f + 1);
-            i128 cost1 = (i128) (1 + m + 1) * (m + 1) / 2;
-            i128 cost2 = (i128) (1 + m) * m / 2;
-            i128 tot = cost1 * len + (f + 1 - len) * cost2;
-            return tot < (i128) (h + f);
-        };
+void pushup(int o) { tree[o].cnt = tree[ls[o]].cnt + tree[rs[o]].cnt; }
 
-        if (check(mid)) {
-            hi = mid;
-            ans = mid;
-        } else {
-            lo = mid + 1;
-        }
+int change(int pre, int l, int r, int pos, char c) {
+    int cur = ++tot;
+    tree[cur] = tree[pre];
+    ls[cur] = ls[pre];
+    rs[cur] = rs[pre];
+
+    if (l == r) {
+        tree[cur].c = c;
+        tree[cur].cnt = 1;
+        return cur;
     }
 
-    ll res = d + ans;
-    prt(res);
+    int mid = (l + r) >> 1;
+    if (pos <= mid)
+        ls[cur] = change(ls[pre], l, mid, pos, c);
+    else
+        rs[cur] = change(rs[pre], mid + 1, r, pos, c);
+    pushup(cur);
+    return cur;
+}
+
+char query(int o, int l, int r, int k) {
+    if (l == r) {
+        return tree[o].c;
+    }
+    int mid = (l + r) >> 1;
+    if (tree[ls[o]].cnt >= k) {
+        return query(ls[o], l, mid, k);
+    }
+    return query(rs[o], mid + 1, r, k - tree[ls[o]].cnt);
+}
+
+void solve() {
+    tot = 0;
+    modCnt = 0;
+
+    int n;
+    rd(n);
+    root[0] = 0;
+    len[0] = 0;
+
+    F(i, 1, n) {
+        char op;
+        rd(op);
+
+        if (op == 'T') {
+            char x;
+            rd(x);
+            int pre = root[i - 1];
+            int pos = len[i - 1] + 1;
+            root[i] = change(pre, 1, N, pos, x);
+            len[i] = pos;
+            idForMod[++modCnt] = i;
+        } else if (op == 'U') {
+            int x;
+            rd(x);
+            int k = modCnt - x;
+            if (k <= 0) {
+                root[i] = root[0];
+                len[i] = len[0];
+            } else {
+                int idx = idForMod[k];
+                root[i] = root[idx];
+                len[i] = len[idx];
+            }
+            idForMod[++modCnt] = i;
+        } else if (op == 'Q') {
+            int x;
+            rd(x);
+            root[i] = root[i - 1];
+            len[i] = len[i - 1];
+            prt(query(root[i], 1, N, x));
+        }
+    }
 }
 
 int main() {
