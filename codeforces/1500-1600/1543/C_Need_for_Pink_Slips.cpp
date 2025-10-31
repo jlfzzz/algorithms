@@ -103,102 +103,70 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
+constexpr db EPS = 1e-9;
+
 void solve() {
-    int q;
-    rd(q);
+    db c, m, p, v;
+    rd(c, m, p, v);
 
-    map<int, set<int>> pos;
-    int cnt = 0;
-    while (q--) {
-        int op;
-        rd(op);
+    auto dfs = [&](this auto &&dfs, int cnt, db a, db b, db pc) -> db {
+        db res = pc;
+        // if (cnt >= 30) {
+        //     return res;
+        // }
 
-        if (op == 1) {
-            int x;
-            rd(x);
-            cnt++;
-            pos[x].insert(cnt);
-        } else {
-            int x, y;
-            rd(x, y);
-            if (x == y) {
-                continue;
+        if (a > EPS) {
+            db take = min(a, v);
+            if (b > EPS) {
+                db na = a - take;
+                db nb = b + take / 2;
+                db npc = pc + take / 2;
+                if (na < EPS)
+                    na = 0;
+                if (nb < EPS)
+                    nb = 0;
+                res += a * (1 + dfs(cnt + 1, na, nb, npc));
+            } else {
+                db na = a - take;
+                db nb = 0;
+                db npc = pc + take;
+                if (na < EPS)
+                    na = 0;
+                res += a * (1 + dfs(cnt + 1, na, nb, npc));
             }
+        }
 
-            if (pos[x].size() > pos[y].size()) {
-                swap(pos[x], pos[y]);
+        if (b > EPS) {
+            db take = min(b, v);
+            if (a > EPS) {
+                db na = a + take / 2;
+                db nb = b - take;
+                db npc = pc + take / 2;
+                if (nb < EPS)
+                    nb = 0;
+                if (na < EPS)
+                    na = 0;
+                res += b * (1 + dfs(cnt + 1, na, nb, npc));
+            } else {
+                db na = 0;
+                db nb = b - take;
+                db npc = pc + take;
+                if (nb < EPS)
+                    nb = 0;
+                res += b * (1 + dfs(cnt + 1, na, nb, npc));
             }
-            pos[y].insert(all(pos[x]));
-            pos.erase(x);
         }
-    }
-
-    vi ans(cnt + 1);
-    for (auto &[k, st]: pos) {
-        for (int i: st) {
-            ans[i] = k;
-        }
-    }
-
-    prv(ans, 1);
-}
-
-void solve2() {
-    int q;
-    rd(q);
-
-    struct Q {
-        int op, x, y;
+        return res;
     };
 
-    vector<Q> qu(q);
-    F(i, 0, q - 1) {
-        int op;
-        rd(op);
-        if (op == 1) {
-            int x;
-            rd(x);
-            qu[i].op = op;
-            qu[i].x = x;
-        } else {
-            int x, y;
-            rd(x, y);
-            qu[i].op = op;
-            qu[i].x = x;
-            qu[i].y = y;
-        }
-    }
+    auto ans = dfs(0, c, m, p);
 
-    vi fa(int(5e5) + 5000);
-    F(i, 1, int(5e5) + 5) { fa[i] = i; }
-
-    auto find = [&](this auto &&find, int x) -> int {
-        if (x != fa[x]) {
-            fa[x] = find(fa[x]);
-        }
-        return fa[x];
-    };
-
-    vi ans;
-    D(i, q - 1, 0) {
-        auto [op, x, y] = qu[i];
-        if (op == 1) {
-            ans.pb(fa[x]);
-        } else {
-            if (x != y) {
-                fa[x] = fa[y];
-            }
-        }
-    }
-
-    ranges::reverse(ans);
-    prv(ans);
+    cout << fixed << setprecision(12) << ans << endl;
 }
-
 
 int main() {
     ios::sync_with_stdio(false);
@@ -208,6 +176,7 @@ int main() {
     if (Multitest) {
         rd(T);
     }
-    while (T--)
+    while (T--) {
         solve();
+    }
 }

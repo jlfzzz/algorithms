@@ -74,7 +74,7 @@ private:
 public:
     std::vector<int> root;
 
-    PST(int n) : n(n), ts(0), lc(22 * n + 5), rc(22 * n + 5), tree(22 * n + 5), root(22 * n + 5) {}
+    PST(int n) : n(n), ts(0), lc(40 * n + 5), rc(40 * n + 5), tree(40 * n + 5), root(40 * n + 5) {}
 
     int build(const std::vector<int> &arr) { return _build(arr, 1, n); }
 

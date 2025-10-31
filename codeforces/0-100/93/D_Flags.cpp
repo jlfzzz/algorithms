@@ -1,10 +1,107 @@
 #include <bits/stdc++.h>
 using namespace std;
-vector<vector<int>> DIRS = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
 using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
 constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
 
-// 矩阵乘法，缓存友好版本。先算一整行的
+namespace utils {
+    void dbg() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+using namespace utils;
+
+constexpr int N = 1e6 + 5;
 
 namespace atcoder {
 
@@ -88,7 +185,7 @@ namespace atcoder {
         }
 
         // Fast modular multiplication by barrett reduction
-        // Reference: https://en.wikipedia.org/wiki/Barrett_reduction
+        // Reference: htmat0s://en.wikipedia.org/wiki/Barrett_reduction
         // NOTE: reconsider after Ice Lake
         struct barrett {
             unsigned int _m;
@@ -582,55 +679,46 @@ Matrix quick_mul(Matrix mat, long long n) {
 }
 
 
-// 斐波那契，1 - index。 f1 = f2 = 1, f3 = 2, f4 = 3...
-Z fib(int n) {
-    auto mat1 = Matrix(1, vector<Z>(2, 0));
-    mat1[0][0] = 1;
-    auto mat2 = Matrix{{1, 1}, {1, 0}};
-
-    auto mat_pow = quick_mul(mat2, n - 1);
-    auto mat3 = mat_mul(mat1, mat_pow);
-
-    Z ans = mat3[0][0];
-
-    return ans;
-}
-
-// 矩阵可以同时处理前缀和
-// 多加一行一列，每行最后多加一个数字，就是行内的1的和
-// 最后右下角为1
+int Multitest = 0;
 
 Matrix Mat = {{0, 0, 0, 0, 1, 1, 0, 0, 2}, {0, 0, 0, 0, 0, 0, 1, 1, 2}, {0, 0, 0, 0, 1, 1, 0, 0, 2},
               {0, 0, 0, 0, 0, 0, 1, 1, 2}, {1, 0, 0, 0, 0, 0, 0, 0, 1}, {0, 0, 1, 1, 0, 0, 0, 0, 2},
               {0, 1, 0, 0, 0, 0, 0, 0, 1}, {0, 0, 1, 1, 0, 0, 0, 0, 2}, {0, 0, 0, 0, 0, 0, 0, 0, 1}};
 
-// lc3337 调用示例
-class Solution {
-public:
-    int lengthAfterTransformations(string s, int t, vector<int> &nums) {
-        int SIZE = 26;
-        Matrix mat(SIZE, vector<Z>(SIZE, 0));
-        int n = nums.size();
-        for (int i = 0; i < n; ++i) {
-            int m = nums[i];
-            for (int j = 0; j < m; ++j) {
-                mat[(i + j + 1) % SIZE][i] += 1;
-            }
-        }
 
-        mat = quick_mul(mat, t);
+void solve() {
+    ll L, R;
+    rd(L, R);
+    auto calc = [&](ll idx) -> Z {
+        if (idx <= 0)
+            return 0;
+        if (idx == 1)
+            return 4;
+        ll t = idx - 2;
+        Matrix init(1, vector<Z>(9, 0));
+        F(i, 0, 7) { init[0][i] = 1; }
 
-        Matrix mat2(SIZE, vector<Z>(1, 0));
-        for (char c: s) {
-            mat2[c - 'a'][0] += 1;
-        }
+        Matrix mat0 = quick_mul(Mat, t);
+        Matrix mat1 = mat_mul(init, mat0);
+        Z sum = mat1[0][8];
+        return 12 + sum;
+    };
 
-        mat = mat_mul(mat, mat2);
+    Z inv2 = Z(2).inv();
+    Z sum1 = calc(R) - calc(L - 1);
+    Z sum2 = calc((R + 1) / 2) - calc(L / 2);
+    Z ans = (sum1 + sum2) * inv2;
+    prt(ans.val());
+}
 
-        Z total = 0;
-        for (int i = 0; i < SIZE; ++i) {
-            total += mat[i][0];
-        }
-        return (int) total;
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-};
+    while (T--) {
+        solve();
+    }
+}

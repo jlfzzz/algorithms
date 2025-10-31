@@ -108,97 +108,24 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int q;
-    rd(q);
+    int n, m;
+    rd(n, m);
 
-    map<int, set<int>> pos;
-    int cnt = 0;
-    while (q--) {
-        int op;
-        rd(op);
-
-        if (op == 1) {
-            int x;
-            rd(x);
-            cnt++;
-            pos[x].insert(cnt);
-        } else {
-            int x, y;
-            rd(x, y);
-            if (x == y) {
-                continue;
-            }
-
-            if (pos[x].size() > pos[y].size()) {
-                swap(pos[x], pos[y]);
-            }
-            pos[y].insert(all(pos[x]));
-            pos.erase(x);
+    vi dp(n + 1), sum(n + 2);
+    dp[n] = 1;
+    sum[n] = 1;
+    D(i, n - 1, 1) {
+        dp[i] = (dp[i] + sum[i + 1]) % m;
+        for (int z = 2; i * z <= n; ++z) {
+            int L = i * z;
+            int R = min(n, L + z - 1);
+            dp[i] = (dp[i] + (sum[L] - sum[R + 1] + m) % m) % m;
         }
+        sum[i] = (sum[i + 1] + dp[i]) % m;
     }
 
-    vi ans(cnt + 1);
-    for (auto &[k, st]: pos) {
-        for (int i: st) {
-            ans[i] = k;
-        }
-    }
-
-    prv(ans, 1);
+    prt(dp[1]);
 }
-
-void solve2() {
-    int q;
-    rd(q);
-
-    struct Q {
-        int op, x, y;
-    };
-
-    vector<Q> qu(q);
-    F(i, 0, q - 1) {
-        int op;
-        rd(op);
-        if (op == 1) {
-            int x;
-            rd(x);
-            qu[i].op = op;
-            qu[i].x = x;
-        } else {
-            int x, y;
-            rd(x, y);
-            qu[i].op = op;
-            qu[i].x = x;
-            qu[i].y = y;
-        }
-    }
-
-    vi fa(int(5e5) + 5000);
-    F(i, 1, int(5e5) + 5) { fa[i] = i; }
-
-    auto find = [&](this auto &&find, int x) -> int {
-        if (x != fa[x]) {
-            fa[x] = find(fa[x]);
-        }
-        return fa[x];
-    };
-
-    vi ans;
-    D(i, q - 1, 0) {
-        auto [op, x, y] = qu[i];
-        if (op == 1) {
-            ans.pb(fa[x]);
-        } else {
-            if (x != y) {
-                fa[x] = fa[y];
-            }
-        }
-    }
-
-    ranges::reverse(ans);
-    prv(ans);
-}
-
 
 int main() {
     ios::sync_with_stdio(false);
@@ -208,6 +135,7 @@ int main() {
     if (Multitest) {
         rd(T);
     }
-    while (T--)
+    while (T--) {
         solve();
+    }
 }

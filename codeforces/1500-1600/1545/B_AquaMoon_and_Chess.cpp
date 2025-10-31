@@ -1,11 +1,107 @@
 #include <bits/stdc++.h>
 using namespace std;
-vector<vector<int>> DIRS = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
 using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
 constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
 
-// 矩阵乘法，缓存友好版本。先算一整行的
+namespace utils {
+    void dbg() { cerr << "\n"; }
 
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+using namespace utils;
+
+constexpr int N = 1e5 + 5;
 namespace atcoder {
 
     namespace internal {
@@ -541,96 +637,119 @@ namespace atcoder {
 
 } // namespace atcoder
 
-using Z = atcoder::static_modint<MOD>;
 
-using Matrix = vector<vector<Z>>;
+using Z = atcoder::static_modint<MOD2>;
 
-Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
-    int n = m1.size();
-    int p = m1[0].size();
-    int m = m2[0].size();
-
-    Matrix ret(n, vector<Z>(m, 0));
-    for (int i = 0; i < n; ++i) {
-        for (int k = 0; k < p; ++k) {
-            if (m1[i][k] == 0) {
-                continue;
-            }
-            for (int j = 0; j < m; ++j) {
-                ret[i][j] = ret[i][j] + m1[i][k] * m2[k][j];
-            }
-        }
+Z q_pow(Z base, long long exp) {
+    Z result(1);
+    while (exp > 0) {
+        if (exp & 1)
+            result *= base;
+        base *= base;
+        exp >>= 1;
     }
-    return ret;
+    return result;
 }
 
-Matrix quick_mul(Matrix mat, long long n) {
-    int m = mat.size();
-    Matrix unit(m, vector<Z>(m, 0));
-    for (int i = 0; i < m; ++i) {
-        unit[i][i] = 1;
+struct Comb {
+    int n;
+    std::vector<Z> _fac;
+    std::vector<Z> _invfac;
+    std::vector<Z> _inv;
+
+    Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
+    explicit Comb(int n) : Comb() { init(n); }
+
+    void init(int m) {
+        if (m <= n) {
+            return;
+        }
+        _fac.resize(m + 1);
+        _invfac.resize(m + 1);
+        _inv.resize(m + 1);
+
+        for (int i = n + 1; i <= m; i++) {
+            _fac[i] = _fac[i - 1] * i;
+        }
+        _invfac[m] = _fac[m].inv();
+        for (int i = m; i > n; i--) {
+            _invfac[i - 1] = _invfac[i] * i;
+            _inv[i] = _invfac[i] * _fac[i - 1];
+        }
+        n = m;
     }
 
-    while (n) {
-        if (n & 1) {
-            unit = mat_mul(unit, mat);
+    Z fac(int m) {
+        if (m > n) {
+            init(2 * m);
         }
-        mat = mat_mul(mat, mat);
-        n >>= 1;
+        return _fac[m];
     }
-    return unit;
+    Z invfac(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _invfac[m];
+    }
+    Z inv(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _inv[m];
+    }
+    Z C(int n, int m) {
+        if (n < m || m < 0) {
+            return 0;
+        }
+        return fac(n) * invfac(m) * invfac(n - m);
+    }
+    Z A(int n, int m) {
+        if (n < m || m < 0) {
+            return 0;
+        }
+        return fac(n) * invfac(n - m);
+    }
+} comb(N);
+
+int Multitest = 1;
+
+void init() {}
+
+void solve() {
+    int n;
+    rd(n);
+
+    string s;
+    rd(s);
+    s = " " + s;
+
+    vi a(n + 2);
+    F(i, 1, n) { a[i] = s[i] == '1'; }
+
+    int c11 = 0;
+    int c0 = 0;
+    F(i, 1, n) {
+        if (a[i] == 1 && a[i + 1] == 1) {
+            c11++;
+            i++;
+        } else {
+            c0 += !a[i];
+        }
+    }
+
+    auto ans = comb.C(c11 + c0, c11);
+    prt(ans.val());
 }
 
-
-// 斐波那契，1 - index。 f1 = f2 = 1, f3 = 2, f4 = 3...
-Z fib(int n) {
-    auto mat1 = Matrix(1, vector<Z>(2, 0));
-    mat1[0][0] = 1;
-    auto mat2 = Matrix{{1, 1}, {1, 0}};
-
-    auto mat_pow = quick_mul(mat2, n - 1);
-    auto mat3 = mat_mul(mat1, mat_pow);
-
-    Z ans = mat3[0][0];
-
-    return ans;
-}
-
-// 矩阵可以同时处理前缀和
-// 多加一行一列，每行最后多加一个数字，就是行内的1的和
-// 最后右下角为1
-
-Matrix Mat = {{0, 0, 0, 0, 1, 1, 0, 0, 2}, {0, 0, 0, 0, 0, 0, 1, 1, 2}, {0, 0, 0, 0, 1, 1, 0, 0, 2},
-              {0, 0, 0, 0, 0, 0, 1, 1, 2}, {1, 0, 0, 0, 0, 0, 0, 0, 1}, {0, 0, 1, 1, 0, 0, 0, 0, 2},
-              {0, 1, 0, 0, 0, 0, 0, 0, 1}, {0, 0, 1, 1, 0, 0, 0, 0, 2}, {0, 0, 0, 0, 0, 0, 0, 0, 1}};
-
-// lc3337 调用示例
-class Solution {
-public:
-    int lengthAfterTransformations(string s, int t, vector<int> &nums) {
-        int SIZE = 26;
-        Matrix mat(SIZE, vector<Z>(SIZE, 0));
-        int n = nums.size();
-        for (int i = 0; i < n; ++i) {
-            int m = nums[i];
-            for (int j = 0; j < m; ++j) {
-                mat[(i + j + 1) % SIZE][i] += 1;
-            }
-        }
-
-        mat = quick_mul(mat, t);
-
-        Matrix mat2(SIZE, vector<Z>(1, 0));
-        for (char c: s) {
-            mat2[c - 'a'][0] += 1;
-        }
-
-        mat = mat_mul(mat, mat2);
-
-        Z total = 0;
-        for (int i = 0; i < SIZE; ++i) {
-            total += mat[i][0];
-        }
-        return (int) total;
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-};
+    while (T--) {
+        solve();
+    }
+}

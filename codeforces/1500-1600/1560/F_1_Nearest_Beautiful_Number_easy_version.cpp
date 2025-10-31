@@ -103,102 +103,77 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int q;
-    rd(q);
+    int n, k;
+    rd(n, k);
 
-    map<int, set<int>> pos;
-    int cnt = 0;
-    while (q--) {
-        int op;
-        rd(op);
+    string s = to_string(n);
+    s = "#" + s;
+    int m = s.size();
 
-        if (op == 1) {
-            int x;
-            rd(x);
-            cnt++;
-            pos[x].insert(cnt);
-        } else {
-            int x, y;
-            rd(x, y);
-            if (x == y) {
+    // dbg("s", s);
+
+    vector memo(m, vector(2, vector<string>((1 << 10))));
+
+    auto dfs = [&](this auto &&dfs, int i, int is_lo, int mask) -> string {
+        int j = popcount((unsigned) mask);
+        if (j > k) {
+            return "?";
+        }
+        if (j == k && !is_lo) {
+            F(k, 0, 9) {
+                if (mask >> k & 1) {
+                    return string(m - i, char('0' + k));
+                }
+            }
+        }
+
+        if (i == m) {
+            return popcount((unsigned) mask) <= k ? string() : "?";
+        }
+
+        auto &x = memo[i][is_lo][mask];
+        if (x != "") {
+            return x;
+        }
+
+        if (i == 0) {
+            auto ss = dfs(i + 1, true, mask);
+            return x = ss;
+        }
+
+        int lo = 0;
+        if (i != 0 && is_lo) {
+            lo = s[i] - '0';
+        }
+
+        F(l, lo, 9) {
+            if ((i == 0 && l == 0) || (i == 1 && l == 0)) {
                 continue;
             }
 
-            if (pos[x].size() > pos[y].size()) {
-                swap(pos[x], pos[y]);
-            }
-            pos[y].insert(all(pos[x]));
-            pos.erase(x);
-        }
-    }
+            auto t = dfs(i + 1, is_lo && (l == (s[i] - '0')), mask | (1 << l));
 
-    vi ans(cnt + 1);
-    for (auto &[k, st]: pos) {
-        for (int i: st) {
-            ans[i] = k;
-        }
-    }
-
-    prv(ans, 1);
-}
-
-void solve2() {
-    int q;
-    rd(q);
-
-    struct Q {
-        int op, x, y;
-    };
-
-    vector<Q> qu(q);
-    F(i, 0, q - 1) {
-        int op;
-        rd(op);
-        if (op == 1) {
-            int x;
-            rd(x);
-            qu[i].op = op;
-            qu[i].x = x;
-        } else {
-            int x, y;
-            rd(x, y);
-            qu[i].op = op;
-            qu[i].x = x;
-            qu[i].y = y;
-        }
-    }
-
-    vi fa(int(5e5) + 5000);
-    F(i, 1, int(5e5) + 5) { fa[i] = i; }
-
-    auto find = [&](this auto &&find, int x) -> int {
-        if (x != fa[x]) {
-            fa[x] = find(fa[x]);
-        }
-        return fa[x];
-    };
-
-    vi ans;
-    D(i, q - 1, 0) {
-        auto [op, x, y] = qu[i];
-        if (op == 1) {
-            ans.pb(fa[x]);
-        } else {
-            if (x != y) {
-                fa[x] = fa[y];
+            // dbg("t", t);
+            if (t != "?") {
+                t.insert(t.begin(), char('0' + l));
+                return x = t;
             }
         }
-    }
 
-    ranges::reverse(ans);
-    prv(ans);
+
+        return x = "?";
+    };
+
+    auto ans = dfs(0, true, 0);
+
+    ll tt = stoll(ans);
+    prt(tt);
 }
-
 
 int main() {
     ios::sync_with_stdio(false);
@@ -208,6 +183,7 @@ int main() {
     if (Multitest) {
         rd(T);
     }
-    while (T--)
+    while (T--) {
         solve();
+    }
 }
