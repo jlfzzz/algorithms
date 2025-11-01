@@ -110,42 +110,46 @@ void init() {}
 void solve() {
     int n;
     rd(n);
+    string s1, s2, s3;
+    rd(s1, s2, s3);
 
-    auto ask = [&](int l, int r) -> int {
-        cout << "? " << l << ' ' << r << endl;
-        int t;
-        rd(t);
-        return t;
-    };
+    int a = count(all(s1), '1');
+    int b = count(all(s2), '1');
+    int c = count(all(s3), '1');
 
-    bool f = false;
-    string ans(n + 1, '0');
-    int pre = -1;
-    F(i, 2, n) {
-        int t = ask(1, i);
-        if (t) {
-            f = true;
-        }
-
-        if (pre == -1) {
-            if (t) {
-                F(j, 1, i - t - 1) { ans[j] = '1'; }
-                pre = t;
-                ans[i] = '1';
+    vi temp = {a, b, c};
+    vector<string> temp2{s1, s2, s3};
+    F(i, 0, 2) {
+        F(j, i + 1, 2) {
+            int x = temp[i];
+            int y = temp[j];
+            if ((x >= n && y >= n) || (x <= n && y <= n)) {
+                // dbg("i", i, "j", j);
+                string a = temp2[i];
+                string b = temp2[j];
+                char ch = (x >= n && y >= n) ? '1' : '0';
+                string ans;
+                int p1 = 0, p2 = 0;
+                while (p1 < 2 * n && p2 < 2 * n) {
+                    if (a[p1] == b[p2] && a[p1] == ch) {
+                        ans += ch;
+                        p1++, p2++;
+                    } else if (a[p1] != ch) {
+                        ans += a[p1];
+                        p1++;
+                    } else if (b[p2] != ch) {
+                        ans += b[p2];
+                        p2++;
+                    }
+                }
+                while (p1 < 2 * n)
+                    ans += a[p1++];
+                while (p2 < 2 * n)
+                    ans += b[p2++];
+                prt(ans);
+                return;
             }
-        } else {
-            if (t != pre) {
-                pre = t;
-                ans[i] = '1';
-            }
         }
-    }
-
-    if (!f) {
-        cout << "! IMPOSSIBLE" << endl;
-    } else {
-        ans = ans.substr(1);
-        cout << "! " << ans << endl;
     }
 }
 

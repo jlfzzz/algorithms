@@ -103,49 +103,60 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
+    ll n;
     rd(n);
 
-    auto ask = [&](int l, int r) -> int {
-        cout << "? " << l << ' ' << r << endl;
-        int t;
-        rd(t);
-        return t;
+    auto get_d = [&](set<ll> &s, ll p) -> ll {
+        auto it = s.find(p);
+        if (it == s.end())
+            return 0;
+        if (s.size() == 1)
+            return 0;
+        bool hasL = it != s.begin();
+        bool hasR = next(it) != s.end();
+        if (!hasL)
+            return *next(it) - p;
+        if (!hasR)
+            return p - *prev(it);
+        return min(p - *prev(it), *next(it) - p);
     };
 
-    bool f = false;
-    string ans(n + 1, '0');
-    int pre = -1;
-    F(i, 2, n) {
-        int t = ask(1, i);
-        if (t) {
-            f = true;
+    set<ll> pos;
+    pos.insert(0);
+    ll sum = 0;
+
+    F(i, 1, n) {
+        ll x;
+        rd(x);
+
+        auto itR = pos.lower_bound(x);
+        bool hasL = itR != pos.begin();
+        bool hasR = itR != pos.end();
+        ll dL = 0, dR = 0;
+        ll L = 0,R = 0;
+        if (hasL) {
+            L = *prev(itR);
+            dL = get_d(pos, L);
+        }
+        if (hasR) {
+           R = *itR;
+            dR = get_d(pos,R);
         }
 
-        if (pre == -1) {
-            if (t) {
-                F(j, 1, i - t - 1) { ans[j] = '1'; }
-                pre = t;
-                ans[i] = '1';
-            }
-        } else {
-            if (t != pre) {
-                pre = t;
-                ans[i] = '1';
-            }
-        }
-    }
+        pos.insert(x);
 
-    if (!f) {
-        cout << "! IMPOSSIBLE" << endl;
-    } else {
-        ans = ans.substr(1);
-        cout << "! " << ans << endl;
+        if (hasL)
+            sum += get_d(pos, L) - dL;
+        if (hasR)
+            sum += get_d(pos,R) - dR;
+        sum += get_d(pos, x);
+
+        prt(sum);
     }
 }
 

@@ -103,50 +103,21 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int a, b, c, d;
+    rd(a, b, c, d);
 
-    auto ask = [&](int l, int r) -> int {
-        cout << "? " << l << ' ' << r << endl;
-        int t;
-        rd(t);
-        return t;
-    };
-
-    bool f = false;
-    string ans(n + 1, '0');
-    int pre = -1;
-    F(i, 2, n) {
-        int t = ask(1, i);
-        if (t) {
-            f = true;
-        }
-
-        if (pre == -1) {
-            if (t) {
-                F(j, 1, i - t - 1) { ans[j] = '1'; }
-                pre = t;
-                ans[i] = '1';
-            }
-        } else {
-            if (t != pre) {
-                pre = t;
-                ans[i] = '1';
-            }
+    if (c >= a) {
+        if (d < b) {
+            prt("Yes");
+            return;
         }
     }
-
-    if (!f) {
-        cout << "! IMPOSSIBLE" << endl;
-    } else {
-        ans = ans.substr(1);
-        cout << "! " << ans << endl;
-    }
+    prt("No");
 }
 
 int main() {

@@ -20,7 +20,6 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
@@ -107,46 +106,84 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {
+mt19937 rng(random_device{}());
+
+int rnd(long long x, long long y) { return uniform_int_distribution<int>(x, y)(rng); }
+
+long long MOD = 1e18 + rnd(0, 1e9);
+int BASE = 233 + rnd(0, 1e3);
+
+struct HashSeq {
     int n;
-    rd(n);
+    vector<__int128> P, H, HR;
 
-    auto ask = [&](int l, int r) -> int {
-        cout << "? " << l << ' ' << r << endl;
-        int t;
-        rd(t);
-        return t;
-    };
+    HashSeq(string s) {
+        n = s.size();
+        P.resize(n + 1);
+        P[0] = 1;
+        for (int i = 1; i <= n; i++)
+            P[i] = P[i - 1] * BASE % MOD;
 
-    bool f = false;
-    string ans(n + 1, '0');
-    int pre = -1;
-    F(i, 2, n) {
-        int t = ask(1, i);
-        if (t) {
-            f = true;
-        }
+        H.resize(n + 1);
+        H[0] = 0;
+        for (int i = 1; i <= n; i++)
+            H[i] = (H[i - 1] * BASE + (s[i - 1] ^ 7)) % MOD;
 
-        if (pre == -1) {
-            if (t) {
-                F(j, 1, i - t - 1) { ans[j] = '1'; }
-                pre = t;
-                ans[i] = '1';
-            }
-        } else {
-            if (t != pre) {
-                pre = t;
-                ans[i] = '1';
-            }
+        HR.resize(n + 1);
+        HR[0] = 0;
+        for (int i = 1; i <= n; i++) {
+            HR[i] = (HR[i - 1] * BASE + (s[n - i] ^ 7)) % MOD;
         }
     }
 
-    if (!f) {
-        cout << "! IMPOSSIBLE" << endl;
-    } else {
-        ans = ans.substr(1);
-        cout << "! " << ans << endl;
+    long long query(int l, int r) const {
+        if (l > r)
+            return 0;
+        __int128 res = (H[r] - (H[l - 1] * P[r - l + 1]) % (__int128) MOD);
+        long long ans = (long long) ((res + (__int128) MOD) % (__int128) MOD);
+        return ans;
     }
+
+    long long query_rev_on_reversed(int l, int r) const {
+        if (l > r)
+            return 0;
+        __int128 res = (HR[r] - (HR[l - 1] * P[r - l + 1]) % (__int128) MOD);
+        return (long long) ((res + (__int128) MOD) % (__int128) MOD);
+    }
+
+    long long query_rev_sub(int l, int r) const {
+        if (l > r)
+            return 0;
+        int L = n - r + 1;
+        int R = n - l + 1;
+        __int128 res = (HR[R] - (HR[L - 1] * P[R - L + 1]) % (__int128) MOD);
+        return (long long) ((res + (__int128) MOD) % (__int128) MOD);
+    }
+};
+
+void solve() {
+    string a, b;
+    rd(a, b);
+
+    int n = a.size();
+    auto t = a + a;
+    HashSeq s1(t), s2(b);
+
+    // if (s1.query(1, n) == s2.query(1, n)) {
+    //     prt(0);
+    //     return;
+    // }
+
+    auto valB = s2.query(1, n);
+
+    F(i, 1, n) {
+        auto val = s1.query(i, i + n - 1);
+        if (val == valB) {
+            prt(i - 1);
+            return;
+        }
+    }
+    prt(-1);
 }
 
 int main() {

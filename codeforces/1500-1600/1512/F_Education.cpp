@@ -108,45 +108,34 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll n, c;
+    rd(n, c);
 
-    auto ask = [&](int l, int r) -> int {
-        cout << "? " << l << ' ' << r << endl;
-        int t;
-        rd(t);
-        return t;
-    };
+    vi a(n + 1);
+    rv(a, 1);
+    vi b(n);
+    rv(b, 1);
 
-    bool f = false;
-    string ans(n + 1, '0');
-    int pre = -1;
-    F(i, 2, n) {
-        int t = ask(1, i);
-        if (t) {
-            f = true;
-        }
+    ll ans = inf;
+    ll cur = 0;
+    ll days = 0;
+    F(i, 1, n) {
+        ll val = a[i];
+        ll t = c - cur;
+        ans = min(ans, max(((t + val - 1) / val), 0ll) + days);
 
-        if (pre == -1) {
-            if (t) {
-                F(j, 1, i - t - 1) { ans[j] = '1'; }
-                pre = t;
-                ans[i] = '1';
-            }
-        } else {
-            if (t != pre) {
-                pre = t;
-                ans[i] = '1';
-            }
+        // dbg("ans", ans, "i", i);
+
+        if (i != n) {
+            ll cost = b[i];
+            t = max(0ll, cost - cur);
+            ll need = (t + val - 1) / val;
+            days += need + 1;
+            cur = cur + need * val - cost;
         }
     }
 
-    if (!f) {
-        cout << "! IMPOSSIBLE" << endl;
-    } else {
-        ans = ans.substr(1);
-        cout << "! " << ans << endl;
-    }
+    prt(ans);
 }
 
 int main() {

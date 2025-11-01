@@ -103,49 +103,84 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
     int n;
     rd(n);
+    vi a(n);
+    rv(a);
 
-    auto ask = [&](int l, int r) -> int {
-        cout << "? " << l << ' ' << r << endl;
-        int t;
-        rd(t);
-        return t;
-    };
+    int pos = -1;
+    int mx = -1;
 
-    bool f = false;
-    string ans(n + 1, '0');
-    int pre = -1;
-    F(i, 2, n) {
-        int t = ask(1, i);
-        if (t) {
-            f = true;
-        }
+    int mx2 = -1;
+    map<int, int> cnt;
 
-        if (pre == -1) {
-            if (t) {
-                F(j, 1, i - t - 1) { ans[j] = '1'; }
-                pre = t;
-                ans[i] = '1';
+    F(i, 0, n - 1) {
+        if (i > 0 && i < n - 1 && a[i] > a[i - 1] && a[i] > a[i + 1]) {
+            int j = i - 1;
+            while (j >= 0 && a[j] - a[j + 1] < 0) {
+                j--;
             }
-        } else {
-            if (t != pre) {
-                pre = t;
-                ans[i] = '1';
+            int left = i - j;
+            j = i + 1;
+            while (j < n && a[j] - a[j - 1] < 0) {
+                j++;
+            }
+            int right = j - i;
+
+            mx2 = max({mx2, left, right});
+            cnt[left]++;
+            cnt[right]++;
+
+            if (left == right && (left % 2)) {
+                if (pos == -1) {
+                    pos = i;
+                    mx = left;
+                } else if (left > mx) {
+                    mx = left;
+                    pos = i;
+                }
             }
         }
     }
 
-    if (!f) {
-        cout << "! IMPOSSIBLE" << endl;
+    {
+        int j = n - 2;
+        while (j >= 0 && a[j] < a[j + 1]) {
+            j--;
+        }
+        int len = n - 1 - j;
+        cnt[len]++;
+        // j = n - 2;
+        // while (j >= 0 && a[j] > a[j + 1]) {
+        //     j--;
+        // }
+        // len = n - 1 - j;
+        // cnt[len]++;
+    }
+    {
+        int j = 1;
+        while (j < n && a[j] < a[j - 1]) {
+            j++;
+        }
+        int len = j;
+        cnt[len]++;
+        // j = 1;
+        // while (j < n && a[j] > a[j - 1]) {
+        //     j++;
+        // }
+        // len = j;
+        // cnt[len]++;
+    }
+
+    if (pos != -1 && mx == mx2 && cnt[mx] == 2) {
+        prt(1);
     } else {
-        ans = ans.substr(1);
-        cout << "! " << ans << endl;
+        prt(0);
     }
 }
 

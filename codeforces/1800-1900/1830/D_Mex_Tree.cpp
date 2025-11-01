@@ -111,42 +111,64 @@ void solve() {
     int n;
     rd(n);
 
-    auto ask = [&](int l, int r) -> int {
-        cout << "? " << l << ' ' << r << endl;
-        int t;
-        rd(t);
-        return t;
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
+        int a, b;
+        rd(a, b);
+        g[a].pb(b);
+        g[b].pb(a);
+    }
+
+    vvi dp0(n + 1), dp1(n + 1);
+    vi sz(n + 1);
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        sz[u] = 1;
+        dp0[u].resize(2);
+        dp1[u].resize(2);
+        dp0[u][0] = inf;
+        dp1[u][0] = inf;
+        dp0[u][1] = 1;
+        dp1[u][1] = 2;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+            dfs(v, u);
+            sz[u] += sz[v];
+
+            int bu = sqrt(sz[u]) + 1;
+            int szv = max(dp0[v].size(), dp1[v].size()) - 1;
+
+            vi f0(bu + 1, inf), f1(bu + 1, inf);
+            int limi = min(bu, (int) dp0[u].size() - 1);
+            int limj = szv;
+            D(i, limi, 0) {
+                D(j, limj, 0) {
+                    if (i + j <= bu) {
+                        f0[i + j] = min(f0[i + j], dp0[u][i] + dp0[v][j] + i * j);
+                        f1[i + j] = min(f1[i + j], dp1[u][i] + dp1[v][j] + 2 * i * j);
+                    }
+                    f0[i] = min(f0[i], dp0[u][i] + dp1[v][j]);
+                    f1[i] = min(f1[i], dp1[u][i] + dp0[v][j]);
+                }
+            }
+
+            dp0[u] = std::move(f0);
+            dp1[u] = std::move(f1);
+
+            dp0[v].clear();
+            dp0[v].shrink_to_fit();
+            dp1[v].clear();
+            dp1[v].shrink_to_fit();
+        }
     };
 
-    bool f = false;
-    string ans(n + 1, '0');
-    int pre = -1;
-    F(i, 2, n) {
-        int t = ask(1, i);
-        if (t) {
-            f = true;
-        }
+    ll ans = 1LL * n * (n + 1);
+    dfs(1, 0);
+    ll mn = min(ranges::min(dp0[1]), ranges::min(dp1[1]));
+    ans -= mn;
 
-        if (pre == -1) {
-            if (t) {
-                F(j, 1, i - t - 1) { ans[j] = '1'; }
-                pre = t;
-                ans[i] = '1';
-            }
-        } else {
-            if (t != pre) {
-                pre = t;
-                ans[i] = '1';
-            }
-        }
-    }
-
-    if (!f) {
-        cout << "! IMPOSSIBLE" << endl;
-    } else {
-        ans = ans.substr(1);
-        cout << "! " << ans << endl;
-    }
+    prt(ans);
 }
 
 int main() {

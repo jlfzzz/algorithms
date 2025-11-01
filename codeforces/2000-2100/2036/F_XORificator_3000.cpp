@@ -211,6 +211,36 @@ void solve() {
     prt(ans);
 }
 
+void solve2() {
+    int l, r, i, k;
+    rd(l, r, i, k);
+
+    auto get = [&](int x) -> int {
+        int t = x & 3;
+        if (t == 0) {
+            return x;
+        }
+        if (t == 1) {
+            return 1;
+        }
+        if (t == 2) {
+            return x + 1;
+        }
+        return 0;
+    };
+
+    int L = (l - k + (1ll << i) - 1) >> i;
+    int R = (r - k) >> i;
+
+    int len = R - L + 1;
+    int ans = get(r) ^ (get(l - 1));
+    if (len & 1) {
+        ans ^= k;
+    }
+    ans ^= (get(R) ^ get(L - 1)) << i;
+    prt(ans);
+}
+
 signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

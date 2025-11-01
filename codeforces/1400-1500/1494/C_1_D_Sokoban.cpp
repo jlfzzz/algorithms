@@ -108,45 +108,90 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, m;
+    rd(n, m);
 
-    auto ask = [&](int l, int r) -> int {
-        cout << "? " << l << ' ' << r << endl;
-        int t;
-        rd(t);
-        return t;
+    vi box(n), a(m);
+    rv(box);
+    rv(a);
+
+
+    vi v1, v2;
+    F(i, 0, n - 1) {
+        if (box[i] > 0) {
+            v1.pb(box[i]);
+        }
+    }
+    F(i, 0, m - 1) {
+        if (a[i] > 0) {
+            v2.pb(a[i]);
+        }
+    }
+
+    ranges::sort(v1);
+    ranges::sort(v2);
+
+    auto calc = [&](vi &v1, vi &v2) -> int {
+        int ans = 0;
+        set<int> st(all(v2));
+        set<int> mark;
+        int n = v1.size();
+        int m = v2.size();
+
+        int suf = 0;
+        for (int x: v1) {
+            if (st.contains(x)) {
+                suf++;
+                mark.insert(x);
+            }
+        }
+
+        set<int> window;
+        int len = 0;
+        v1.pb(1e9 + 5);
+        int p2 = 0;
+        while (p2 < m && v2[p2] < v1[0]) {
+            p2++;
+        }
+        F(i, 0, n - 1) {
+            int cur = v1[i];
+            if (mark.contains(cur)) {
+                suf--;
+            }
+            len++;
+            while (p2 < m && v2[p2] < v1[i + 1]) {
+                int pos = v2[p2];
+                window.insert(pos);
+                while (pos - *window.begin() + 1 > len) {
+                    window.erase(window.begin());
+                }
+                ans = max<int>(ans, window.size() + suf);
+                p2++;
+            }
+        }
+
+        return ans;
     };
 
-    bool f = false;
-    string ans(n + 1, '0');
-    int pre = -1;
-    F(i, 2, n) {
-        int t = ask(1, i);
-        if (t) {
-            f = true;
+    int ans = calc(v1, v2);
+    v1.clear();
+    v2.clear();
+    F(i, 0, n - 1) {
+        if (box[i] < 0) {
+            v1.pb(-box[i]);
         }
-
-        if (pre == -1) {
-            if (t) {
-                F(j, 1, i - t - 1) { ans[j] = '1'; }
-                pre = t;
-                ans[i] = '1';
-            }
-        } else {
-            if (t != pre) {
-                pre = t;
-                ans[i] = '1';
-            }
+    }
+    F(i, 0, m - 1) {
+        if (a[i] < 0) {
+            v2.pb(-a[i]);
         }
     }
 
-    if (!f) {
-        cout << "! IMPOSSIBLE" << endl;
-    } else {
-        ans = ans.substr(1);
-        cout << "! " << ans << endl;
-    }
+    ranges::sort(v1);
+    ranges::sort(v2);
+    ans += calc(v1, v2);
+
+    prt(ans);
 }
 
 int main() {

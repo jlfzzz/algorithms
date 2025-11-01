@@ -103,53 +103,56 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
+#define int ll
+
 void solve() {
     int n;
-    rd(n);
-
-    auto ask = [&](int l, int r) -> int {
-        cout << "? " << l << ' ' << r << endl;
-        int t;
-        rd(t);
-        return t;
-    };
-
-    bool f = false;
-    string ans(n + 1, '0');
-    int pre = -1;
-    F(i, 2, n) {
-        int t = ask(1, i);
-        if (t) {
-            f = true;
+    ll A, B;
+    rd(n, A, B);
+    string s;
+    rd(s);
+    ll ans = 0;
+    int rA = 0, rB = 0;
+    ll cntA = 0, cntB = 0;
+    for (int l = 0; l < n; l++) {
+        if (rA < l) {
+            rA = l;
+            cntA = 0;
         }
-
-        if (pre == -1) {
-            if (t) {
-                F(j, 1, i - t - 1) { ans[j] = '1'; }
-                pre = t;
-                ans[i] = '1';
-            }
-        } else {
-            if (t != pre) {
-                pre = t;
-                ans[i] = '1';
-            }
+        if (rB < l) {
+            rB = l;
+            cntB = 0;
         }
+        while (rA < n && cntA < A) {
+            if (s[rA] == 'a')
+                cntA++;
+            rA++;
+        }
+        while (rB < n && (cntB + (s[rB] == 'b')) < B) {
+            if (s[rB] == 'b')
+                cntB++;
+            rB++;
+        }
+        if (cntA < A) {
+            break;
+        }
+        int r_min = rA - 1;
+        int r_max = rB - 1;
+        if (r_min <= r_max)
+            ans += (ll) (r_max - r_min + 1);
+        if (l < rA && s[l] == 'a')
+            cntA--;
+        if (l < rB && s[l] == 'b')
+            cntB--;
     }
-
-    if (!f) {
-        cout << "! IMPOSSIBLE" << endl;
-    } else {
-        ans = ans.substr(1);
-        cout << "! " << ans << endl;
-    }
+    prt(ans);
 }
 
-int main() {
+signed main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     init();

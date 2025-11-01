@@ -103,50 +103,59 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
     int n;
     rd(n);
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
 
-    auto ask = [&](int l, int r) -> int {
-        cout << "? " << l << ' ' << r << endl;
-        int t;
-        rd(t);
-        return t;
+    vl sum(n + 1), sz(n + 1);
+    auto dfs1 = [&](this auto &&dfs, int u, int fa) -> void {
+        sz[u] = 1;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            dfs(v, u);
+            sz[u] += sz[v];
+            ll t = sum[v] + sz[v];
+            sum[u] += t;
+        }
     };
+    dfs1(1, 0);
 
-    bool f = false;
-    string ans(n + 1, '0');
-    int pre = -1;
-    F(i, 2, n) {
-        int t = ask(1, i);
-        if (t) {
-            f = true;
+    vl ans(n + 1);
+    auto dfs2 = [&](this auto &&dfs, int u, int fa) -> void {
+        ans[u] = sum[u];
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            ll t = sum[u] - (sum[v] + sz[v]);
+            ll szz = n - sz[v];
+            sum[v] += t + szz;
+            dfs(v, u);
         }
-
-        if (pre == -1) {
-            if (t) {
-                F(j, 1, i - t - 1) { ans[j] = '1'; }
-                pre = t;
-                ans[i] = '1';
-            }
-        } else {
-            if (t != pre) {
-                pre = t;
-                ans[i] = '1';
-            }
+    };
+    dfs2(1, 0);
+    int mx = 0;
+    F(i, 1, n) {
+        if (ans[i] > ans[mx]) {
+            mx = i;
         }
     }
-
-    if (!f) {
-        cout << "! IMPOSSIBLE" << endl;
-    } else {
-        ans = ans.substr(1);
-        cout << "! " << ans << endl;
-    }
+    prt(mx);
 }
 
 int main() {

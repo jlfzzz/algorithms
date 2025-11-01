@@ -108,45 +108,102 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, m;
+    rd(n, m);
 
-    auto ask = [&](int l, int r) -> int {
-        cout << "? " << l << ' ' << r << endl;
-        int t;
-        rd(t);
-        return t;
+    struct E {
+        int to, id;
+    };
+    vector<vector<E>> g(n + 1);
+    for (int i = 1; i <= m; ++i) {
+        int a, b;
+        cin >> a >> b;
+        g[a].push_back({b, i});
+        g[b].push_back({a, i});
+    }
+
+    vector<int> dfn(n + 1), low(n + 1);
+    int ts = 0;
+    struct Bridge {
+        int a, b, id;
+    };
+    vector<Bridge> bridges;
+    vector<int> sz(n + 1), blockId(n + 1);
+    vector<int> hasN(n + 1, 0);
+    int bid = 0;
+    map<int, int> blockSz;
+    auto tarjan = [&](this auto &&tarjan, int u, int pe) -> void {
+        dfn[u] = low[u] = ++ts;
+        blockId[u] = bid;
+        sz[u] = 1;
+        hasN[u] = (u == n);
+        for (auto e: g[u]) {
+            if (e.id == pe)
+                continue;
+            int v = e.to;
+            if (!dfn[v]) {
+                tarjan(v, e.id);
+                low[u] = min(low[u], low[v]);
+                sz[u] += sz[v];
+                if (low[v] > dfn[u]) {
+                    bridges.emplace_back(u, v, e.id);
+                }
+                if (hasN[v])
+                    hasN[u] = 1;
+            } else {
+                low[u] = min(low[u], dfn[v]);
+            }
+        }
     };
 
-    bool f = false;
-    string ans(n + 1, '0');
-    int pre = -1;
-    F(i, 2, n) {
-        int t = ask(1, i);
-        if (t) {
-            f = true;
+    for (int i = 1; i <= n; i++) {
+        if (!dfn[i]) {
+            tarjan(i, -1);
+            blockSz[bid] = sz[i];
+            bid++;
         }
+    }
 
-        if (pre == -1) {
-            if (t) {
-                F(j, 1, i - t - 1) { ans[j] = '1'; }
-                pre = t;
-                ans[i] = '1';
-            }
-        } else {
-            if (t != pre) {
-                pre = t;
-                ans[i] = '1';
+    vp starts;
+    for (auto &br: bridges) {
+        if (hasN[br.b]) {
+            starts.emplace_back(br.a, br.id);
+            starts.emplace_back(br.b, br.id);
+        }
+    }
+
+    vp ans(n + 1, {inf, inf});
+    priority_queue<tuple<int, int, int>, vector<tuple<int, int, int>>, greater<>> pq;
+    for (auto [node, eid]: starts) {
+        if (make_pair(0, eid) < ans[node]) {
+            ans[node] = {0, eid};
+            pq.emplace(0, eid, node);
+        }
+    }
+    while (!pq.empty()) {
+        auto [d, eid, u] = pq.top();
+        pq.pop();
+        if (ans[u].first != d || ans[u].second != eid)
+            continue;
+        for (auto e: g[u]) {
+            int v = e.to;
+            pii cand = {d + 1, eid};
+            if (cand < ans[v]) {
+                ans[v] = cand;
+                pq.emplace(cand.first, cand.second, v);
             }
         }
     }
 
-    if (!f) {
-        cout << "! IMPOSSIBLE" << endl;
-    } else {
-        ans = ans.substr(1);
-        cout << "! " << ans << endl;
+    int q;
+    rd(q);
+    vector<int> ANS(q);
+    for (int i = 0; i < q; ++i) {
+        int c;
+        rd(c);
+        ANS[i] = (ans[c].first < inf ? ans[c].second : -1);
     }
+    prv(ANS);
 }
 
 int main() {
