@@ -107,80 +107,66 @@ int Multitest = 1;
 
 void init() {}
 
-struct Seg {
-    vector<ll> tree;
-    Seg(int n, vl &arr) : tree(4 * (n + 1) + 5) { build(1, 1, n, arr); }
-
-    void build(int o, int l, int r, vl &arr) {
-        if (l == r) {
-            tree[o] = arr[l];
-            return;
-        }
-
-        int m = (l + r) / 2;
-        build(o * 2, l, m, arr);
-        build(o * 2 + 1, m + 1, r, arr);
-        tree[o] = max(tree[o * 2], tree[o * 2 + 1]);
-    }
-
-    int findFirst(int o, int l, int r, ll target) {
-        if (tree[o] < target)
-            return -1;
-        if (l == r) {
-            return l;
-        }
-
-        int m = (l + r) / 2;
-        int left = findFirst(o * 2, l, m, target);
-        if (left != -1)
-            return left;
-        return findFirst(o * 2 + 1, m + 1, r, target);
-    }
-};
-
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
+    string s;
+    rd(s); 
 
-    vl a(n + 1);
-    rv(a, 1);
+    // 预处理 L 和 R 的连续长度
+    // s[i] 对应题解中的 "第 i+1 个字符"
+    // 数组大小为 n 足够, 因为 s 的索引只到 n-2
+    vi left_L(n, 0), left_R(n, 0), right_L(n, 0), right_R(n, 0);
 
-    ll sum = accumulate(a.begin() + 1, a.end(), 0ll);
-    vi ans;
-    vl pref(n + 1);
-    F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
-    Seg seg(n, pref);
-    ll mx = *max_element(pref.begin() + 1, pref.end());
-    if (sum <= 0) {
-        while (m--) {
-            ll target;
-            rd(target);
-
-            if (mx < target) {
-                ans.pb(-1);
-                continue;
-            }
-            int i = seg.findFirst(1, 1, n, target);
-            ans.pb(i - 1);
-        }
-    } else {
-        while (m--) {
-            ll target;
-            rd(target);
-
-            if (mx >= target) {
-                int i = seg.findFirst(1, 1, n, target);
-                ans.pb(i - 1);
-            } else {
-                ll rounds = (target - mx + sum - 1) / sum;
-                ll rem = target - rounds * sum;
-                int j = seg.findFirst(1, 1, n, rem);
-                ans.pb(rounds * n + j - 1);
-            }
+    // 从左到右计算
+    F(i, 0, n - 2) {
+        if (s[i] == 'L') {
+            left_L[i] = (i > 0 ? left_L[i - 1] : 0) + 1;
+        } else {
+            left_R[i] = (i > 0 ? left_R[i - 1] : 0) + 1;
         }
     }
 
-    prv(ans);
+    // 从右到左计算
+    D(i, n - 2, 0) {
+        if (s[i] == 'L') {
+            right_L[i] = (i < n - 2 ? right_L[i + 1] : 0) + 1;
+        } else {
+            right_R[i] = (i < n - 2 ? right_R[i + 1] : 0) + 1;
+        }
+    }
+
+    // 差分数组 (1-indexed, C[1] 到 C[n], C[n+1] 用于差分)
+    vi C(n + 2, 0);
+
+    // 遍历每个数字 i (1-indexed, 1...n)
+    F(i, 1, n) {
+        // 题解中的 "第 (i-1) 个字符" 对应 s[i-2]
+        // 题解中的 "第 i 个字符" 对应 s[i-1]
+
+        // 处理边界: i=1 时 i-2 < 0; i=n 时 i-1 = n-1 (越界)
+        int run_Rs_left = (i - 2 >= 0) ? left_R[i - 2] : 0;
+        int run_Ls_right = (i - 1 <= n - 2) ? right_L[i - 1] : 0;
+
+        int run_Ls_left = (i - 2 >= 0) ? left_L[i - 2] : 0;
+        int run_Rs_right = (i - 1 <= n - 2) ? right_R[i - 1] : 0;
+
+        // 根据 Theorem 2 计算 l 和 r
+        int l = run_Rs_left + run_Ls_right + 1;
+        int r = n - (run_Ls_left + run_Rs_right);
+
+        // 应用到差分数组
+        C[l]++;
+        C[r + 1]--;
+    }
+
+    // 计算前缀和, C[k] 将存储位置 k 的答案
+    F(k, 1, n) { C[k] += C[k - 1]; }
+
+    // 收集 C[1]...C[n] 到答案 vector
+    vi ans;
+    F(k, 1, n) { ans.pb(C[k]); }
+    prv(ans); // 使用模板的打印函数
 }
 
 int main() {

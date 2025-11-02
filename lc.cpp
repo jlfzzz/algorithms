@@ -553,55 +553,135 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
-
 class Solution {
 public:
-    vector<long long> countBlackBlocks(int m, int n, vector<vector<int>> &coordinates) {
-        auto getMask = [&](int x, int y) -> ll { return (ll) x << 30 | y; };
-        unordered_set<ll> st;
-        for (auto &v: coordinates) {
-            st.insert(getMask(v[0], v[1]));
+    string lexPalindromicPermutation(string s, string target) {
+        int n = s.size();
+        unordered_map<char, int> cnt;
+        for (char c: s) {
+            cnt[c]++;
+        }
+        {
+            int c = 0;
+            for (auto &[k, v]: cnt) {
+                if (v & 1) {
+                    c++;
+                }
+            }
+            if (c > 1) {
+                return "";
+            }
         }
 
-        unordered_set<ll> blks;
+        char odd = '?';
+        for (auto &[k, v]: cnt) {
+            if (v & 1) {
+                odd = k;
+            }
+        }
+        if (odd != '?') {
+            cnt[odd]--;
+        }
 
-        for (auto &v: coordinates) {
-            int x = v[0];
-            int y = v[1];
-            for (int r = x - 1; r <= x; ++r) {
-                for (int c = y - 1; c <= y; ++c) {
-                    if (r >= 0 && r < m - 1 && c >= 0 && c < n - 1) {
-                        blks.insert(getMask(r, c));
-                    }
+        vector<int> oks;
+        unordered_map<char, int> cnt2 = cnt;
+
+        for (int i = 0; i < n / 2; i++) {
+            char c2 = target[i];
+
+            bool find = false;
+            for (char c = c2 + 1; c <= 'z'; c++) {
+                if (cnt2.contains(c) && cnt2[c] >= 2) {
+                    find = true;
+                    break;
+                }
+            }
+
+            if (find) {
+                oks.push_back(i);
+            }
+
+            if (cnt2.contains(c2) && cnt2[c2] >= 2) {
+                cnt2[c2] -= 2;
+                if (cnt2[c2] == 0) {
+                    cnt2.erase(c2);
+                }
+            } else {
+                break;
+            }
+        }
+
+        if (oks.empty()) {
+            unordered_map<char, int> cntt = cnt;
+            string half = target.substr(0, n / 2);
+            bool can = true;
+            for (char c: half) {
+                if (cntt.contains(c) && cntt[c] >= 2) {
+                    cntt[c] -= 2;
+                } else {
+                    can = false;
+                    break;
+                }
+            }
+
+            if (can) {
+                string left = half;
+                string right = half;
+                reverse(right.begin(), right.end());
+                if (odd != '?') {
+                    left += odd;
+                }
+                left += right;
+
+                if (left > target) {
+                    return left;
+                }
+            }
+
+            return "";
+        }
+
+        int pos1 = oks.back();
+        string ans;
+        for (int i = 0; i < pos1; i++) {
+            ans += target[i];
+            cnt[target[i]] -= 2;
+        }
+
+        char c2 = target[pos1];
+        for (char c = c2 + 1; c <= 'z'; c++) {
+            if (cnt.contains(c) && cnt[c] >= 2) {
+                ans += c;
+                cnt[c] -= 2;
+                break;
+            }
+        }
+
+        int half = n / 2;
+        while (ans.size() < half) {
+            for (char c = 'a'; c <= 'z'; c++) {
+                if (cnt.contains(c) && cnt[c] >= 2) {
+                    ans += c;
+                    cnt[c] -= 2;
+                    break;
                 }
             }
         }
 
-        vector<ll> other(5, 0);
-
-        for (ll block_key: blks) {
-            int r = (int) (block_key >> 30);
-            int c = (int) (block_key & 0x3FFFFFFF);
-
-            int cnt = 0;
-            if (st.contains(getMask(r, c)))
-                cnt++;
-            if (st.contains(getMask(r, c + 1)))
-                cnt++;
-            if (st.contains(getMask(r + 1, c)))
-                cnt++;
-            if (st.contains(getMask(r + 1, c + 1)))
-                cnt++;
-
-            other[cnt]++;
+        string rev = ans;
+        reverse(rev.begin(), rev.end());
+        if (odd != '?') {
+            ans += odd;
         }
+        ans += rev;
 
-        ll total = (ll) (m - 1) * (n - 1);
-        other[0] = total - blks.size();
-
-        return other;
+        return ans;
     }
 };
+
+
+
+
 
 
 int main() {

@@ -107,80 +107,99 @@ int Multitest = 1;
 
 void init() {}
 
-struct Seg {
-    vector<ll> tree;
-    Seg(int n, vl &arr) : tree(4 * (n + 1) + 5) { build(1, 1, n, arr); }
-
-    void build(int o, int l, int r, vl &arr) {
-        if (l == r) {
-            tree[o] = arr[l];
-            return;
-        }
-
-        int m = (l + r) / 2;
-        build(o * 2, l, m, arr);
-        build(o * 2 + 1, m + 1, r, arr);
-        tree[o] = max(tree[o * 2], tree[o * 2 + 1]);
-    }
-
-    int findFirst(int o, int l, int r, ll target) {
-        if (tree[o] < target)
-            return -1;
-        if (l == r) {
-            return l;
-        }
-
-        int m = (l + r) / 2;
-        int left = findFirst(o * 2, l, m, target);
-        if (left != -1)
-            return left;
-        return findFirst(o * 2 + 1, m + 1, r, target);
-    }
-};
-
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-    vl a(n + 1);
-    rv(a, 1);
+    auto ask0 = [&](int i, int j) -> int {
+        cout << "? 2 " << i << ' ' << j << endl;
+        int t;
+        rd(t);
+        return t;
+    };
 
-    ll sum = accumulate(a.begin() + 1, a.end(), 0ll);
-    vi ans;
-    vl pref(n + 1);
-    F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
-    Seg seg(n, pref);
-    ll mx = *max_element(pref.begin() + 1, pref.end());
-    if (sum <= 0) {
-        while (m--) {
-            ll target;
-            rd(target);
+    auto ask1 = [&](int l, int r) -> int {
+        int k = r - l + 1;
+        cout << "? " << k << " ";
+        F(i, l, r) { cout << i << " "; }
+        cout << endl;
+        int t;
+        rd(t);
+        return t;
+    };
 
-            if (mx < target) {
-                ans.pb(-1);
-                continue;
-            }
-            int i = seg.findFirst(1, 1, n, target);
-            ans.pb(i - 1);
-        }
+    int total = ask1(1, n);
+    int left = -1, right = -1;
+    if (total == 0) {
+        left = n;
+        right = 1;
     } else {
-        while (m--) {
-            ll target;
-            rd(target);
-
-            if (mx >= target) {
-                int i = seg.findFirst(1, 1, n, target);
-                ans.pb(i - 1);
+        int l = 1;
+        int r = n + 1;
+        int ans = 0;
+        while (l < r) {
+            int mid = (l + r) / 2;
+            int t = ask1(1, mid);
+            if (t > 0) {
+                ans = mid;
+                r = mid;
             } else {
-                ll rounds = (target - mx + sum - 1) / sum;
-                ll rem = target - rounds * sum;
-                int j = seg.findFirst(1, 1, n, rem);
-                ans.pb(rounds * n + j - 1);
+                l = mid + 1;
+            }
+        }
+
+        left = ans - 1;
+        right = ans;
+    }
+
+    string ans(n + 1, '(');
+    for (int i = 1; i <= n; i += 8) {
+        if (i + 8 > n) {
+            F(j, i, n) {
+                int t = ask0(left, j);
+                if (t) {
+                    ans[j] = ')';
+                }
+            }
+        } else {
+            int cnt = 0;
+            vi temp;
+            int l = i;
+            int total = 0;
+            F(j, 1, 8) {
+                F(k, 1, cnt) {
+                    temp.pb(left);
+                    temp.pb(right);
+                }
+                temp.pb(left);
+                temp.pb(l);
+                temp.pb(left);
+
+                total += cnt * (cnt + 1) / 2;
+
+                l++;
+                cnt = cnt * 2 + 1;
+            }
+
+            cout << "? " << temp.size() << " ";
+            for (int x: temp) {
+                cout << x << " ";
+            }
+            cout << endl;
+
+            int res;
+            rd(res);
+            int d = res - total;
+            F(j, 0, 10) {
+                if (d >> j & 1) {
+                    ans[i + j] = ')';
+                }
             }
         }
     }
 
-    prv(ans);
+    ans = ans.substr(1);
+    cout << "! " << ans << endl;
 }
 
 int main() {

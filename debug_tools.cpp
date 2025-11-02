@@ -884,11 +884,31 @@ void func1() {
     vector<int> arr = {12, 3, 20, 5, 80, 1};
     auto random_arr1 = random_array(n, 1, 1e5);
     auto random_arr2 = random_array(n, 1, 1e7);
-}
 
+    int k = 9955;
+    int f1 = 1, f2 = 1;
+    set<int> st;
+    vi ans;
+    while (st.size() < 9000) {
+        int f3 = (f1 + f2) % k;
+        if (f3 == 0) {
+            debug("f3", f3);
+            break;
+        }
+        st.insert(f3);
+        ans.push_back(f3);
+
+        f1 = f2;
+        f2 = f3;
+
+        // debug("f3", f3);
+    }
+
+    prt_vec(ans);
+}
 vector<pii> readTree(int n) {
     vector<pii> edges;
-    F(i, 0, n - 1) {
+    F(i, 1, n - 1) {
         int u, v;
         rd(u, v);
         edges.pb(u, v);

@@ -103,84 +103,71 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-struct Seg {
-    vector<ll> tree;
-    Seg(int n, vl &arr) : tree(4 * (n + 1) + 5) { build(1, 1, n, arr); }
-
-    void build(int o, int l, int r, vl &arr) {
-        if (l == r) {
-            tree[o] = arr[l];
-            return;
-        }
-
-        int m = (l + r) / 2;
-        build(o * 2, l, m, arr);
-        build(o * 2 + 1, m + 1, r, arr);
-        tree[o] = max(tree[o * 2], tree[o * 2 + 1]);
-    }
-
-    int findFirst(int o, int l, int r, ll target) {
-        if (tree[o] < target)
-            return -1;
-        if (l == r) {
-            return l;
-        }
-
-        int m = (l + r) / 2;
-        int left = findFirst(o * 2, l, m, target);
-        if (left != -1)
-            return left;
-        return findFirst(o * 2 + 1, m + 1, r, target);
-    }
-};
-
 void solve() {
-    int n, m;
-    rd(n, m);
-
-    vl a(n + 1);
-    rv(a, 1);
-
-    ll sum = accumulate(a.begin() + 1, a.end(), 0ll);
-    vi ans;
-    vl pref(n + 1);
-    F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
-    Seg seg(n, pref);
-    ll mx = *max_element(pref.begin() + 1, pref.end());
-    if (sum <= 0) {
-        while (m--) {
-            ll target;
-            rd(target);
-
-            if (mx < target) {
-                ans.pb(-1);
-                continue;
-            }
-            int i = seg.findFirst(1, 1, n, target);
-            ans.pb(i - 1);
-        }
-    } else {
-        while (m--) {
-            ll target;
-            rd(target);
-
-            if (mx >= target) {
-                int i = seg.findFirst(1, 1, n, target);
-                ans.pb(i - 1);
-            } else {
-                ll rounds = (target - mx + sum - 1) / sum;
-                ll rem = target - rounds * sum;
-                int j = seg.findFirst(1, 1, n, rem);
-                ans.pb(rounds * n + j - 1);
-            }
-        }
+    int n;
+    rd(n);
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
+    const int half = n / 2;
 
-    prv(ans);
+    vi sz(n + 1), dp1(n + 1), dp2(n + 1), msz(n + 1), msz2(n + 1), Ans(n + 1);
+
+    auto dfs1 = [&](this auto &&dfs, int u, int fa) -> void {
+        sz[u] = 1;
+        dp1[u] = 0;
+        msz[u] = 0;
+        msz2[u] = 0;
+        for (int v: g[u]) {
+            if (v == fa)
+                continue;
+            dfs(v, u);
+            sz[u] += sz[v];
+            dp1[u] = max(dp1[u], dp1[v]);
+            if (sz[msz[u]] < sz[v]) {
+                msz2[u] = msz[u];
+                msz[u] = v;
+            } else if (sz[msz2[u]] < sz[v]) {
+                msz2[u] = v;
+            }
+        }
+        if (sz[u] <= half)
+            dp1[u] = sz[u];
+    };
+    dfs1(1, 0);
+
+    auto dfs2 = [&](this auto &&dfs, int u, int fa) -> void {
+        for (int v: g[u]) {
+            if (v == fa)
+                continue;
+            if (n - sz[v] <= half)
+                dp2[v] = n - sz[v];
+            else if (v != msz[u])
+                dp2[v] = max(dp2[u], dp1[msz[u]]);
+            else
+                dp2[v] = max(dp2[u], dp1[msz2[u]]);
+            dfs(v, u);
+        }
+        int upSize = n - sz[u];
+        int maxChildSize = sz[msz[u]];
+        if (upSize > maxChildSize) {
+            Ans[u] = (upSize - dp2[u] <= half);
+        } else {
+            Ans[u] = (maxChildSize - dp1[msz[u]] <= half);
+        }
+    };
+    dp2[1] = 0;
+    dfs2(1, 0);
+
+    prv(Ans, 1);
 }
 
 int main() {

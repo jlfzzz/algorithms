@@ -103,84 +103,63 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-struct Seg {
-    vector<ll> tree;
-    Seg(int n, vl &arr) : tree(4 * (n + 1) + 5) { build(1, 1, n, arr); }
+void solve() {
+    int n;
+    rd(n);
 
-    void build(int o, int l, int r, vl &arr) {
-        if (l == r) {
-            tree[o] = arr[l];
+    auto ask = [&](int l, int r) -> int {
+        cout << "? " << l << ' ' << r << endl;
+        int t;
+        rd(t);
+        return t;
+    };
+
+    int pos = ask(1, n);
+    if (pos != 1) {
+        int t1 = ask(1, pos);
+        if (t1 == pos) {
+            int l = 1;
+            int r = pos;
+
+            int ans = 0;
+            while (l < r) {
+                int mid = (l + r) / 2;
+                int t = ask(mid, pos);
+
+                if (t == pos) {
+                    l = mid + 1;
+                    ans = mid;
+                } else {
+                    r = mid;
+                }
+            }
+
+            cout << "! " << ans << endl;
             return;
         }
-
-        int m = (l + r) / 2;
-        build(o * 2, l, m, arr);
-        build(o * 2 + 1, m + 1, r, arr);
-        tree[o] = max(tree[o * 2], tree[o * 2 + 1]);
     }
 
-    int findFirst(int o, int l, int r, ll target) {
-        if (tree[o] < target)
-            return -1;
-        if (l == r) {
-            return l;
-        }
+    int l = pos + 1;
+    int r = n + 1;
+    int ans = -1;
 
-        int m = (l + r) / 2;
-        int left = findFirst(o * 2, l, m, target);
-        if (left != -1)
-            return left;
-        return findFirst(o * 2 + 1, m + 1, r, target);
-    }
-};
+    while (l < r) {
+        int mid = (l + r) / 2;
 
-void solve() {
-    int n, m;
-    rd(n, m);
-
-    vl a(n + 1);
-    rv(a, 1);
-
-    ll sum = accumulate(a.begin() + 1, a.end(), 0ll);
-    vi ans;
-    vl pref(n + 1);
-    F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
-    Seg seg(n, pref);
-    ll mx = *max_element(pref.begin() + 1, pref.end());
-    if (sum <= 0) {
-        while (m--) {
-            ll target;
-            rd(target);
-
-            if (mx < target) {
-                ans.pb(-1);
-                continue;
-            }
-            int i = seg.findFirst(1, 1, n, target);
-            ans.pb(i - 1);
-        }
-    } else {
-        while (m--) {
-            ll target;
-            rd(target);
-
-            if (mx >= target) {
-                int i = seg.findFirst(1, 1, n, target);
-                ans.pb(i - 1);
-            } else {
-                ll rounds = (target - mx + sum - 1) / sum;
-                ll rem = target - rounds * sum;
-                int j = seg.findFirst(1, 1, n, rem);
-                ans.pb(rounds * n + j - 1);
-            }
+        int t = ask(pos, mid);
+        if (t == pos) {
+            ans = mid;
+            r = mid;
+        } else {
+            l = mid + 1;
         }
     }
 
-    prv(ans);
+    cout << "! " << ans << endl;
 }
 
 int main() {

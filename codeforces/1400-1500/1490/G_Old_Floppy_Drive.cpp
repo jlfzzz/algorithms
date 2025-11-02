@@ -123,17 +123,15 @@ struct Seg {
         tree[o] = max(tree[o * 2], tree[o * 2 + 1]);
     }
 
-    int findFirst(int o, int l, int r, ll target) {
-        if (tree[o] < target)
-            return -1;
+    ll findFirst(int o, int l, int r, ll target) {
         if (l == r) {
             return l;
         }
 
         int m = (l + r) / 2;
-        int left = findFirst(o * 2, l, m, target);
-        if (left != -1)
-            return left;
+        if (tree[o * 2] >= target) {
+            return findFirst(o * 2, l, m, target);
+        }
         return findFirst(o * 2 + 1, m + 1, r, target);
     }
 };
@@ -146,36 +144,38 @@ void solve() {
     rv(a, 1);
 
     ll sum = accumulate(a.begin() + 1, a.end(), 0ll);
-    vi ans;
+    vl ans;
     vl pref(n + 1);
     F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
     Seg seg(n, pref);
-    ll mx = *max_element(pref.begin() + 1, pref.end());
+    ll mx = ranges::max(pref);
     if (sum <= 0) {
         while (m--) {
             ll target;
             rd(target);
 
-            if (mx < target) {
-                ans.pb(-1);
-                continue;
-            }
             int i = seg.findFirst(1, 1, n, target);
-            ans.pb(i - 1);
+            if (pref[i] < target) {
+                ans.pb(-1);
+            } else {
+                ans.pb(i - 1);
+            }
         }
     } else {
         while (m--) {
             ll target;
             rd(target);
 
-            if (mx >= target) {
-                int i = seg.findFirst(1, 1, n, target);
-                ans.pb(i - 1);
+            int i = seg.findFirst(1, 1, n, target);
+            if (pref[i] < target) {
+                ll need = (target - mx + sum - 1) / sum;
+                target -= need * sum;
+                need *= n;
+                int j = seg.findFirst(1, 1, n, target);
+                need += j - 1;
+                ans.pb(need);
             } else {
-                ll rounds = (target - mx + sum - 1) / sum;
-                ll rem = target - rounds * sum;
-                int j = seg.findFirst(1, 1, n, rem);
-                ans.pb(rounds * n + j - 1);
+                ans.pb(i - 1);
             }
         }
     }

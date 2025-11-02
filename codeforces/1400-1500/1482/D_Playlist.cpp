@@ -107,80 +107,59 @@ int Multitest = 1;
 
 void init() {}
 
-struct Seg {
-    vector<ll> tree;
-    Seg(int n, vl &arr) : tree(4 * (n + 1) + 5) { build(1, 1, n, arr); }
-
-    void build(int o, int l, int r, vl &arr) {
-        if (l == r) {
-            tree[o] = arr[l];
-            return;
-        }
-
-        int m = (l + r) / 2;
-        build(o * 2, l, m, arr);
-        build(o * 2 + 1, m + 1, r, arr);
-        tree[o] = max(tree[o * 2], tree[o * 2 + 1]);
-    }
-
-    int findFirst(int o, int l, int r, ll target) {
-        if (tree[o] < target)
-            return -1;
-        if (l == r) {
-            return l;
-        }
-
-        int m = (l + r) / 2;
-        int left = findFirst(o * 2, l, m, target);
-        if (left != -1)
-            return left;
-        return findFirst(o * 2 + 1, m + 1, r, target);
-    }
-};
-
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-    vl a(n + 1);
-    rv(a, 1);
+    vi a(n);
+    rv(a);
 
-    ll sum = accumulate(a.begin() + 1, a.end(), 0ll);
+    vi nxt(n), pre(n);
+    F(i, 0, n - 1) {
+        nxt[i] = (i + 1) % n;
+        pre[i] = (i - 1 + n) % n;
+    }
+
+    vi del(n, 0);
+    queue<int> q;
+    F(i, 0, n - 1) {
+        if (gcd(a[i], a[nxt[i]]) == 1)
+            q.push(i);
+    }
+
     vi ans;
-    vl pref(n + 1);
-    F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
-    Seg seg(n, pref);
-    ll mx = *max_element(pref.begin() + 1, pref.end());
-    if (sum <= 0) {
-        while (m--) {
-            ll target;
-            rd(target);
+    int left = n;
 
-            if (mx < target) {
-                ans.pb(-1);
-                continue;
-            }
-            int i = seg.findFirst(1, 1, n, target);
-            ans.pb(i - 1);
-        }
-    } else {
-        while (m--) {
-            ll target;
-            rd(target);
+    while (!q.empty() && left > 0) {
+        int i = q.front();
+        q.pop();
+        if (del[i])
+            continue;
+        int j = nxt[i];
+        if (del[j])
+            continue;
+        if (gcd(a[i], a[j]) != 1)
+            continue;
 
-            if (mx >= target) {
-                int i = seg.findFirst(1, 1, n, target);
-                ans.pb(i - 1);
-            } else {
-                ll rounds = (target - mx + sum - 1) / sum;
-                ll rem = target - rounds * sum;
-                int j = seg.findFirst(1, 1, n, rem);
-                ans.pb(rounds * n + j - 1);
-            }
+        ans.pb(j + 1);
+        del[j] = 1;
+        --left;
+        if (left == 0)
+            break;
+
+        int nj = nxt[j];
+        nxt[i] = nj;
+        pre[nj] = i;
+
+        if (gcd(a[i], a[nj]) == 1) {
+            q.push(i);
         }
     }
 
-    prv(ans);
+    cout << ans.size();
+    for (int id: ans)
+        cout << ' ' << id;
+    cout << '\n';
 }
 
 int main() {

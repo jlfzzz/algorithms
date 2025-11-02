@@ -108,7 +108,80 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    auto ask0 = [&](int i, int j) -> int {
+        cout << "? 2 " << i << ' ' << j << endl;
+        int t;
+        rd(t);
+        return t;
+    };
+
+    auto ask1 = [&](int l, int r) -> int {
+        int k = r - l + 1;
+        cout << "? " << k << " ";
+        F(i, l, r) { cout << i << " "; }
+        cout << endl;
+        int t;
+        rd(t);
+        return t;
+    };
+
+    int total = ask1(1, n);
+    int left = -1, right = -1;
+    if (total == 0) {
+        left = n;
+        right = 1;
+    } else {
+        int l = 1;
+        int r = n + 1;
+        int ans = 0;
+        while (l < r) {
+            int mid = (l + r) / 2;
+            int t = ask1(1, mid);
+            if (t > 0) {
+                ans = mid;
+                r = mid;
+            } else {
+                l = mid + 1;
+            }
+        }
+
+        left = ans - 1;
+        right = ans;
+    }
+
+    auto ask2 = [&](int i, int j) -> int {
+        cout << "? 6 " << left << " " << left << " " << i << ' ' << j << ' ' << left << ' ' << right << endl;
+        int t;
+        rd(t);
+        return t;
+    };
+
+    string ans(n + 1, '(');
+    for (int i = 1; i <= n; i += 2) {
+        if (i + 1 > n) {
+            int t = ask0(left, i);
+            if (t) {
+                ans[i] = ')';
+            }
+        } else {
+            int t = ask2(i, i + 1);
+            if (t == 1) {
+
+            } else if (t == 2) {
+                ans[i] = ')';
+            } else if (t == 3) {
+                ans[i + 1] = ')';
+            } else {
+                ans[i] = ans[i + 1] = ')';
+            }
+        }
+    }
+
+    ans = ans.substr(1);
+    cout << "! " << ans << endl;
 }
 
 int main() {
