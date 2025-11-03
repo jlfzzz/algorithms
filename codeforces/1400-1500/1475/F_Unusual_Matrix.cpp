@@ -108,104 +108,43 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-    vector<set<int>> g(n + 1);
-    F(i, 1, m) {
-        int u, v;
-        rd(u, v);
-        g[u].insert(v);
-        g[v].insert(u);
-    }
+    vector<string> g1(n), g2(n);
 
-    queue<int> q;
-    F(i, 1, n) {
-        if (g[i].size() >= 2) {
-            q.push(i);
-        }
-    }
+    F(i, 0, n - 1) { rd(g1[i]); }
+    F(i, 0, n - 1) { rd(g2[i]); }
 
-    vector<tuple<int, int, int>> ans;
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop();
-
-        if (g[u].size() < 2) {
-            continue;
-        }
-
-        int v1 = *g[u].begin();
-        auto it = g[u].begin();
-        it++;
-        int v2 = *it;
-        g[u].erase(v1);
-        g[u].erase(v2);
-        g[v1].erase(u);
-        g[v2].erase(u);
-        if (g[v1].find(v2) != g[v1].end()) {
-            g[v1].erase(v2);
-            g[v2].erase(v1);
-            if (g[v1].size() >= 2) {
-                q.push(v1);
+    F(i, 0, n - 1) {
+        F(j, 0, n - 1) {
+            if (g1[i][j] == g2[i][j]) {
+                g1[i][j] = '0';
+            } else {
+                g1[i][j] = '1';
             }
-            if (g[v2].size() >= 2) {
-                q.push(v2);
-            }
-        } else {
-            g[v1].insert(v2);
-            g[v2].insert(v1);
-            if (g[v1].size() >= 2) {
-                q.push(v1);
-            }
-            if (g[v2].size() >= 2) {
-                q.push(v2);
-            }
-        }
-
-        ans.pb(u, v1, v2);
-
-        if (g[u].size() >= 2) {
-            q.push(u);
         }
     }
 
-    // dbg("ans sz", ans.size());
+    F(i, 1, n - 1) {
+        bool f1 = true;
+        bool f2 = true;
 
-    vi vis(n + 1);
-    F(i, 1, n) {
-        if (g[i].size()) {
-            if (m == 6) {
-                // dbg("i", i);
+        F(j, 0, n - 1) {
+            if (g1[i][j] == g1[0][j]) {
+                f2 = false;
+            } else {
+                f1 = false;
             }
-            int u = *g[i].begin();
-            int v = i;
-            vis[v] = vis[u] = 1;
-            F(j, 1, n) {
-                if (i == j || vis[j]) {
-                    continue;
-                }
+        }
 
-                if (g[j].size() == 0) {
-                    ans.pb(u, v, j);
-                    vis[j] = 1;
-                    v = j;
-                } else {
-                    int t1 = *g[j].begin();
-                    int t2 = j;
-                    vis[t1] = vis[t2] = 1;
-                    ans.pb(u, t1, t2);
-                }
-            }
-
-            break;
+        if (!f1 && !f2) {
+            prt("NO");
+            return;
         }
     }
-
-    prt(ans.size());
-    for (auto [a, b, c]: ans) {
-        prt(a, b, c);
-    }
+    
+    prt("YES");
 }
 
 int main() {

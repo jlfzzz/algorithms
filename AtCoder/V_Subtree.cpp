@@ -103,109 +103,82 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
+
+int mod;
+
+ll Mul(ll x, ll y) { return x * y % mod; }
+
+ll Add(ll x, ll y) { return (x + y) % mod; }
+
+ll q_pow(ll b, ll e) {
+    ll res = 1;
+    while (e) {
+        if (e & 1) {
+            res = Mul(res, b);
+        }
+        b = Mul(b, b);
+        e /= 2;
+    }
+    return res;
+}
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n, mod);
 
-    vector<set<int>> g(n + 1);
-    F(i, 1, m) {
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
         int u, v;
         rd(u, v);
-        g[u].insert(v);
-        g[v].insert(u);
+        g[u].pb(v);
+        g[v].pb(u);
     }
 
-    queue<int> q;
-    F(i, 1, n) {
-        if (g[i].size() >= 2) {
-            q.push(i);
-        }
-    }
+    vl dp1(n + 1);
+    auto dfs1 = [&](auto &&dfs, int u, int fa) -> void {
+        ll mul = 1;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
 
-    vector<tuple<int, int, int>> ans;
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop();
-
-        if (g[u].size() < 2) {
-            continue;
+            dfs(dfs, v, u);
+            mul = Mul(mul, dp1[v] + 1);
         }
 
-        int v1 = *g[u].begin();
-        auto it = g[u].begin();
-        it++;
-        int v2 = *it;
-        g[u].erase(v1);
-        g[u].erase(v2);
-        g[v1].erase(u);
-        g[v2].erase(u);
-        if (g[v1].find(v2) != g[v1].end()) {
-            g[v1].erase(v2);
-            g[v2].erase(v1);
-            if (g[v1].size() >= 2) {
-                q.push(v1);
-            }
-            if (g[v2].size() >= 2) {
-                q.push(v2);
-            }
-        } else {
-            g[v1].insert(v2);
-            g[v2].insert(v1);
-            if (g[v1].size() >= 2) {
-                q.push(v1);
-            }
-            if (g[v2].size() >= 2) {
-                q.push(v2);
-            }
+        dp1[u] = mul;
+    };
+    dfs1(dfs1, 1, 0);
+
+    vl ans(n + 1);
+    auto dfs2 = [&](auto &&dfs, int u, int fa, ll up) -> void {
+        ans[u] = Mul(dp1[u], (up + 1));
+        vector<int> ch;
+        for (int v: g[u]) {
+            if (v == fa)
+                continue;
+            ch.pb(v);
         }
-
-        ans.pb(u, v1, v2);
-
-        if (g[u].size() >= 2) {
-            q.push(u);
+        int k = (int) ch.size();
+        vector<ll> pref(k + 1, 1), suf(k + 1, 1);
+        for (int i = 0; i < k; i++) {
+            pref[i + 1] = Mul(pref[i], dp1[ch[i]] + 1);
         }
-    }
-
-    // dbg("ans sz", ans.size());
-
-    vi vis(n + 1);
-    F(i, 1, n) {
-        if (g[i].size()) {
-            if (m == 6) {
-                // dbg("i", i);
-            }
-            int u = *g[i].begin();
-            int v = i;
-            vis[v] = vis[u] = 1;
-            F(j, 1, n) {
-                if (i == j || vis[j]) {
-                    continue;
-                }
-
-                if (g[j].size() == 0) {
-                    ans.pb(u, v, j);
-                    vis[j] = 1;
-                    v = j;
-                } else {
-                    int t1 = *g[j].begin();
-                    int t2 = j;
-                    vis[t1] = vis[t2] = 1;
-                    ans.pb(u, t1, t2);
-                }
-            }
-
-            break;
+        for (int i = k - 1; i >= 0; i--) {
+            suf[i] = Mul(suf[i + 1], dp1[ch[i]] + 1);
         }
-    }
-
-    prt(ans.size());
-    for (auto [a, b, c]: ans) {
-        prt(a, b, c);
-    }
+        for (int i = 0; i < k; i++) {
+            int v = ch[i];
+            ll prod_excl_i = Mul(pref[i], suf[i + 1]);
+            ll new_up = Mul(up + 1, prod_excl_i);
+            dfs(dfs, v, u, new_up);
+        }
+    };
+    dfs2(dfs2, 1, 0, 0);
+    F(i, 1, n) prt(ans[i]);
 }
 
 int main() {

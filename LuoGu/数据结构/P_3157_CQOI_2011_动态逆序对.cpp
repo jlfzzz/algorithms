@@ -101,110 +101,89 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 1e5 + 5, M = 3e7 + 10;
 
-int Multitest = 1;
+int lb(int x) { return x & -x; }
+
+int bit[N];
+int root[N], ls[M], rs[M], sum[M];
+int pos[N], a[N];
+int tot;
+int n, m;
+
+void upd(int &rt, int l, int r, int pos, int val) {
+    if (!rt) {
+        rt = ++tot;
+    }
+
+    sum[rt] += val;
+    if (l == r) {
+        return;
+    }
+
+    int m = (l + r) / 2;
+    if (pos <= m) {
+        upd(ls[rt], l, m, pos, val);
+    } else {
+        upd(rs[rt], m + 1, r, pos, val);
+    }
+}
+
+ll query_inner(int rt, int l, int r, int ql, int qr) {
+    if (ql > r || qr < l || !rt) {
+        return 0;
+    }
+    if (ql <= l && r <= qr) {
+        return sum[rt];
+    }
+
+    int m = (l + r) / 2;
+    return query_inner(ls[rt], l, m, ql, qr) + query_inner(rs[rt], m + 1, r, ql, qr);
+}
+
+ll query_prefix(int pos, int val_l, int val_r) {
+    ll res = 0;
+    for (int i = pos; i > 0; i -= lb(i)) {
+        res += query_inner(root[i], 1, n, val_l, val_r);
+    }
+    return res;
+}
+
+ll query(int pos_l, int pos_r, int val_l, int val_r) {
+    if (pos_l > pos_r || val_l > val_r) {
+        return 0;
+    }
+    return query_prefix(pos_r, val_l, val_r) - query_prefix(pos_l - 1, val_l, val_r);
+}
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n, m;
     rd(n, m);
 
-    vector<set<int>> g(n + 1);
+    tot = 0;
+    ll ans = 0;
+    F(i, 1, n) {
+        rd(a[i]);
+        pos[a[i]] = i;
+        ans += query(1, i - 1, a[i] + 1, n);
+        for (int j = i; j <= n; j += lb(j)) {
+            upd(root[j], 1, n, a[i], 1);
+        }
+    }
+
     F(i, 1, m) {
-        int u, v;
-        rd(u, v);
-        g[u].insert(v);
-        g[v].insert(u);
-    }
-
-    queue<int> q;
-    F(i, 1, n) {
-        if (g[i].size() >= 2) {
-            q.push(i);
+        prt(ans);
+        int val_to_del;
+        rd(val_to_del);
+        int p = pos[val_to_del];
+        ll lost_left = query(1, p - 1, val_to_del + 1, n);
+        ll lost_right = query(p + 1, n, 1, val_to_del - 1);
+        ans -= (lost_left + lost_right);
+        for (int j = p; j <= n; j += lb(j)) {
+            upd(root[j], 1, n, val_to_del, -1);
         }
-    }
-
-    vector<tuple<int, int, int>> ans;
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop();
-
-        if (g[u].size() < 2) {
-            continue;
-        }
-
-        int v1 = *g[u].begin();
-        auto it = g[u].begin();
-        it++;
-        int v2 = *it;
-        g[u].erase(v1);
-        g[u].erase(v2);
-        g[v1].erase(u);
-        g[v2].erase(u);
-        if (g[v1].find(v2) != g[v1].end()) {
-            g[v1].erase(v2);
-            g[v2].erase(v1);
-            if (g[v1].size() >= 2) {
-                q.push(v1);
-            }
-            if (g[v2].size() >= 2) {
-                q.push(v2);
-            }
-        } else {
-            g[v1].insert(v2);
-            g[v2].insert(v1);
-            if (g[v1].size() >= 2) {
-                q.push(v1);
-            }
-            if (g[v2].size() >= 2) {
-                q.push(v2);
-            }
-        }
-
-        ans.pb(u, v1, v2);
-
-        if (g[u].size() >= 2) {
-            q.push(u);
-        }
-    }
-
-    // dbg("ans sz", ans.size());
-
-    vi vis(n + 1);
-    F(i, 1, n) {
-        if (g[i].size()) {
-            if (m == 6) {
-                // dbg("i", i);
-            }
-            int u = *g[i].begin();
-            int v = i;
-            vis[v] = vis[u] = 1;
-            F(j, 1, n) {
-                if (i == j || vis[j]) {
-                    continue;
-                }
-
-                if (g[j].size() == 0) {
-                    ans.pb(u, v, j);
-                    vis[j] = 1;
-                    v = j;
-                } else {
-                    int t1 = *g[j].begin();
-                    int t2 = j;
-                    vis[t1] = vis[t2] = 1;
-                    ans.pb(u, t1, t2);
-                }
-            }
-
-            break;
-        }
-    }
-
-    prt(ans.size());
-    for (auto [a, b, c]: ans) {
-        prt(a, b, c);
     }
 }
 

@@ -103,109 +103,45 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
+    vi a(n + 1);
+    rv(a, 1);
 
-    vector<set<int>> g(n + 1);
-    F(i, 1, m) {
-        int u, v;
-        rd(u, v);
-        g[u].insert(v);
-        g[v].insert(u);
+    vi id(n + 1, n + 1);
+    vi nxt(n + 1, n + 1);
+    D(i, n, 1) {
+        nxt[i] = id[a[i]];
+        id[a[i]] = i;
     }
 
-    queue<int> q;
+    vp w, b;
+    w.pb(0, n + 1);
+    b.pb(0, n + 1);
+
+    int ans = 0;
     F(i, 1, n) {
-        if (g[i].size() >= 2) {
-            q.push(i);
-        }
-    }
-
-    vector<tuple<int, int, int>> ans;
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop();
-
-        if (g[u].size() < 2) {
-            continue;
-        }
-
-        int v1 = *g[u].begin();
-        auto it = g[u].begin();
-        it++;
-        int v2 = *it;
-        g[u].erase(v1);
-        g[u].erase(v2);
-        g[v1].erase(u);
-        g[v2].erase(u);
-        if (g[v1].find(v2) != g[v1].end()) {
-            g[v1].erase(v2);
-            g[v2].erase(v1);
-            if (g[v1].size() >= 2) {
-                q.push(v1);
-            }
-            if (g[v2].size() >= 2) {
-                q.push(v2);
-            }
+        int x = a[i];
+        if (x == w.back().fi) {
+            w.pb(x, nxt[i]);
+        } else if (x == b.back().fi) {
+            b.pb(x, nxt[i]);
         } else {
-            g[v1].insert(v2);
-            g[v2].insert(v1);
-            if (g[v1].size() >= 2) {
-                q.push(v1);
+            ans++;
+            if (w.back().se > b.back().se) {
+                w.pb(x, nxt[i]);
+            } else {
+                b.pb(x, nxt[i]);
             }
-            if (g[v2].size() >= 2) {
-                q.push(v2);
-            }
-        }
-
-        ans.pb(u, v1, v2);
-
-        if (g[u].size() >= 2) {
-            q.push(u);
         }
     }
 
-    // dbg("ans sz", ans.size());
-
-    vi vis(n + 1);
-    F(i, 1, n) {
-        if (g[i].size()) {
-            if (m == 6) {
-                // dbg("i", i);
-            }
-            int u = *g[i].begin();
-            int v = i;
-            vis[v] = vis[u] = 1;
-            F(j, 1, n) {
-                if (i == j || vis[j]) {
-                    continue;
-                }
-
-                if (g[j].size() == 0) {
-                    ans.pb(u, v, j);
-                    vis[j] = 1;
-                    v = j;
-                } else {
-                    int t1 = *g[j].begin();
-                    int t2 = j;
-                    vis[t1] = vis[t2] = 1;
-                    ans.pb(u, t1, t2);
-                }
-            }
-
-            break;
-        }
-    }
-
-    prt(ans.size());
-    for (auto [a, b, c]: ans) {
-        prt(a, b, c);
-    }
+    prt(ans);
 }
 
 int main() {

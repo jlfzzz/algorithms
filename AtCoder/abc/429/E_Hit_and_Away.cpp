@@ -103,7 +103,7 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
@@ -111,100 +111,74 @@ void solve() {
     int n, m;
     rd(n, m);
 
-    vector<set<int>> g(n + 1);
+    vvi g(n + 1);
     F(i, 1, m) {
         int u, v;
         rd(u, v);
-        g[u].insert(v);
-        g[v].insert(u);
+        g[u].pb(v);
+        g[v].pb(u);
     }
 
-    queue<int> q;
+    vi dis1(n + 1, inf), dis2(n + 1, inf);
+    vi r1(n + 1, -1), r2(n + 1, -1);
+    string s;
+    rd(s);
+    struct State {
+        int u, root, d;
+    };
+    queue<State> q;
     F(i, 1, n) {
-        if (g[i].size() >= 2) {
-            q.push(i);
+        if (s[i - 1] == 'S') {
+            dis1[i] = 0;
+            r1[i] = i;
+            q.push({i, i, 0});
         }
     }
 
-    vector<tuple<int, int, int>> ans;
+    auto push_candidate = [&](int v, int root, int nd) {
+        if (r1[v] == root) {
+            if (nd < dis1[v]) {
+                dis1[v] = nd;
+                q.push({v, root, nd});
+            }
+            return;
+        }
+        if (r2[v] == root) {
+            if (nd < dis2[v]) {
+                dis2[v] = nd;
+                q.push({v, root, nd});
+            }
+            return;
+        }
+        if (nd < dis1[v]) {
+            r2[v] = r1[v];
+            dis2[v] = dis1[v];
+            r1[v] = root;
+            dis1[v] = nd;
+            q.push({v, root, nd});
+        } else if (nd < dis2[v]) {
+            r2[v] = root;
+            dis2[v] = nd;
+            q.push({v, root, nd});
+        }
+    };
+
     while (!q.empty()) {
-        int u = q.front();
+        auto cur = q.front();
         q.pop();
-
-        if (g[u].size() < 2) {
+        int u = cur.u, root = cur.root, d = cur.d;
+        if (!((r1[u] == root && dis1[u] == d) || (r2[u] == root && dis2[u] == d)))
             continue;
-        }
-
-        int v1 = *g[u].begin();
-        auto it = g[u].begin();
-        it++;
-        int v2 = *it;
-        g[u].erase(v1);
-        g[u].erase(v2);
-        g[v1].erase(u);
-        g[v2].erase(u);
-        if (g[v1].find(v2) != g[v1].end()) {
-            g[v1].erase(v2);
-            g[v2].erase(v1);
-            if (g[v1].size() >= 2) {
-                q.push(v1);
-            }
-            if (g[v2].size() >= 2) {
-                q.push(v2);
-            }
-        } else {
-            g[v1].insert(v2);
-            g[v2].insert(v1);
-            if (g[v1].size() >= 2) {
-                q.push(v1);
-            }
-            if (g[v2].size() >= 2) {
-                q.push(v2);
-            }
-        }
-
-        ans.pb(u, v1, v2);
-
-        if (g[u].size() >= 2) {
-            q.push(u);
+        for (int v: g[u]) {
+            int nd = d + 1;
+            push_candidate(v, root, nd);
         }
     }
 
-    // dbg("ans sz", ans.size());
-
-    vi vis(n + 1);
     F(i, 1, n) {
-        if (g[i].size()) {
-            if (m == 6) {
-                // dbg("i", i);
-            }
-            int u = *g[i].begin();
-            int v = i;
-            vis[v] = vis[u] = 1;
-            F(j, 1, n) {
-                if (i == j || vis[j]) {
-                    continue;
-                }
-
-                if (g[j].size() == 0) {
-                    ans.pb(u, v, j);
-                    vis[j] = 1;
-                    v = j;
-                } else {
-                    int t1 = *g[j].begin();
-                    int t2 = j;
-                    vis[t1] = vis[t2] = 1;
-                    ans.pb(u, t1, t2);
-                }
-            }
-
-            break;
+        if (s[i - 1] == 'D') {
+            prt(dis1[i] + dis2[i]);
         }
-    }
-
-    prt(ans.size());
-    for (auto [a, b, c]: ans) {
-        prt(a, b, c);
     }
 }
 

@@ -103,84 +103,137 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-struct Seg {
-    vector<ll> tree;
-    Seg(int n, vl &arr) : tree(4 * (n + 1) + 5) { build(1, 1, n, arr); }
-
-    void build(int o, int l, int r, vl &arr) {
-        if (l == r) {
-            tree[o] = arr[l];
-            return;
-        }
-
-        int m = (l + r) / 2;
-        build(o * 2, l, m, arr);
-        build(o * 2 + 1, m + 1, r, arr);
-        tree[o] = max(tree[o * 2], tree[o * 2 + 1]);
+struct Fenwick {
+    int n;
+    vector<int> bit;
+    Fenwick() : n(0) {}
+    explicit Fenwick(int n_) { init(n_); }
+    void init(int n_) {
+        n = n_;
+        bit.assign(n + 1, 0);
     }
-
-    int findFirst(int o, int l, int r, ll target) {
-        if (tree[o] < target)
-            return -1;
-        if (l == r) {
-            return l;
-        }
-
-        int m = (l + r) / 2;
-        int left = findFirst(o * 2, l, m, target);
-        if (left != -1)
-            return left;
-        return findFirst(o * 2 + 1, m + 1, r, target);
+    void add(int idx, int delta) {
+        for (; idx <= n; idx += idx & -idx)
+            bit[idx] += delta;
+    }
+    int sumPrefix(int idx) const {
+        int s = 0;
+        for (; idx > 0; idx -= idx & -idx)
+            s += bit[idx];
+        return s;
     }
 };
 
-void solve() {
-    int n, m;
-    rd(n, m);
-
-    vl a(n + 1);
-    rv(a, 1);
-
-    ll sum = accumulate(a.begin() + 1, a.end(), 0ll);
-    vi ans;
-    vl pref(n + 1);
-    F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
-    Seg seg(n, pref);
-    ll mx = *max_element(pref.begin() + 1, pref.end());
-    if (sum <= 0) {
-        while (m--) {
-            ll target;
-            rd(target);
-
-            if (mx < target) {
-                ans.pb(-1);
-                continue;
-            }
-            int i = seg.findFirst(1, 1, n, target);
-            ans.pb(i - 1);
-        }
-    } else {
-        while (m--) {
-            ll target;
-            rd(target);
-
-            if (mx >= target) {
-                int i = seg.findFirst(1, 1, n, target);
-                ans.pb(i - 1);
-            } else {
-                ll rounds = (target - mx + sum - 1) / sum;
-                ll rem = target - rounds * sum;
-                int j = seg.findFirst(1, 1, n, rem);
-                ans.pb(rounds * n + j - 1);
-            }
-        }
+struct SegTree {
+    struct Node {
+        ll x, y;
+        bool flip;
+    };
+    int n;
+    vector<Node> st;
+    SegTree() : n(0) {}
+    explicit SegTree(int n_) { init(n_); }
+    void init(int n_) {
+        n = max(1, n_); // 保证有一棵树（题面 T>=2）
+        st.assign(4 * n + 5, {0, 0, false});
     }
+    static void applyFlip(Node &nd) {
+        nd.x = -nd.x;
+        nd.y = -nd.y;
+        nd.flip = !nd.flip;
+    }
+    void push(int p) {
+        if (!st[p].flip)
+            return;
+        applyFlip(st[p << 1]);
+        applyFlip(st[p << 1 | 1]);
+        st[p].flip = false;
+    }
+    static Node merge(const Node &a, const Node &b) { return {a.x + b.x, a.y + b.y, false}; }
+    void pointSet(int p, int l, int r, int idx, ll vx, ll vy) {
+        if (l == r) {
+            st[p].x = vx;
+            st[p].y = vy;
+            st[p].flip = false;
+            return;
+        }
+        push(p);
+        int m = (l + r) >> 1;
+        if (idx <= m)
+            pointSet(p << 1, l, m, idx, vx, vy);
+        else
+            pointSet(p << 1 | 1, m + 1, r, idx, vx, vy);
+        st[p] = merge(st[p << 1], st[p << 1 | 1]);
+    }
+    void rangeNeg(int p, int l, int r, int ql, int qr) {
+        if (ql > r || qr < l)
+            return;
+        if (ql <= l && r <= qr) {
+            applyFlip(st[p]);
+            return;
+        }
+        push(p);
+        int m = (l + r) >> 1;
+        rangeNeg(p << 1, l, m, ql, qr);
+        rangeNeg(p << 1 | 1, m + 1, r, ql, qr);
+        st[p] = merge(st[p << 1], st[p << 1 | 1]);
+    }
+    void setPoint(int idx, ll vx, ll vy) { pointSet(1, 1, n, idx, vx, vy); }
+    void negateRange(int l, int r) {
+        if (l <= r)
+            rangeNeg(1, 1, n, l, r);
+    }
+    pair<ll, ll> queryAll() const { return {st[1].x, st[1].y}; }
+};
 
-    prv(ans);
+static inline pair<ll, ll> relVecByT(long long t) {
+    int m = int(t & 3LL);
+    if (m == 0)
+        return {-1, 0};
+    if (m == 1)
+        return {0, 1};
+    if (m == 2)
+        return {1, 0};
+    return {0, -1};
+}
+
+void solve() {
+    int Nq;
+    int Tlen;
+    if (!(cin >> Nq >> Tlen))
+        return;
+    // 线段树覆盖 [1 .. T-1] 的时间点；每个叶子存当前带符号贡献 (+/- d_b)，初始为 0
+    SegTree st(max(1, Tlen - 1));
+    Fenwick fw(Tlen - 1); // 只用到 1..T-1
+
+    auto d0 = relVecByT(0);
+    auto dT = relVecByT(Tlen);
+    long long k = 0; // 已插入个数
+
+    for (int i = 0; i < Nq; i++) {
+        int b;
+        cin >> b; // 1 <= b <= T-1
+        int cntLess = (b > 1 ? fw.sumPrefix(b - 1) : 0);
+        int sign = (cntLess % 2 == 0 ? +1 : -1);
+        auto vecB = relVecByT(b);
+        ll vx = sign * vecB.first, vy = sign * vecB.second;
+        st.setPoint(b, vx, vy);
+        if (b < Tlen - 1)
+            st.negateRange(b + 1, Tlen - 1);
+        fw.add(b, 1);
+        k++;
+
+        auto S = st.queryAll();
+        long long addTx = (k % 2 == 0 ? dT.first : 0);
+        long long addTy = (k % 2 == 0 ? dT.second : 0);
+        long long ansx = S.first + addTx - d0.first;
+        long long ansy = S.second + addTy - d0.second;
+        cout << ansx << ' ' << ansy << '\n';
+    }
 }
 
 int main() {
