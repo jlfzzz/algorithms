@@ -10,8 +10,10 @@ using pii = pair<ll, ll>;
 #define ull unsigned long long
 #define vi vector<int>
 #define vp vector<pii>
+#define vl vector<long long>
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 #define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
@@ -20,18 +22,18 @@ using pii = pair<ll, ll>;
 #define se second
 constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
-constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
-constexpr long long iinf = 0x3f3f3f3f / 2;
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
 
 namespace utils {
-    void debug() { cerr << "\n"; }
+    void dbg() { cerr << "\n"; }
 
     template<typename T, typename... Args>
-    void debug(const string &s, T x, Args... args) {
+    void dbg(const string &s, T x, Args... args) {
         cerr << s << " = " << x;
         if (sizeof...(args) > 0)
             cerr << ", ";
-        debug(args...);
+        dbg(args...);
     }
 
     template<typename T>
@@ -47,7 +49,7 @@ namespace utils {
     }
 
     template<typename T>
-    void prt_vec(const vector<T> &v) {
+    void prv(const vector<T> &v) {
         for (size_t i = 0; i < v.size(); i++) {
             if (i)
                 cout << " ";
@@ -57,25 +59,13 @@ namespace utils {
     }
 
     template<typename T>
-    void prt_vec(const vector<T> &v, int start_index) {
+    void prv(const vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
             cout << v[i];
         }
         cout << "\n";
-    }
-
-    template<typename End, typename... Args>
-    void prt_end(const End &end, const Args &...args) {
-        ((cout << args << " "), ...);
-        cout << end;
-    }
-
-    template<typename... Args>
-    void prt_endl(const Args &...args) {
-        ((cout << args << " "), ...);
-        cout << endl;
     }
 
     template<typename T>
@@ -95,14 +85,14 @@ namespace utils {
     }
 
     template<typename T>
-    void rd_vec(vector<T> &v) {
+    void rv(vector<T> &v) {
         for (auto &x: v) {
             rd(x);
         }
     }
 
     template<typename T>
-    void rd_vec(vector<T> &v, int start_index) {
+    void rv(vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
@@ -885,27 +875,25 @@ void func1() {
     auto random_arr1 = random_array(n, 1, 1e5);
     auto random_arr2 = random_array(n, 1, 1e7);
 
-    int k = 9955;
-    int f1 = 1, f2 = 1;
-    set<int> st;
-    vi ans;
-    while (st.size() < 9000) {
-        int f3 = (f1 + f2) % k;
-        if (f3 == 0) {
-            debug("f3", f3);
+    vi ans{1};
+    int cnt = 2;
+    while (true) {
+        if (ans.size() >= 12) {
             break;
         }
-        st.insert(f3);
-        ans.push_back(f3);
+        int pre = ans.back();
+        auto calc = [&](int x) { return (1 + x) * x / 2; };
 
-        f1 = f2;
-        f2 = f3;
-
-        // debug("f3", f3);
+        if (calc(cnt) - calc(pre) > calc(pre)) {
+            ans.push_back(cnt);
+        }
+        cnt++;
     }
 
-    prt_vec(ans);
+    prv(ans);
+    prt(accumulate(all(ans), 0ll));
 }
+
 vector<pii> readTree(int n) {
     vector<pii> edges;
     F(i, 1, n - 1) {

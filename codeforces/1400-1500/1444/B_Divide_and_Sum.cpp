@@ -1,5 +1,105 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+
+namespace utils {
+    void dbg() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+using namespace utils;
 
 namespace atcoder {
 
@@ -536,34 +636,115 @@ namespace atcoder {
 
 } // namespace atcoder
 
-constexpr int N = int(1e5 + 5);
+using Z = atcoder::static_modint<MOD2>;
 
-int INIT = [] { return 0; }();
+Z q_pow(Z base, long long exp) {
+    Z result(1);
+    while (exp > 0) {
+        if (exp & 1)
+            result *= base;
+        base *= base;
+        exp >>= 1;
+    }
+    return result;
+}
 
-#include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
-using namespace __gnu_pbds;
-using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using pll = pair<long long, long long>;
-#define i128 __int128_t
-#define ull unsigned long long
-constexpr int inf = 0x3f3f3f3f / 2;
-using pii = pair<int, int>;
-constexpr int MOD = int(1e9 + 7);
-using ll = long long;
+constexpr int N = 200'005;
 
+struct Comb {
+    int n;
+    std::vector<Z> _fac;
+    std::vector<Z> _invfac;
+    std::vector<Z> _inv;
 
+    Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
+    explicit Comb(int n) : Comb() { init(n); }
 
+    void init(int m) {
+        if (m <= n) {
+            return;
+        }
+        _fac.resize(m + 1);
+        _invfac.resize(m + 1);
+        _inv.resize(m + 1);
 
+        for (int i = n + 1; i <= m; i++) {
+            _fac[i] = _fac[i - 1] * i;
+        }
+        _invfac[m] = _fac[m].inv();
+        for (int i = m; i > n; i--) {
+            _invfac[i - 1] = _invfac[i] * i;
+            _inv[i] = _invfac[i] * _fac[i - 1];
+        }
+        n = m;
+    }
 
+    Z fac(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _fac[m];
+    }
+    Z invfac(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _invfac[m];
+    }
+    Z inv(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _inv[m];
+    }
+    Z C(int n, int m) {
+        if (n < m || m < 0) {
+            return 0;
+        }
+        return fac(n) * invfac(m) * invfac(n - m);
+    }
+    Z A(int n, int m) {
+        if (n < m || m < 0) {
+            return 0;
+        }
+        return fac(n) * invfac(n - m);
+    }
+} comb(N);
 
+int Multitest = 0;
+
+void init() {}
+
+void solve() {
+    int n;
+    rd(n);
+    vi a(2 * n);
+    rv(a);
+
+    ranges::sort(a);
+
+    Z sum1 = 0;
+    Z sum2 = 0;
+    F(i, 0, n - 1) { sum1 += a[i]; }
+    F(i, n, 2 * n - 1) { sum2 += a[i]; }
+
+    // prt(sum1, sum2);
+
+    // prv(a);
+
+    auto d = sum2 - sum1;
+    prt((comb.C(2 * n, n) * d).val());
+}
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    // Solution sol1;
-    // ll n = 11;
-    // vector<int> nums1{}, nums{};
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
 }

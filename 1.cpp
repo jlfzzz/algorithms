@@ -138,7 +138,7 @@ struct SegTree {
     SegTree() : n(0) {}
     explicit SegTree(int n_) { init(n_); }
     void init(int n_) {
-        n = max(1, n_); // 保证有一棵树（题面 T>=2）
+        n = max(1, n_);
         st.assign(4 * n + 5, {0, 0, false});
     }
     static void applyFlip(Node &nd) {
