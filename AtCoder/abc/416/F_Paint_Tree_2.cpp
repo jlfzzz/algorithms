@@ -103,23 +103,55 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve() {
-    
-}
+ll dp[N][6][3], a[N];
+vector<int> g[N];
+int n, k;
 
+void dfs(int x, int fa) {
+    dp[x][1][0] = a[x];
+    dp[x][0][2] = 0;
+    for (int v: g[x])
+        if (v != fa) {
+            dfs(v, x);
+        }
+    for (int v: g[x])
+        if (v != fa) {
+            for (int i = k; i >= 0; i--) {
+                for (int j = 0; j <= i; j++) {
+                    dp[x][i][2] = max(dp[x][i][2], dp[x][i - j][1] + max(dp[v][j + 1][0], dp[v][j + 1][1]));
+                    dp[x][i][2] = max(dp[x][i][2], dp[x][i - j][2] + max({dp[v][j][0], dp[v][j][1], dp[v][j][2]}));
+
+                    dp[x][i][1] = max(dp[x][i][1], dp[x][i - j][0] + max(dp[v][j + 1][0], dp[v][j + 1][1]));
+                    dp[x][i][1] = max(dp[x][i][1], dp[x][i - j][1] + max({dp[v][j][0], dp[v][j][1], dp[v][j][2]}));
+
+                    dp[x][i][0] = max(dp[x][i][0], dp[x][i - j][0] + max({dp[v][j][0], dp[v][j][1], dp[v][j][2]}));
+                }
+            }
+        }
+}
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
+    memset(dp, -0x3f, sizeof(dp));
+    cin >> n >> k;
+    for (int i = 1; i <= n; i++)
+        cin >> a[i];
+    for (int i = 1; i < n; i++) {
+        int u, v;
+        cin >> u >> v;
+        g[u].push_back(v);
+        g[v].push_back(u);
     }
-    while (T--) {
-        solve();
+    dfs(1, 0);
+    ll ans = 0;
+    for (int i = 0; i <= k; i++) {
+        for (int j = 0; j <= 2; j++) {
+            ans = max(ans, dp[1][i][j]);
+        }
     }
+    cout << ans;
+
+    return 0;
 }
