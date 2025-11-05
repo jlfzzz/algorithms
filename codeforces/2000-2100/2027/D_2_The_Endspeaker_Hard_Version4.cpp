@@ -14,7 +14,6 @@ using pii = pair<ll, ll>;
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
 #define vvl vector<vector<long long>>
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 #define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
@@ -101,118 +100,260 @@ namespace utils {
 
 using namespace utils;
 
-namespace helpers {
-    // 辅助函数：递归打印树的子节点
-    void printTreeHelper(int u, int parent, const vector<vector<int>> &adj, string prefix, bool isLast) {
-        cout << prefix;
-        cout << (isLast ? "└── " : "├── ");
-        cout << u << endl;
+constexpr int N = 1e6 + 5;
 
-        // 获取子节点
-        vector<int> children;
-        for (int v: adj[u]) {
-            if (v != parent) {
-                children.push_back(v);
+namespace atcoder::internal {
+
+#if __cplusplus >= 202002L
+
+    using std::bit_ceil;
+
+#else
+
+    unsigned int bit_ceil(unsigned int n) {
+        unsigned int x = 1;
+        while (x < (unsigned int) (n))
+            x *= 2;
+        return x;
+    }
+
+#endif
+
+    int countr_zero(unsigned int n) {
+#ifdef _MSC_VER
+        unsigned long index;
+        _BitScanForward(&index, n);
+        return index;
+#else
+        return __builtin_ctz(n);
+#endif
+    }
+
+    constexpr int countr_zero_constexpr(unsigned int n) {
+        int x = 0;
+        while (!(n & (1 << x)))
+            x++;
+        return x;
+    }
+
+} // namespace atcoder::internal
+
+namespace atcoder {
+
+#if __cplusplus >= 201703L
+
+    template<class S, auto op, auto e, class F, auto mapping, auto composition, auto id>
+    struct lazy_segtree {
+        static_assert(std::is_convertible_v<decltype(op), std::function<S(S, S)>>, "op must work as S(S, S)");
+        static_assert(std::is_convertible_v<decltype(e), std::function<S()>>, "e must work as S()");
+        static_assert(std::is_convertible_v<decltype(mapping), std::function<S(F, S)>>, "mapping must work as S(F, S)");
+        static_assert(std::is_convertible_v<decltype(composition), std::function<F(F, F)>>,
+                      "composition must work as F(F, F)");
+        static_assert(std::is_convertible_v<decltype(id), std::function<F()>>, "id must work as F()");
+
+#else
+
+    template<class S, S (*op)(S, S), S (*e)(), class F, S (*mapping)(F, S), F (*composition)(F, F), F (*id)()>
+    struct lazy_segtree {
+
+#endif
+
+    public:
+        lazy_segtree() : lazy_segtree(0) {}
+        explicit lazy_segtree(int n) : lazy_segtree(std::vector<S>(n, e())) {}
+        explicit lazy_segtree(const std::vector<S> &v) : _n(int(v.size())) {
+            size = (int) internal::bit_ceil((unsigned int) (_n));
+            log = internal::countr_zero((unsigned int) size);
+            d = std::vector<S>(2 * size, e());
+            lz = std::vector<F>(size, id());
+            for (int i = 0; i < _n; i++)
+                d[size + i] = v[i];
+            for (int i = size - 1; i >= 1; i--) {
+                update(i);
             }
         }
 
-        // 递归打印子节点
-        for (int i = 0; i < children.size(); i++) {
-            bool last = (i == children.size() - 1);
-            string newPrefix = prefix + (isLast ? "    " : "│   ");
-            printTreeHelper(children[i], u, adj, newPrefix, last);
-        }
-    }
-
-    // 封装的打印树函数
-    // 参数：n - 节点数，edges - 边的列表，root - 根节点（默认为1）
-    void printTree(int n, const vector<pair<int, int>> &edges, int root = 1) {
-        // 构建邻接表
-        vector<vector<int>> adj(n + 1);
-        for (const auto &edge: edges) {
-            int u = edge.first;
-            int v = edge.second;
-            adj[u].push_back(v);
-            adj[v].push_back(u);
+        void set(int p, S x) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            d[p] = x;
+            for (int i = 1; i <= log; i++)
+                update(p >> i);
         }
 
-        // 打印树结构
-        cout << "Tree structure (root = " << root << "):" << endl;
-        cout << root << endl;
-
-        // 获取根节点的所有子节点
-        vector<int> children;
-        for (int v: adj[root]) {
-            children.push_back(v);
+        S get(int p) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            return d[p];
         }
 
-        // 打印所有子树
-        for (int i = 0; i < children.size(); i++) {
-            bool last = (i == children.size() - 1);
-            printTreeHelper(children[i], root, adj, "", last);
-        }
-    }
+        S prod(int l, int r) {
+            assert(0 <= l && l <= r && r <= _n);
+            if (l == r)
+                return e();
 
-    // 随机数组
-    vector<ll> random_array(int n, int lo, int hi) {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<ll> dist(lo, hi);
+            l += size;
+            r += size;
 
-        vector<ll> arr(n);
-        for (int i = 0; i < n; i++) {
-            arr[i] = (ll) dist(gen);
-        }
-        return arr;
-    }
-
-    // 打印整数的二进制表示
-    template<typename T>
-    void prt_bin(T x, int width = -1, char fill = '0') {
-        static_assert(is_integral_v<T>, "prt_bin only supports integral types");
-
-        string s;
-        if (x == 0) {
-            s = "0";
-        } else {
-            while (x != 0) {
-                s.push_back((x & 1) ? '1' : '0');
-                x >>= 1;
+            for (int i = log; i >= 1; i--) {
+                if (((l >> i) << i) != l)
+                    push(l >> i);
+                if (((r >> i) << i) != r)
+                    push((r - 1) >> i);
             }
-            reverse(s.begin(), s.end());
-        }
 
-        // 如果指定了宽度，则填充
-        if (width > 0 && (int) s.size() < width) {
-            s = string(width - s.size(), fill) + s;
-        }
-
-        cout << s << "\n";
-    }
-
-    // 打印向量vector的二进制
-    template<typename T>
-    void prt_vec_bin(const vector<T> &v, int width = -1, char fill = '0') {
-        for (size_t i = 0; i < v.size(); i++) {
-            prt_bin(v[i], width, fill);
-        }
-    }
-
-    // 输入二进制字符串打印整数
-    template<typename T = long long>
-    void prt_int(const string &s) {
-        static_assert(is_integral_v<T>, "prt_int only supports integral types");
-        T x = 0;
-        for (char c: s) {
-            if (c != '0' && c != '1') {
-                throw invalid_argument("Input string must be binary (0/1 only)");
+            S sml = e(), smr = e();
+            while (l < r) {
+                if (l & 1)
+                    sml = op(sml, d[l++]);
+                if (r & 1)
+                    smr = op(d[--r], smr);
+                l >>= 1;
+                r >>= 1;
             }
-            x = (x << 1) | (c - '0');
-        }
-        cout << x << "\n";
-    }
 
-} // namespace helpers
+            return op(sml, smr);
+        }
+
+        S all_prod() { return d[1]; }
+
+        void apply(int p, F f) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            d[p] = mapping(f, d[p]);
+            for (int i = 1; i <= log; i++)
+                update(p >> i);
+        }
+        void apply(int l, int r, F f) {
+            assert(0 <= l && l <= r && r <= _n);
+            if (l == r)
+                return;
+
+            l += size;
+            r += size;
+
+            for (int i = log; i >= 1; i--) {
+                if (((l >> i) << i) != l)
+                    push(l >> i);
+                if (((r >> i) << i) != r)
+                    push((r - 1) >> i);
+            }
+
+            {
+                int l2 = l, r2 = r;
+                while (l < r) {
+                    if (l & 1)
+                        all_apply(l++, f);
+                    if (r & 1)
+                        all_apply(--r, f);
+                    l >>= 1;
+                    r >>= 1;
+                }
+                l = l2;
+                r = r2;
+            }
+
+            for (int i = 1; i <= log; i++) {
+                if (((l >> i) << i) != l)
+                    update(l >> i);
+                if (((r >> i) << i) != r)
+                    update((r - 1) >> i);
+            }
+        }
+
+        template<bool (*g)(S)>
+        int max_right(int l) {
+            return max_right(l, [](S x) { return g(x); });
+        }
+        template<class G>
+        int max_right(int l, G g) {
+            assert(0 <= l && l <= _n);
+            assert(g(e()));
+            if (l == _n)
+                return _n;
+            l += size;
+            for (int i = log; i >= 1; i--)
+                push(l >> i);
+            S sm = e();
+            do {
+                while (l % 2 == 0)
+                    l >>= 1;
+                if (!g(op(sm, d[l]))) {
+                    while (l < size) {
+                        push(l);
+                        l = (2 * l);
+                        if (g(op(sm, d[l]))) {
+                            sm = op(sm, d[l]);
+                            l++;
+                        }
+                    }
+                    return l - size;
+                }
+                sm = op(sm, d[l]);
+                l++;
+            } while ((l & -l) != l);
+            return _n;
+        }
+
+        template<bool (*g)(S)>
+        int min_left(int r) {
+            return min_left(r, [](S x) { return g(x); });
+        }
+        template<class G>
+        int min_left(int r, G g) {
+            assert(0 <= r && r <= _n);
+            assert(g(e()));
+            if (r == 0)
+                return 0;
+            r += size;
+            for (int i = log; i >= 1; i--)
+                push((r - 1) >> i);
+            S sm = e();
+            do {
+                r--;
+                while (r > 1 && (r % 2))
+                    r >>= 1;
+                if (!g(op(d[r], sm))) {
+                    while (r < size) {
+                        push(r);
+                        r = (2 * r + 1);
+                        if (g(op(d[r], sm))) {
+                            sm = op(d[r], sm);
+                            r--;
+                        }
+                    }
+                    return r + 1 - size;
+                }
+                sm = op(d[r], sm);
+            } while ((r & -r) != r);
+            return 0;
+        }
+
+    private:
+        int _n, size, log;
+        std::vector<S> d;
+        std::vector<F> lz;
+
+        void update(int k) { d[k] = op(d[2 * k], d[2 * k + 1]); }
+        void all_apply(int k, F f) {
+            d[k] = mapping(f, d[k]);
+            if (k < size)
+                lz[k] = composition(f, lz[k]);
+        }
+        void push(int k) {
+            all_apply(2 * k, lz[k]);
+            all_apply(2 * k + 1, lz[k]);
+            lz[k] = id();
+        }
+    };
+
+} // namespace atcoder
 
 namespace atcoder {
 
@@ -751,157 +892,150 @@ namespace atcoder {
 
 using Z = atcoder::static_modint<MOD>;
 
-Z q_pow(Z base, long long exp) {
-    Z result(1);
-    while (exp > 0) {
-        if (exp & 1)
-            result *= base;
-        base *= base;
-        exp >>= 1;
+struct S {
+    ll mn;
+    Z cnt;
+};
+
+struct F {
+    ll mn;
+    Z cnt;
+};
+
+S op(S a, S b) {
+    if (a.mn == b.mn) {
+        return {a.mn, a.cnt + b.cnt};
     }
-    return result;
+    if (a.mn < b.mn) {
+        return a;
+    }
+    return b;
 }
 
-namespace math {
-    // 组合数
-    struct Comb {
-        int n;
-        std::vector<Z> _fac;
-        std::vector<Z> _invfac;
-        std::vector<Z> _inv;
+S e() { return {INF, 0}; }
 
-        Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
-        explicit Comb(int n) : Comb() { init(n); }
-
-        void init(int m) {
-            if (m <= n) {
-                return;
-            }
-            _fac.resize(m + 1);
-            _invfac.resize(m + 1);
-            _inv.resize(m + 1);
-
-            for (int i = n + 1; i <= m; i++) {
-                _fac[i] = _fac[i - 1] * i;
-            }
-            _invfac[m] = _fac[m].inv();
-            for (int i = m; i > n; i--) {
-                _invfac[i - 1] = _invfac[i] * i;
-                _inv[i] = _invfac[i] * _fac[i - 1];
-            }
-            n = m;
-        }
-
-        Z fac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _fac[m];
-        }
-        Z invfac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _invfac[m];
-        }
-        Z inv(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _inv[m];
-        }
-        Z C(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(m) * invfac(n - m);
-        }
-        Z A(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(n - m);
-        }
-    } comb(100'005);
-
-    // 质因数分解
-    vector<int> decompose(int x) {
-        vector<int> primes;
-        for (int i = 2; i * i <= x; i++) {
-            if (x % i == 0) {
-                primes.push_back(i);
-                while (x % i == 0) {
-                    x /= i;
-                }
-            }
-        }
-        if (x > 1) {
-            primes.push_back(x);
-        }
-        return primes;
+S mapping(F f, S x) {
+    if (f.mn < x.mn) {
+        x.mn = f.mn;
+        x.cnt = f.cnt;
+    } else if (f.mn == x.mn) {
+        x.cnt += f.cnt;
     }
-
-    // 二分判断完全平方数
-    bool isPerfectSquare(long long n) {
-        if (n < 0)
-            return false;
-        long long lo = 0, hi = n;
-        while (lo <= hi) {
-            long long mid = lo + (hi - lo) / 2;
-            long long sq = mid * mid;
-            if (sq == n)
-                return true;
-            else if (sq < n)
-                lo = mid + 1;
-            else
-                hi = mid - 1;
-        }
-        return false;
-    }
-} // namespace math
-
-using namespace utils;
-using namespace helpers;
-using namespace math;
-
-vector<pii> readTree(int n);
-
-#define int ll
-
-void func1() {
-    int n = 100;
-
-    vector<int> arr = {12, 3, 20, 5, 80, 1};
-    auto random_arr1 = random_array(n, 1, 1e5);
-    auto random_arr2 = random_array(n, 1, 1e7);
-
-    vi ans{1};
-    int cnt = 2;
-    while (true) {
-        if (ans.size() >= 12) {
-            break;
-        }
-        int pre = ans.back();
-        auto calc = [&](int x) { return (1 + x) * x / 2; };
-
-        if (calc(cnt) - calc(pre) > calc(pre)) {
-            ans.push_back(cnt);
-        }
-        cnt++;
-    }
-
-    prv(ans);
-    prt(accumulate(all(ans), 0ll) * 2);
+    return x;
 }
 
-vector<pii> readTree(int n) {
-    vector<pii> edges;
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        edges.pb(u, v);
+F composition(F f, F g) {
+    if (f.mn == g.mn) {
+        g.cnt += f.cnt;
+        return g;
     }
-    return edges;
+    if (f.mn < g.mn) {
+        return f;
+    }
+    return g;
 }
 
-signed main() { func1(); }
+F id() { return {INF, 0}; }
+
+vector<S> tree_arr;
+
+int Multitest = 1;
+
+void init() {}
+
+void solve() {
+    ll n, m;
+    rd(n, m);
+
+    vl a(n + 1), b(m + 1);
+    rv(a, 1);
+    rv(b, 1);
+
+    vl sufMx(n + 2);
+    sufMx[n + 1] = 0;
+    D(i, n, 1) { sufMx[i] = max(sufMx[i + 1], a[i]); }
+
+    vl pref(n + 2);
+    pref[0] = 0;
+    for (int i = 1; i <= n; i++) {
+        pref[i] = pref[i - 1] + a[i];
+    }
+    pref[n + 1] = INF;
+
+    if (sufMx[1] > b[1]) {
+        prt(-1);
+        return;
+    }
+
+    vector<atcoder::lazy_segtree<S, op, e, F, mapping, composition, id>> tree_arr;
+    tree_arr.reserve(m + 1);
+    for (int i = 0; i <= m; i++) {
+        tree_arr.pb(n + 2);
+    }
+
+    tree_arr[1].set(1, {0, 1});
+
+    for (int i = 1; i <= n; i++) {
+
+        for (int j = 1; j < m; j++) {
+            S cur = tree_arr[j].get(i);
+            if (cur.mn == INF)
+                continue;
+            tree_arr[j + 1].apply(i, i + 1, {cur.mn, cur.cnt});
+        }
+
+        for (int j = 1; j <= m; j++) {
+            S cur = tree_arr[j].get(i);
+            if (cur.mn == INF)
+                continue;
+
+            if (sufMx[i] > b[j]) {
+                continue;
+            }
+
+            auto &tree = tree_arr[j];
+            ll val = b[j];
+
+            if (a[i] > val)
+                continue;
+
+            ll target_sum = pref[i - 1] + val;
+            int r = (int) (upper_bound(pref.begin(), pref.end(), target_sum) - pref.begin()) - 1;
+
+            if (r < i)
+                continue;
+
+            tree.apply(i + 1, r + 2, {cur.mn + m - j, cur.cnt});
+        }
+    }
+
+    ll ans1 = INF;
+    Z ans2 = 0;
+    for (int i = 1; i <= m; i++) {
+        auto [mn, cnt] = tree_arr[i].get(n + 1);
+        if (mn < ans1) {
+            ans1 = mn;
+            ans2 = cnt;
+        } else if (mn == ans1) {
+            ans2 += cnt;
+        }
+    }
+
+    if (ans1 == INF) {
+        prt(-1);
+    } else {
+        prt(ans1, ans2.val());
+    }
+}
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
+}

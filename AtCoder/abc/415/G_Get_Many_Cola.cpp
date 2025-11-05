@@ -101,40 +101,55 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 9e4 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n;
-    rd(n);
-    vl a(n + 1);
-    rv(a, 1);
+    ll n, m;
+    rd(n, m);
 
-    map<ll, vl> pos;
-    F(i, 2, n) { pos[a[i] + i - 1].pb(i); }
+    vl cnt(305);
+    vp items(m + 1);
+    vl best(305);
+    ll mn = 1;
+    F(i, 1, m) {
+        ll a, b;
+        rd(a, b);
+        items[i] = {a, b};
 
-    map<ll, ll> memo;
-    auto dfs = [&](this auto &&dfs, ll len) -> ll {
-        if (!pos.contains(len)) {
-            return 0;
+        if (ll(items[mn].second) * a < ll(b) * items[mn].first) {
+            mn = i;
         }
-        if (memo.contains(len)) {
-            return memo[len];
-        }
 
-        ll res = 0;
-        for (ll i: pos[len]) {
-            res = max(res, dfs(len + i - 1) + i - 1);
-        }
-        memo[len] = res;
-        return res;
-    };
+        if (best[a] < b)
+            best[a] = b;
+    }
 
-    ll ans = dfs(n);
-    prt(ans + n);
+    ll ans = n;
+    ll d = items[mn].first - items[mn].second;
+
+    if (n > ll(N)) {
+        ll can = (n - (ll) N + d - 1) / d;
+        ans += can * items[mn].second;
+        n -= d * can;
+    }
+
+    vl dp(N + 1);
+    F(i, 1, N) {
+        F(a, 1, 300) {
+            ll b = best[a];
+            if (!b)
+                continue;
+            if (i >= a) {
+                dp[i] = max(dp[i], dp[i - a + b] + b);
+            }
+        }
+    }
+
+    prt(ans + dp[n]);
 }
 
 int main() {

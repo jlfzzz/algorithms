@@ -103,38 +103,51 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n;
-    rd(n);
-    vl a(n + 1);
-    rv(a, 1);
+    int h, w;
+    rd(h, w);
+    vvl grid(h, vl(w));
+    F(i, 0, h - 1) {
+        F(j, 0, w - 1) { rd(grid[i][j]); }
+    }
 
-    map<ll, vl> pos;
-    F(i, 2, n) { pos[a[i] + i - 1].pb(i); }
+    vl p(h + w - 1);
+    rv(p);
 
-    map<ll, ll> memo;
-    auto dfs = [&](this auto &&dfs, ll len) -> ll {
-        if (!pos.contains(len)) {
-            return 0;
+    ll lo = 0;
+    ll hi = 1e16;
+
+    ll ans = 0;
+    while (lo < hi) {
+        ll m = (lo + hi) / 2;
+        auto check = [&]() {
+            vvl dp(h + 1, vl(w + 1, -INF));
+            dp[0][1] = m;
+            F(i, 1, h) {
+                F(j, 1, w) {
+                    ll mx = max(dp[i - 1][j], dp[i][j - 1]);
+                    if (mx + grid[i - 1][j - 1] >= p[i - 1 + j - 1]) {
+                        dp[i][j] = mx + grid[i - 1][j - 1] - p[i - 1 + j - 1];
+                    }
+                }
+            }
+
+            return dp[h][w] >= 0;
+        };
+
+        if (check()) {
+            ans = m;
+            hi = m;
+        } else {
+            lo = m + 1;
         }
-        if (memo.contains(len)) {
-            return memo[len];
-        }
+    }
 
-        ll res = 0;
-        for (ll i: pos[len]) {
-            res = max(res, dfs(len + i - 1) + i - 1);
-        }
-        memo[len] = res;
-        return res;
-    };
-
-    ll ans = dfs(n);
-    prt(ans + n);
+    prt(ans);
 }
 
 int main() {

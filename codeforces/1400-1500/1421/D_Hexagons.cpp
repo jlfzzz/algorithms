@@ -108,33 +108,42 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    ll n;
-    rd(n);
-    vl a(n + 1);
-    rv(a, 1);
-
-    map<ll, vl> pos;
-    F(i, 2, n) { pos[a[i] + i - 1].pb(i); }
-
-    map<ll, ll> memo;
-    auto dfs = [&](this auto &&dfs, ll len) -> ll {
-        if (!pos.contains(len)) {
-            return 0;
+    ll x, y;
+    rd(x, y);
+    vl cost(6);
+    rv(cost);
+    vl best(6);
+    F(i, 0, 5) { best[i] = min(cost[i], cost[(i + 1) % 6] + cost[(i - 1 + 6) % 6]); }
+    ll ans = 0;
+    auto calc = [&](ll x, ll y) {
+        if (y > 0) {
+            return y * best[1];
         }
-        if (memo.contains(len)) {
-            return memo[len];
+        if (y < 0) {
+            return -y * best[4];
         }
-
-        ll res = 0;
-        for (ll i: pos[len]) {
-            res = max(res, dfs(len + i - 1) + i - 1);
+        if (x > 0) {
+            return x * best[5];
         }
-        memo[len] = res;
-        return res;
+        return -x * best[2];
     };
 
-    ll ans = dfs(n);
-    prt(ans + n);
+    if (x * y > 0) {
+        if (x > 0) {
+            ll t = min(x, y);
+            ans += best[0] * t;
+            x -= t;
+            y -= t;
+        } else {
+            ll t = max(x, y);
+            ans += best[3] * abs(t);
+            x -= t;
+            y -= t;
+        }
+    }
+
+    ans += calc(x, 0) + calc(0, y);
+    prt(ans);
 }
 
 int main() {

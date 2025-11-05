@@ -103,38 +103,95 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+template<typename T>
+class FenwickTree {
+    vector<T> tree;
+
+public:
+    FenwickTree(int n) : tree(n + 1) {}
+
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
+        }
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+
+    // 点更新取 max
+    void updateMax(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            if (val > tree[i]) {
+                tree[i] = val;
+            }
+        }
+    }
+
+    T preMax(int i) const {
+        T res = numeric_limits<T>::min();
+        for (; i > 0; i &= i - 1) {
+            res = max(res, tree[i]);
+        }
+        return res;
+    }
+};
+
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n;
+    int n;
     rd(n);
-    vl a(n + 1);
-    rv(a, 1);
+    string s;
+    rd(s);
 
-    map<ll, vl> pos;
-    F(i, 2, n) { pos[a[i] + i - 1].pb(i); }
+    auto rev = s;
+    s = "#" + s;
 
-    map<ll, ll> memo;
-    auto dfs = [&](this auto &&dfs, ll len) -> ll {
-        if (!pos.contains(len)) {
-            return 0;
-        }
-        if (memo.contains(len)) {
-            return memo[len];
-        }
+    vector<queue<int>> pos(26);
+    F(i, 1, n) {
+        int j = s[i] - 'a';
+        pos[j].push(i);
+    }
 
-        ll res = 0;
-        for (ll i: pos[len]) {
-            res = max(res, dfs(len + i - 1) + i - 1);
-        }
-        memo[len] = res;
-        return res;
-    };
 
-    ll ans = dfs(n);
-    prt(ans + n);
+    ranges::reverse(rev);
+    rev = '#' + rev;
+
+    vi a(n + 1);
+    F(i, 1, n) {
+        int j = rev[i] - 'a';
+        int t = pos[j].front();
+        pos[j].pop();
+        a[i] = t;
+    }
+
+    FenwickTree<int> fwt(n + 1);
+    ll ans = 0;
+    F(i, 1, n) {
+        int cur = a[i];
+        ans += fwt.rangeSum(cur + 1, n);
+        fwt.update(cur, 1);
+    }
+
+    prt(ans);
 }
 
 int main() {

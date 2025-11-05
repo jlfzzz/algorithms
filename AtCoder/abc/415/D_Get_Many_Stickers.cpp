@@ -103,38 +103,39 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n;
-    rd(n);
-    vl a(n + 1);
-    rv(a, 1);
+    ll n, m;
+    rd(n, m);
 
-    map<ll, vl> pos;
-    F(i, 2, n) { pos[a[i] + i - 1].pb(i); }
+    map<ll, ll> cnt;
+    F(i, 1, m) {
+        ll a, b;
+        rd(a, b);
+        ll d = a - b;
 
-    map<ll, ll> memo;
-    auto dfs = [&](this auto &&dfs, ll len) -> ll {
-        if (!pos.contains(len)) {
-            return 0;
+        if (!cnt.contains(d)) {
+            cnt[d] = a;
+        } else {
+            cnt[d] = min(cnt[d], a);
         }
-        if (memo.contains(len)) {
-            return memo[len];
+    }
+
+    ll ans = 0;
+    for (auto [d, need]: cnt) {
+        if (n < need) {
+            continue;
         }
 
-        ll res = 0;
-        for (ll i: pos[len]) {
-            res = max(res, dfs(len + i - 1) + i - 1);
-        }
-        memo[len] = res;
-        return res;
-    };
+        ll k = (n - need) / d + 1;
+        ans += k;
+        n -= k * d;
+    }
 
-    ll ans = dfs(n);
-    prt(ans + n);
+    prt(ans);
 }
 
 int main() {

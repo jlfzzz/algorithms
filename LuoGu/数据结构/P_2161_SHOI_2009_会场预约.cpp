@@ -103,38 +103,51 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n;
+    int n;
     rd(n);
-    vl a(n + 1);
-    rv(a, 1);
 
-    map<ll, vl> pos;
-    F(i, 2, n) { pos[a[i] + i - 1].pb(i); }
-
-    map<ll, ll> memo;
-    auto dfs = [&](this auto &&dfs, ll len) -> ll {
-        if (!pos.contains(len)) {
-            return 0;
+    struct Seg {
+        ll l, r;
+        bool operator<(const Seg &other) const {
+            if (l != other.l)
+                return l < other.l;
+            return r < other.r;
         }
-        if (memo.contains(len)) {
-            return memo[len];
-        }
-
-        ll res = 0;
-        for (ll i: pos[len]) {
-            res = max(res, dfs(len + i - 1) + i - 1);
-        }
-        memo[len] = res;
-        return res;
     };
+    set<Seg> st;
+    F(i, 1, n) {
+        char op;
+        rd(op);
 
-    ll ans = dfs(n);
-    prt(ans + n);
+        if (op == 'B') {
+            prt(st.size());
+            continue;
+        }
+
+        ll l, r;
+        rd(l, r);
+        auto it = st.lower_bound({l, -INF});
+        vector<Seg> del;
+        if (it != st.begin()) {
+            auto prv = it;
+            prv--;
+            if (prv->r >= l)
+                del.pb(*prv);
+        }
+        while (it != st.end() && it->l <= r) {
+            del.pb(*it);
+            it++;
+        }
+        prt(del.size());
+        for (auto &seg: del)
+            st.erase(seg);
+        st.insert({l, r});
+    }
 }
 
 int main() {

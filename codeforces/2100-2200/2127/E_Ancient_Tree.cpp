@@ -1,0 +1,252 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define all(x) (x).begin(), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+
+namespace utils {
+    void dbg() { cerr << "\n"; }
+
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+using namespace utils;
+
+constexpr int N = 1e6 + 5;
+
+int Multitest = 1;
+
+void init() {}
+
+void solve() {
+    int n, k;
+    rd(n, k);
+    vi w(n + 1);
+    rv(w, 1);
+    vi col(n + 1);
+    rv(col, 1);
+
+    ll ans = 0;
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+
+    vi sz(n + 1);
+    auto dfs1 = [&](this auto &&dfs, int u, int fa) -> void {
+        sz[u] = 1;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+            dfs(v, u);
+            sz[u] += sz[v];
+        }
+    };
+    dfs1(1, 0);
+
+    auto dfs2 = [&](this auto &&dfs, int u, int fa, int c) -> void {
+        if (col[u]) {
+            return;
+        }
+        col[u] = c;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+            dfs(v, u, c);
+        }
+    };
+
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> unordered_map<int, int> * {
+        int son = -1;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+            if (son == -1 || sz[v] > sz[son]) {
+                son = v;
+            }
+        }
+
+        if (son == -1) {
+            auto *mp = new unordered_map<int, int>;
+            if (col[u]) {
+                (*mp)[col[u]]++;
+            }
+            return mp;
+        }
+
+        unordered_map<int, int> *mp = dfs(son, u);
+
+        set<int> have;
+        set<int> emptySons;
+        if ((*mp).empty()) {
+            emptySons.insert(son);
+        }
+        for (int v: g[u]) {
+            if (v == fa || v == son) {
+                continue;
+            }
+
+            auto *tmp = dfs(v, u);
+            if ((*tmp).empty()) {
+                emptySons.insert(v);
+            }
+            for (auto [key, val]: *tmp) {
+                if ((*mp).contains(key)) {
+                    have.insert(key);
+                }
+                (*mp)[key] += val;
+            }
+        }
+
+        int cnt = have.size();
+        if (col[u]) {
+            for (int v: emptySons) {
+                dfs2(v, u, col[u]);
+            }
+
+            if (cnt == 1) {
+                int only = *have.begin();
+                if (only != col[u]) {
+                    ans += w[u];
+                }
+            } else if (cnt >= 2) {
+                ans += w[u];
+            }
+            (*mp)[col[u]]++;
+        } else {
+            if (cnt == 0) {
+                if ((*mp).empty()) {
+                    return mp;
+                }
+                col[u] = (*mp).begin()->first;
+            } else if (cnt == 1) {
+                col[u] = *have.begin();
+            } else {
+                col[u] = *have.begin();
+                ans += w[u];
+            }
+            for (int v: emptySons) {
+                dfs2(v, u, col[u]);
+            }
+            (*mp)[col[u]]++;
+        }
+
+        return mp;
+    };
+
+    dfs(1, 0);
+    if (col[1] == 0) {
+        dfs2(1, 0, 1);
+    }
+
+    prt(ans);
+    prv(col, 1);
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
+}

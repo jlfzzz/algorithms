@@ -103,38 +103,125 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
+
+template<typename T>
+class FenwickTree {
+    vector<T> tree;
+
+public:
+    FenwickTree(int n) : tree(n + 1) {}
+
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
+        }
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+
+    // 点更新取 max
+    void updateMax(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            if (val > tree[i]) {
+                tree[i] = val;
+            }
+        }
+    }
+
+    T preMax(int i) const {
+        T res = numeric_limits<T>::min();
+        for (; i > 0; i &= i - 1) {
+            res = max(res, tree[i]);
+        }
+        return res;
+    }
+};
 
 void init() {}
 
 void solve() {
-    ll n;
-    rd(n);
-    vl a(n + 1);
-    rv(a, 1);
+    int n, c, d;
+    rd(n, c, d);
 
-    map<ll, vl> pos;
-    F(i, 2, n) { pos[a[i] + i - 1].pb(i); }
+    vp a, b;
+    F(i, 1, n) {
+        int x, y;
+        char c;
+        rd(x, y, c);
 
-    map<ll, ll> memo;
-    auto dfs = [&](this auto &&dfs, ll len) -> ll {
-        if (!pos.contains(len)) {
+        if (c == 'C') {
+            a.pb(x, y);
+        } else {
+            b.pb(x, y);
+        }
+    }
+
+    ll ans = 0;
+    {
+        vi a2, b2;
+        for (auto [x, y]: a) {
+            if (y <= c) {
+                a2.pb(x);
+            }
+        }
+        for (auto [x, y]: b) {
+            if (y <= d) {
+                b2.pb(x);
+            }
+        }
+
+        ranges::sort(a2);
+        ranges::sort(b2);
+        if (!a2.empty() && !b2.empty()) {
+            ans = a2.back() + b2.back();
+        }
+    }
+
+    auto calc = [&](vp &items, ll money) -> ll {
+        vp v;
+        for (auto [b, p]: items) {
+            if (p <= money)
+                v.pb(b, p);
+        }
+        if (v.size() < 2)
             return 0;
-        }
-        if (memo.contains(len)) {
-            return memo[len];
-        }
 
+        ranges::sort(v, [&](const pii &A, const pii &B) { return A.se < B.se; });
+
+        FenwickTree<ll> pref(money + 1);
+        FenwickTree<ll> cnt(money + 1);
         ll res = 0;
-        for (ll i: pos[len]) {
-            res = max(res, dfs(len + i - 1) + i - 1);
+        for (auto [b, p]: v) {
+            ll remain = money - p;
+            if (remain > 0 && cnt.pre(remain) > 0) {
+                ll best = pref.preMax(remain);
+                res = max(res, b + best);
+            }
+            pref.updateMax(p, b);
+            cnt.update(p, 1);
         }
-        memo[len] = res;
         return res;
     };
 
-    ll ans = dfs(n);
-    prt(ans + n);
+    ans = max(ans, max(calc(a, c), calc(b, d)));
+    prt(ans);
 }
 
 int main() {
