@@ -26,44 +26,14 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 
 namespace utils {
-    template<typename A, typename B>
-    ostream &operator<<(ostream &os, const pair<A, B> &p) {
-        return os << '(' << p.first << ", " << p.second << ')';
-    }
+    void dbg() { cerr << "\n"; }
 
-    template<typename Tuple, size_t... Is>
-    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
-        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
-    }
-
-    template<typename... Args>
-    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
-        os << '(';
-        print_tuple(os, t, index_sequence_for<Args...>{});
-        return os << ')';
-    }
-
-    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
-    ostream &operator<<(ostream &os, const T &v) {
-        os << '{';
-        bool first = true;
-        for (auto &x: v) {
-            if (!first)
-                os << ", ";
-            first = false;
-            os << x;
-        }
-        return os << '}';
-    }
-
-    void debug_out() { cerr << endl; }
-
-    template<typename Head, typename... Tail>
-    void debug_out(Head H, Tail... T) {
-        cerr << H;
-        if (sizeof...(T))
-            cerr << " ";
-        debug_out(T...);
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
     }
 
     template<typename T>
@@ -129,120 +99,7 @@ namespace utils {
     }
 } // namespace utils
 
-#define dbg(...) cerr << "[line: " << __LINE__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
-
-namespace helpers {
-    // 辅助函数：递归打印树的子节点
-    void printTreeHelper(int u, int parent, const vector<vector<int>> &adj, string prefix, bool isLast) {
-        cout << prefix;
-        cout << (isLast ? "└── " : "├── ");
-        cout << u << endl;
-
-        // 获取子节点
-        vector<int> children;
-        for (int v: adj[u]) {
-            if (v != parent) {
-                children.push_back(v);
-            }
-        }
-
-        // 递归打印子节点
-        for (int i = 0; i < children.size(); i++) {
-            bool last = (i == children.size() - 1);
-            string newPrefix = prefix + (isLast ? "    " : "│   ");
-            printTreeHelper(children[i], u, adj, newPrefix, last);
-        }
-    }
-
-    // 封装的打印树函数
-    // 参数：n - 节点数，edges - 边的列表，root - 根节点（默认为1）
-    void printTree(int n, const vector<pair<int, int>> &edges, int root = 1) {
-        // 构建邻接表
-        vector<vector<int>> adj(n + 1);
-        for (const auto &edge: edges) {
-            int u = edge.first;
-            int v = edge.second;
-            adj[u].push_back(v);
-            adj[v].push_back(u);
-        }
-
-        // 打印树结构
-        cout << "Tree structure (root = " << root << "):" << endl;
-        cout << root << endl;
-
-        // 获取根节点的所有子节点
-        vector<int> children;
-        for (int v: adj[root]) {
-            children.push_back(v);
-        }
-
-        // 打印所有子树
-        for (int i = 0; i < children.size(); i++) {
-            bool last = (i == children.size() - 1);
-            printTreeHelper(children[i], root, adj, "", last);
-        }
-    }
-
-    // 随机数组
-    vector<ll> random_array(int n, int lo, int hi) {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<ll> dist(lo, hi);
-
-        vector<ll> arr(n);
-        for (int i = 0; i < n; i++) {
-            arr[i] = (ll) dist(gen);
-        }
-        return arr;
-    }
-
-    // 打印整数的二进制表示
-    template<typename T>
-    void prt_bin(T x, int width = -1, char fill = '0') {
-        static_assert(is_integral_v<T>, "prt_bin only supports integral types");
-
-        string s;
-        if (x == 0) {
-            s = "0";
-        } else {
-            while (x != 0) {
-                s.push_back((x & 1) ? '1' : '0');
-                x >>= 1;
-            }
-            reverse(s.begin(), s.end());
-        }
-
-        // 如果指定了宽度，则填充
-        if (width > 0 && (int) s.size() < width) {
-            s = string(width - s.size(), fill) + s;
-        }
-
-        cout << s << "\n";
-    }
-
-    // 打印向量vector的二进制
-    template<typename T>
-    void prt_vec_bin(const vector<T> &v, int width = -1, char fill = '0') {
-        for (size_t i = 0; i < v.size(); i++) {
-            prt_bin(v[i], width, fill);
-        }
-    }
-
-    // 输入二进制字符串打印整数
-    template<typename T = long long>
-    void prt_int(const string &s) {
-        static_assert(is_integral_v<T>, "prt_int only supports integral types");
-        T x = 0;
-        for (char c: s) {
-            if (c != '0' && c != '1') {
-                throw invalid_argument("Input string must be binary (0/1 only)");
-            }
-            x = (x << 1) | (c - '0');
-        }
-        cout << x << "\n";
-    }
-
-} // namespace helpers
+using namespace utils;
 
 namespace atcoder {
 
@@ -781,141 +638,84 @@ namespace atcoder {
 
 using Z = atcoder::static_modint<MOD>;
 
-Z q_pow(Z base, long long exp) {
-    Z result(1);
-    while (exp > 0) {
-        if (exp & 1)
-            result *= base;
-        base *= base;
-        exp >>= 1;
+using Matrix = vector<vector<Z>>;
+
+Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
+    int n = m1.size();
+    int p = m1[0].size();
+    int m = m2[0].size();
+
+    Matrix ret(n, vector<Z>(m, 0));
+    for (int i = 0; i < n; ++i) {
+        for (int k = 0; k < p; ++k) {
+            if (m1[i][k] == 0) {
+                continue;
+            }
+            for (int j = 0; j < m; ++j) {
+                ret[i][j] = ret[i][j] + m1[i][k] * m2[k][j];
+            }
+        }
     }
-    return result;
+    return ret;
 }
 
-namespace math {
-    // 组合数
-    struct Comb {
-        int n;
-        std::vector<Z> _fac;
-        std::vector<Z> _invfac;
-        std::vector<Z> _inv;
-
-        Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
-        explicit Comb(int n) : Comb() { init(n); }
-
-        void init(int m) {
-            if (m <= n) {
-                return;
-            }
-            _fac.resize(m + 1);
-            _invfac.resize(m + 1);
-            _inv.resize(m + 1);
-
-            for (int i = n + 1; i <= m; i++) {
-                _fac[i] = _fac[i - 1] * i;
-            }
-            _invfac[m] = _fac[m].inv();
-            for (int i = m; i > n; i--) {
-                _invfac[i - 1] = _invfac[i] * i;
-                _inv[i] = _invfac[i] * _fac[i - 1];
-            }
-            n = m;
-        }
-
-        Z fac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _fac[m];
-        }
-        Z invfac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _invfac[m];
-        }
-        Z inv(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _inv[m];
-        }
-        Z C(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(m) * invfac(n - m);
-        }
-        Z A(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(n - m);
-        }
-    } comb(100'005);
-
-    // 质因数分解
-    vector<int> decompose(int x) {
-        vector<int> primes;
-        for (int i = 2; i * i <= x; i++) {
-            if (x % i == 0) {
-                primes.push_back(i);
-                while (x % i == 0) {
-                    x /= i;
-                }
-            }
-        }
-        if (x > 1) {
-            primes.push_back(x);
-        }
-        return primes;
+Matrix quick_mul(Matrix mat, long long n) {
+    int m = mat.size();
+    Matrix unit(m, vector<Z>(m, 0));
+    for (int i = 0; i < m; ++i) {
+        unit[i][i] = 1;
     }
 
-    // 二分判断完全平方数
-    bool isPerfectSquare(long long n) {
-        if (n < 0)
-            return false;
-        long long lo = 0, hi = n;
-        while (lo <= hi) {
-            long long mid = lo + (hi - lo) / 2;
-            long long sq = mid * mid;
-            if (sq == n)
-                return true;
-            else if (sq < n)
-                lo = mid + 1;
-            else
-                hi = mid - 1;
+    while (n) {
+        if (n & 1) {
+            unit = mat_mul(unit, mat);
         }
-        return false;
+        mat = mat_mul(mat, mat);
+        n >>= 1;
     }
-} // namespace math
-
-using namespace utils;
-using namespace helpers;
-using namespace math;
-
-vector<pii> readTree(int n);
-
-#define int ll
-
-void func1() {
-    int n = 100;
-
-    vector<int> arr = {12, 3, 20, 5, 80, 1};
-    auto random_arr1 = random_array(n, 1, 1e5);
-    auto random_arr2 = random_array(n, 1, 1e7);
-
-    dbg(random_arr1);
+    return unit;
 }
 
-vector<pii> readTree(int n) {
-    vector<pii> edges;
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        edges.pb(u, v);
+constexpr int N = 105;
+
+int Multitest = 0;
+
+void init() {}
+
+void solve() {
+    ll n, x;
+    rd(n, x);
+
+    vi cnt(N);
+    F(i, 1, n) {
+        int t;
+        rd(t);
+        cnt[t]++;
     }
-    return edges;
+
+    Matrix mat0(N, vector<Z>(1));
+    mat0[0][0] = mat0[1][0] = 1;
+
+    Matrix mat1(N, vector<Z>(N));
+    mat1[0][0] = 1;
+    F(i, 1, N - 1) { mat1[0][i] = mat1[1][i] = cnt[i]; }
+    F(i, 2, N - 1) { mat1[i][i - 1] = 1; }
+
+    mat1 = quick_mul(mat1, x);
+    auto mat2 = mat_mul(mat1, mat0);
+
+    prt(mat2[0][0].val());
 }
 
-signed main() { func1(); }
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
+}

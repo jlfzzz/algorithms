@@ -6,6 +6,10 @@ using namespace __gnu_pbds;
 using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
 using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
 
+// 没有multiset,只能这样勉强用，.second是哨兵，
+using ordered_multiset = tree<pair<long long, int>, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+
+
 int main() {
     ordered_set s;
     s.insert(10);

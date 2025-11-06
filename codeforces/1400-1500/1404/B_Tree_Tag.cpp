@@ -2,7 +2,6 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define db long double
 #define pb emplace_back
 #define pf emplace_front
 #define all(x) (x).begin(), (x).end()
@@ -14,6 +13,7 @@ using pii = pair<ll, ll>;
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
 #define vvl vector<vector<long long>>
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 #define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
@@ -23,47 +23,16 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
-    template<typename A, typename B>
-    ostream &operator<<(ostream &os, const pair<A, B> &p) {
-        return os << '(' << p.first << ", " << p.second << ')';
-    }
+    void dbg() { cerr << "\n"; }
 
-    template<typename Tuple, size_t... Is>
-    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
-        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
-    }
-
-    template<typename... Args>
-    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
-        os << '(';
-        print_tuple(os, t, index_sequence_for<Args...>{});
-        return os << ')';
-    }
-
-    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
-    ostream &operator<<(ostream &os, const T &v) {
-        os << '{';
-        bool first = true;
-        for (auto &x: v) {
-            if (!first)
-                os << ", ";
-            first = false;
-            os << x;
-        }
-        return os << '}';
-    }
-
-    void debug_out() { cerr << endl; }
-
-    template<typename Head, typename... Tail>
-    void debug_out(Head H, Tail... T) {
-        cerr << H;
-        if (sizeof...(T))
-            cerr << " ";
-        debug_out(T...);
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
     }
 
     template<typename T>
@@ -129,61 +98,77 @@ namespace utils {
     }
 } // namespace utils
 
-#ifdef LOCAL
-#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
-#else
-#define dbg(...) ((void) 0)
-#endif
-
 using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, a, b, da, db;
+    rd(n, a, b, da, db);
 
-    vl a(n + 1);
-    rv(a, 1);
-
-    vl pre(n + 1), ppre(n + 1), sz(n + 1), f(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] + a[i]; }
-    F(i, 1, n) { ppre[i] = ppre[i - 1] + pre[i]; }
-    F(i, 1, n) { sz[i] = sz[i - 1] + n - i + 1; }
-    F(i, 1, n) {
-        ll sum = ppre[n] - ppre[i - 1] - (n - i + 1) * pre[i - 1];
-        f[i] = f[i - 1] + sum;
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
 
-    int q;
-    rd(q);
-
-    while (q--) {
-        ll l, r;
-        rd(l, r);
-
-        auto calc2 = [&](ll x) -> ll {
-            if (x == 0)
-                return 0;
-            ll u = ranges::lower_bound(sz, x) - sz.begin();
-            u--;
-            ll res = f[u];
-            ll extra = x - sz[u];
-            if (extra > 0) {
-                ll i = u + 1;
-                ll j = u + extra;
-                res += (ppre[j] - ppre[i - 1]) - extra * pre[i - 1];
+    vi dis(n + 1);
+    auto dfs1 = [&](this auto &&dfs, int u, int fa) -> void {
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
             }
-            return res;
-        };
-
-        prt(calc2(r) - calc2(l - 1));
+            dis[v] = dis[u] + 1;
+            dfs(v, u);
+        }
+    };
+    dfs1(a, 0);
+    if (dis[b] <= da) {
+        prt("Alice");
+        return;
     }
+
+    int d = 0;
+    vi dp(n + 1);
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        int mx1 = 0;
+        int mx2 = 0;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+            dfs(v, u);
+            if (dp[v] > mx1) {
+                mx2 = mx1;
+                mx1 = dp[v];
+            } else if (dp[v] > mx2) {
+                mx2 = dp[v];
+            }
+        }
+
+        d = max(d, mx1 + mx2 + 1);
+        dp[u] = 1 + mx1;
+    };
+    dfs(1, 0);
+
+    if (d <= 2 * da + 1) {
+        prt("Alice");
+        return;
+    }
+
+    if (db > 2 * da) {
+        prt("Bob");
+        return;
+    }
+    prt("Alice");
 }
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

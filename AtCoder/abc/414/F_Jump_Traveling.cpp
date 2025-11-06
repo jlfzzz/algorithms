@@ -139,51 +139,106 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, k;
+    rd(n, k);
 
-    vl a(n + 1);
-    rv(a, 1);
-
-    vl pre(n + 1), ppre(n + 1), sz(n + 1), f(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] + a[i]; }
-    F(i, 1, n) { ppre[i] = ppre[i - 1] + pre[i]; }
-    F(i, 1, n) { sz[i] = sz[i - 1] + n - i + 1; }
-    F(i, 1, n) {
-        ll sum = ppre[n] - ppre[i - 1] - (n - i + 1) * pre[i - 1];
-        f[i] = f[i - 1] + sum;
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
 
-    int q;
-    rd(q);
-
-    while (q--) {
-        ll l, r;
-        rd(l, r);
-
-        auto calc2 = [&](ll x) -> ll {
-            if (x == 0)
-                return 0;
-            ll u = ranges::lower_bound(sz, x) - sz.begin();
-            u--;
-            ll res = f[u];
-            ll extra = x - sz[u];
-            if (extra > 0) {
-                ll i = u + 1;
-                ll j = u + extra;
-                res += (ppre[j] - ppre[i - 1]) - extra * pre[i - 1];
+    int cnt = 0;
+    vi parent(n + 1), L(n + 1), R(n + 1), dis(n + 1), seq(n + 1);
+    auto dfs = [&](auto &&dfs, int u, int fa) -> void {
+        parent[u] = fa;
+        L[u] = ++cnt;
+        seq[cnt] = u;
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
             }
-            return res;
-        };
+            dis[v] = dis[u] + 1;
+            dfs(dfs, v, u);
+        }
+        R[u] = cnt;
+    };
 
-        prt(calc2(r) - calc2(l - 1));
+    dfs(dfs, 1, 0);
+    int mx = 0;
+    F(i, 1, n) mx = max(mx, dis[i]);
+
+    vector<set<int>> pts(mx + 1);
+    F(i, 1, n) { pts[dis[i]].insert(L[i]); }
+
+    vi ans(n + 1, -1);
+    queue<int> q;
+
+    q.push(1);
+    ans[1] = 0;
+    pts[dis[1]].erase(L[1]);
+
+    auto push_nodes = [&](int l, int r, int target_depth, int current_dist) {
+        if (target_depth < 0 || target_depth > mx) {
+            return;
+        }
+
+        auto &s = pts[target_depth];
+        for (auto it = s.lower_bound(l);;) {
+            if (it == s.end() || *it > r) {
+                break;
+            }
+
+            int v_dfs_order = *it;
+            int v = seq[v_dfs_order];
+
+            it = s.erase(it);
+
+            ans[v] = current_dist + 1;
+            q.push(v);
+        }
+    };
+
+
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+
+        int current_dist = ans[u];
+
+        push_nodes(L[u], R[u], dis[u] + k, current_dist);
+        int p = u;
+        int lst = u;
+
+        F(i, 1, k) {
+            lst = p;
+            p = parent[p];
+
+            if (p == 0) {
+                break;
+            }
+
+            int target_depth = dis[u] + k - 2 * i;
+
+            if (target_depth < 0) {
+                break;
+            }
+
+            push_nodes(L[p], L[lst] - 1, target_depth, current_dist);
+            push_nodes(R[lst] + 1, R[p], target_depth, current_dist);
+        }
     }
+
+    prv(ans, 2);
 }
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

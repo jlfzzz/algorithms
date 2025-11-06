@@ -137,6 +137,93 @@ namespace utils {
 
 using namespace utils;
 
+struct LB {
+    using i64 = long long;
+    const int BASE = 63;
+    vector<i64> d, p;
+    int cnt, flag;
+
+    LB() {
+        d.resize(BASE + 1);
+        p.resize(BASE + 1);
+        cnt = flag = 0;
+    }
+    bool insert(i64 val) {
+        for (int i = BASE - 1; i >= 0; i--) {
+            if (val & (1ll << i)) {
+                if (!d[i]) {
+                    d[i] = val;
+                    return true;
+                }
+                val ^= d[i];
+            }
+        }
+        flag = 1;
+        return false;
+    }
+    bool check(i64 val) {
+        for (int i = BASE - 1; i >= 0; i--) {
+            if (val & (1ll << i)) {
+                if (!d[i]) {
+                    return false;
+                }
+                val ^= d[i];
+            }
+        }
+        return true;
+    }
+    i64 ask_max() {
+        i64 res = 0;
+        for (int i = BASE - 1; i >= 0; i--) {
+            if ((res ^ d[i]) > res)
+                res ^= d[i];
+        }
+        return res;
+    }
+    i64 ask_min() {
+        if (flag)
+            return 0;
+        for (int i = 0; i <= BASE - 1; i++) {
+            if (d[i])
+                return d[i];
+        }
+        return 0;
+    }
+    void rebuild() {
+        for (int i = BASE - 1; i >= 0; i--) {
+            for (int j = i - 1; j >= 0; j--) {
+                if (d[i] & (1ll << j))
+                    d[i] ^= d[j];
+            }
+        }
+        for (int i = 0; i <= BASE - 1; i++) {
+            if (d[i])
+                p[cnt++] = d[i];
+        }
+    }
+    i64 kthquery(i64 k) {
+        if (flag)
+            k--;
+        if (!k)
+            return 0;
+        i64 res = 0;
+        if (k >= (1ll << cnt))
+            return -1;
+        for (int i = BASE - 1; i >= 0; i--) {
+            if (k & (1LL << i))
+                res ^= p[i];
+        }
+        return res;
+    }
+    void Merge(const LB &b) {
+        for (int i = BASE - 1; i >= 0; i--) {
+            if (b.d[i]) {
+                insert(b.d[i]);
+            }
+        }
+    }
+};
+
 constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
@@ -147,43 +234,16 @@ void solve() {
     int n;
     rd(n);
 
-    vl a(n + 1);
-    rv(a, 1);
-
-    vl pre(n + 1), ppre(n + 1), sz(n + 1), f(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] + a[i]; }
-    F(i, 1, n) { ppre[i] = ppre[i - 1] + pre[i]; }
-    F(i, 1, n) { sz[i] = sz[i - 1] + n - i + 1; }
-    F(i, 1, n) {
-        ll sum = ppre[n] - ppre[i - 1] - (n - i + 1) * pre[i - 1];
-        f[i] = f[i - 1] + sum;
+    LB lb;
+    while (n--) {
+        long long t;
+        rd(t);
+        lb.insert(t);
     }
 
-    int q;
-    rd(q);
-
-    while (q--) {
-        ll l, r;
-        rd(l, r);
-
-        auto calc2 = [&](ll x) -> ll {
-            if (x == 0)
-                return 0;
-            ll u = ranges::lower_bound(sz, x) - sz.begin();
-            u--;
-            ll res = f[u];
-            ll extra = x - sz[u];
-            if (extra > 0) {
-                ll i = u + 1;
-                ll j = u + extra;
-                res += (ppre[j] - ppre[i - 1]) - extra * pre[i - 1];
-            }
-            return res;
-        };
-
-        prt(calc2(r) - calc2(l - 1));
-    }
+    prt(lb.ask_max());
 }
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

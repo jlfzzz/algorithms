@@ -19,8 +19,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD22 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -144,46 +144,17 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll n, ans;
 
-    vl a(n + 1);
-    rv(a, 1);
-
-    vl pre(n + 1), ppre(n + 1), sz(n + 1), f(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] + a[i]; }
-    F(i, 1, n) { ppre[i] = ppre[i - 1] + pre[i]; }
-    F(i, 1, n) { sz[i] = sz[i - 1] + n - i + 1; }
-    F(i, 1, n) {
-        ll sum = ppre[n] - ppre[i - 1] - (n - i + 1) * pre[i - 1];
-        f[i] = f[i - 1] + sum;
+    cin >> n;
+    ans = (n % MOD22) * ((n + 1) % MOD22) % MOD22 * ((MOD22 + 1) / 2) % MOD22;
+    for (ll l = 1, r = 1; l <= n; l = r + 1) {
+        r = n / (n / l);
+        (ans += MOD22 - ((r - l + 1) % MOD22) * ((n / l) % MOD22) % MOD22) %= MOD22;
     }
-
-    int q;
-    rd(q);
-
-    while (q--) {
-        ll l, r;
-        rd(l, r);
-
-        auto calc2 = [&](ll x) -> ll {
-            if (x == 0)
-                return 0;
-            ll u = ranges::lower_bound(sz, x) - sz.begin();
-            u--;
-            ll res = f[u];
-            ll extra = x - sz[u];
-            if (extra > 0) {
-                ll i = u + 1;
-                ll j = u + extra;
-                res += (ppre[j] - ppre[i - 1]) - extra * pre[i - 1];
-            }
-            return res;
-        };
-
-        prt(calc2(r) - calc2(l - 1));
-    }
+    cout << ans << endl;
 }
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

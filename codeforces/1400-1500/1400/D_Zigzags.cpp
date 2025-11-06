@@ -14,6 +14,7 @@ using pii = pair<ll, ll>;
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
 #define vvl vector<vector<long long>>
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 #define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
@@ -23,47 +24,16 @@ constexpr int MOD = int(1e9 + 7);
 constexpr int MOD2 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
-    template<typename A, typename B>
-    ostream &operator<<(ostream &os, const pair<A, B> &p) {
-        return os << '(' << p.first << ", " << p.second << ')';
-    }
+    void dbg() { cerr << "\n"; }
 
-    template<typename Tuple, size_t... Is>
-    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
-        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
-    }
-
-    template<typename... Args>
-    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
-        os << '(';
-        print_tuple(os, t, index_sequence_for<Args...>{});
-        return os << ')';
-    }
-
-    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
-    ostream &operator<<(ostream &os, const T &v) {
-        os << '{';
-        bool first = true;
-        for (auto &x: v) {
-            if (!first)
-                os << ", ";
-            first = false;
-            os << x;
-        }
-        return os << '}';
-    }
-
-    void debug_out() { cerr << endl; }
-
-    template<typename Head, typename... Tail>
-    void debug_out(Head H, Tail... T) {
-        cerr << H;
-        if (sizeof...(T))
-            cerr << " ";
-        debug_out(T...);
+    template<typename T, typename... Args>
+    void dbg(const string &s, T x, Args... args) {
+        cerr << s << " = " << x;
+        if (sizeof...(args) > 0)
+            cerr << ", ";
+        dbg(args...);
     }
 
     template<typename T>
@@ -129,61 +99,42 @@ namespace utils {
     }
 } // namespace utils
 
-#ifdef LOCAL
-#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
-#else
-#define dbg(...) ((void) 0)
-#endif
-
 using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n;
+    ll n;
     rd(n);
-
     vl a(n + 1);
     rv(a, 1);
 
-    vl pre(n + 1), ppre(n + 1), sz(n + 1), f(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] + a[i]; }
-    F(i, 1, n) { ppre[i] = ppre[i - 1] + pre[i]; }
-    F(i, 1, n) { sz[i] = sz[i - 1] + n - i + 1; }
+    vvl pref(n + 1, vl(n + 1)), suf(n + 5, vl(n + 1));
     F(i, 1, n) {
-        ll sum = ppre[n] - ppre[i - 1] - (n - i + 1) * pre[i - 1];
-        f[i] = f[i - 1] + sum;
+        pref[i] = pref[i - 1];
+        pref[i][a[i]]++;
+    }
+    D(i, n, 1) {
+        suf[i] = suf[i + 1];
+        suf[i][a[i]]++;
     }
 
-    int q;
-    rd(q);
-
-    while (q--) {
-        ll l, r;
-        rd(l, r);
-
-        auto calc2 = [&](ll x) -> ll {
-            if (x == 0)
-                return 0;
-            ll u = ranges::lower_bound(sz, x) - sz.begin();
-            u--;
-            ll res = f[u];
-            ll extra = x - sz[u];
-            if (extra > 0) {
-                ll i = u + 1;
-                ll j = u + extra;
-                res += (ppre[j] - ppre[i - 1]) - extra * pre[i - 1];
-            }
-            return res;
-        };
-
-        prt(calc2(r) - calc2(l - 1));
+    ll ans = 0;
+    F(j, 2, n - 2) {
+        F(k, j + 1, n - 1) {
+            ll x = a[j];
+            ll y = a[k];
+            ans += pref[j - 1][y] * suf[k + 1][x];
+        }
     }
+
+    prt(ans);
 }
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

@@ -19,97 +19,60 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
-using ll = long long;
-struct DS {
-    priority_queue<ll> left;
-    priority_queue<ll, vector<ll>, greater<>> right;
-    multiset<ll> L, R;
-
-    void clean() {
-        while (!left.empty() && L.contains(left.top())) {
-            ll t = left.top();
-            left.pop();
-            L.erase(L.find(t));
-        }
-        while (!right.empty() && R.contains(right.top())) {
-            ll t = right.top();
-            right.pop();
-            R.erase(R.find(t));
-        }
-    }
-
-    void reBalance() {
-        while (true) {
-            clean();
-            ll d = (left.size() - L.size()) - (right.size() - R.size());
-            if (d > 1) {
-                right.push(left.top());
-                left.pop();
-            } else if (d < 0) {
-                left.push(right.top());
-                right.pop();
-            } else {
-                break;
-            }
-        }
-    }
-
-    void add(ll x) {
-        reBalance();
-        if (left.size() - L.size() == right.size() - R.size()) {
-            right.push(x);
-            left.push(right.top());
-            right.pop();
-        } else {
-            left.push(x);
-            right.push(left.top());
-            left.pop();
-        }
-    }
-
-    void del(ll x) {
-        reBalance();
-        if (left.empty()) {
-            R.insert(x);
-            return;
-        }
-
-        if (x <= left.top()) {
-            L.insert(x);
-        } else {
-            R.insert(x);
-        }
-    }
-
-    double query() {
-        reBalance();
-
-        double res = 0;
-        if (left.size() - L.size() == right.size() - R.size()) {
-            res = (left.top() + right.top()) / 2.0;
-        } else {
-            res = left.top();
-        }
-
-        return res;
-    }
-};
-
 class Solution {
 public:
-    vector<double> medianSlidingWindow(vector<int> &nums, int k) {
-        DS ds;
-        vector<double> ans;
-        int n = nums.size();
+    vector<int> processQueries(int c, vector<vector<int>> &connections, vector<vector<int>> &queries) {
+        vector<vector<int>> g(c + 1);
+        for (auto &v: connections) {
+            g[v[0]].push_back(v[1]);
+            g[v[1]].push_back(v[0]);
+        }
 
-        int r = 0;
-        for (int i = 0; i + k - 1 < n; i++) {
-            while (r < n && r <= i + k - 1) {
-                ds.add(nums[r]);
-                r++;
+        int tot = 0;
+        vector<int> id(c + 1);
+        vector<priority_queue<int, vector<int>, greater<>>> pqs;
+        auto dfs = [&](this auto &&dfs, int u, int fa, priority_queue<int, vector<int>, greater<>> &pq) -> void {
+            id[u] = tot;
+            pq.push(u);
+            for (int v: g[u]) {
+                if (v == fa) {
+                    continue;
+                }
+                dfs(v, u, pq);
             }
-            ans.push_back(ds.query());
-            ds.del(nums[i]);
+        };
+
+
+        for (int i = 1; i <= c; i++) {
+            if (!id[i]) {
+                priority_queue<int, vector<int>, greater<>> pq;
+                dfs(i, 0, pq);
+                pqs.emplace_back(pq);
+                tot++;
+            }
+        }
+
+        vector<int> del(c + 1), ans;
+        for (auto &q: queries) {
+            int op = q[0];
+            int x = q[1];
+
+            if (op == 1) {
+                if (!del[x]) {
+                    ans.push_back(x);
+                } else {
+                    while (!pqs[id[x]].empty() && del[pqs[id[x]].top()]) {
+                        pqs[id[x]].pop();
+                    }
+                    if (pqs[id[x]].empty()) {
+                        ans.push_back(-1);
+                    } else {
+                        ans.push_back(pqs[id[x]].top());
+                    }
+                }
+            } else {
+                del[x] = 1;
+            }
         }
 
         return ans;

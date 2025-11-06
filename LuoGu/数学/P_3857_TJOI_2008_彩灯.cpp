@@ -137,6 +137,134 @@ namespace utils {
 
 using namespace utils;
 
+struct LB {
+    using i64 = long long;
+    const int BASE = 63;
+    vector<i64> d, p;
+    int cnt, flag;
+
+    LB() {
+        d.resize(BASE + 1);
+        p.resize(BASE + 1);
+        cnt = flag = 0;
+    }
+
+    void clear() {
+        d.assign(BASE + 1, 0);
+        p.assign(BASE + 1, 0);
+        cnt = flag = 0;
+    }
+
+    bool insert(i64 val) {
+        for (int i = BASE - 1; i >= 0; i--) {
+            if (val & (1ll << i)) {
+                if (!d[i]) {
+                    d[i] = val;
+                    return true;
+                }
+                val ^= d[i];
+            }
+        }
+        flag = 1;
+        return false;
+    }
+
+    bool check(i64 val) {
+        for (int i = BASE - 1; i >= 0; i--) {
+            if (val & (1ll << i)) {
+                val ^= d[i];
+            }
+        }
+        return val == 0;
+    }
+
+    i64 ask_max() {
+        i64 res = 0;
+        for (int i = BASE - 1; i >= 0; i--) {
+            if ((res ^ d[i]) > res)
+                res ^= d[i];
+        }
+        return res;
+    }
+
+    i64 ask_min() {
+        for (int i = 0; i <= BASE - 1; i++) {
+            if (d[i])
+                return d[i];
+        }
+        return 0;
+    }
+
+    void rebuild() {
+        p.assign(BASE + 1, 0);
+        cnt = 0;
+        auto temp_d = d;
+
+        for (int i = BASE - 1; i >= 0; i--) {
+            if (temp_d[i]) {
+                for (int j = i - 1; j >= 0; j--) {
+                    if (temp_d[i] & (1ll << j))
+                        temp_d[i] ^= temp_d[j];
+                }
+            }
+        }
+        for (int i = 0; i <= BASE - 1; i++) {
+            if (temp_d[i])
+                p[cnt++] = temp_d[i];
+        }
+    }
+
+    i64 ask_kth_min(i64 k) {
+        i64 total_sums = (1LL << cnt);
+        if (k <= 0 || k > total_sums)
+            return -1;
+
+        i64 k_loop = k - 1;
+
+        i64 res = 0;
+        for (int i = 0; i < cnt; i++) {
+            if (k_loop & (1LL << i))
+                res ^= p[i];
+        }
+        return res;
+    }
+
+    i64 ask_kth_max(i64 k) {
+        i64 total_sums = (1LL << cnt);
+        if (k <= 0 || k > total_sums)
+            return -1;
+
+        i64 k_loop = total_sums - k;
+
+        i64 res = 0;
+        for (int i = 0; i < cnt; i++) {
+            if (k_loop & (1LL << i))
+                res ^= p[i];
+        }
+        return res;
+    }
+
+    void Merge(const LB &b) {
+        for (int i = BASE - 1; i >= 0; i--) {
+            if (b.d[i]) {
+                insert(b.d[i]);
+            }
+        }
+        flag = flag | b.flag;
+        cnt = 0;
+    }
+
+    int get_rank() {
+        int rank = 0;
+        for (int i = 0; i <= BASE - 1; i++) {
+            if (d[i] != 0) {
+                rank++;
+            }
+        }
+        return rank;
+    }
+};
+
 constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
@@ -144,46 +272,23 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-
-    vl a(n + 1);
-    rv(a, 1);
-
-    vl pre(n + 1), ppre(n + 1), sz(n + 1), f(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] + a[i]; }
-    F(i, 1, n) { ppre[i] = ppre[i - 1] + pre[i]; }
-    F(i, 1, n) { sz[i] = sz[i - 1] + n - i + 1; }
-    F(i, 1, n) {
-        ll sum = ppre[n] - ppre[i - 1] - (n - i + 1) * pre[i - 1];
-        f[i] = f[i - 1] + sum;
+    int n, m;
+    rd(n, m);
+    LB lb;
+    string s;
+    for (int i = 0; i < m; i++) {
+        rd(s);
+        long long mask = 0;
+        for (int j = 0; j < n; j++) {
+            if (s[j] == 'O')
+                mask |= (1LL << j);
+        }
+        lb.insert(mask);
     }
 
-    int q;
-    rd(q);
-
-    while (q--) {
-        ll l, r;
-        rd(l, r);
-
-        auto calc2 = [&](ll x) -> ll {
-            if (x == 0)
-                return 0;
-            ll u = ranges::lower_bound(sz, x) - sz.begin();
-            u--;
-            ll res = f[u];
-            ll extra = x - sz[u];
-            if (extra > 0) {
-                ll i = u + 1;
-                ll j = u + extra;
-                res += (ppre[j] - ppre[i - 1]) - extra * pre[i - 1];
-            }
-            return res;
-        };
-
-        prt(calc2(r) - calc2(l - 1));
-    }
+    prt((1ll << lb.get_rank()) % 2008);
 }
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

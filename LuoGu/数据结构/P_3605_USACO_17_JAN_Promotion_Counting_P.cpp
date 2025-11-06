@@ -139,6 +139,13 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace std;
+using namespace __gnu_pbds;
+using ordered_set = tree<ll, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+
 int Multitest = 0;
 
 void init() {}
@@ -146,44 +153,66 @@ void init() {}
 void solve() {
     int n;
     rd(n);
+    vl p(n + 1);
+    rv(p, 1);
 
-    vl a(n + 1);
-    rv(a, 1);
-
-    vl pre(n + 1), ppre(n + 1), sz(n + 1), f(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] + a[i]; }
-    F(i, 1, n) { ppre[i] = ppre[i - 1] + pre[i]; }
-    F(i, 1, n) { sz[i] = sz[i - 1] + n - i + 1; }
-    F(i, 1, n) {
-        ll sum = ppre[n] - ppre[i - 1] - (n - i + 1) * pre[i - 1];
-        f[i] = f[i - 1] + sum;
+    vvi g(n + 1);
+    F(i, 2, n) {
+        int fa;
+        rd(fa);
+        g[fa].pb(i);
     }
 
-    int q;
-    rd(q);
+    vi sz(n + 1), ans(n + 1);
 
-    while (q--) {
-        ll l, r;
-        rd(l, r);
+    auto dfs1 = [&](this auto &&dfs, int u) -> void {
+        sz[u] = 1;
+        for (int v: g[u]) {
+            dfs(v);
+            sz[u] += sz[v];
+        }
+    };
+    dfs1(1);
 
-        auto calc2 = [&](ll x) -> ll {
-            if (x == 0)
-                return 0;
-            ll u = ranges::lower_bound(sz, x) - sz.begin();
-            u--;
-            ll res = f[u];
-            ll extra = x - sz[u];
-            if (extra > 0) {
-                ll i = u + 1;
-                ll j = u + extra;
-                res += (ppre[j] - ppre[i - 1]) - extra * pre[i - 1];
+    auto dfs = [&](this auto &&dfs, int u) -> ordered_set * {
+        int son = -1;
+        for (int v: g[u]) {
+            if (son == -1 || sz[son] < sz[v]) {
+                son = v;
             }
-            return res;
-        };
+        }
 
-        prt(calc2(r) - calc2(l - 1));
-    }
+        ordered_set *st;
+
+        if (son == -1) {
+            st = new ordered_set;
+        } else {
+            st = dfs(son);
+
+            for (int v: g[u]) {
+                if (v == son) {
+                    continue;
+                }
+
+                ordered_set *temp = dfs(v);
+                for (auto x: *temp) {
+                    st->insert(x);
+                }
+
+                delete temp;
+            }
+        }
+
+        st->insert(p[u]);
+        ans[u] = st->size() - st->order_of_key(p[u] + 1);
+
+        return st;
+    };
+    dfs(1);
+
+    F(i, 1, n) { prt(ans[i]); }
 }
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

@@ -137,53 +137,148 @@ namespace utils {
 
 using namespace utils;
 
+template<typename T>
+class FenwickTree {
+    vector<T> tree;
+
+public:
+    FenwickTree(int n) : tree(n + 1) {}
+
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
+        }
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+
+    // 点更新取 max
+    void updateMax(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            if (val > tree[i]) {
+                tree[i] = val;
+            }
+        }
+    }
+
+    T preMax(int i) const {
+        T res = numeric_limits<T>::min();
+        for (; i > 0; i &= i - 1) {
+            res = max(res, tree[i]);
+        }
+        return res;
+    }
+};
+
 constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
 
 void init() {}
 
+vl A;
+struct Op {
+    char type;
+    int k;
+    ll a;
+    ll c;
+    ll s;
+};
+
+
 void solve() {
-    int n;
-    rd(n);
+    int n, m;
+    rd(n, m);
+    A.assign(n + 1, 0LL);
 
-    vl a(n + 1);
-    rv(a, 1);
+    vector<Op> ops;
+    ops.reserve(m);
+    vector<ll> vals;
 
-    vl pre(n + 1), ppre(n + 1), sz(n + 1), f(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] + a[i]; }
-    F(i, 1, n) { ppre[i] = ppre[i - 1] + pre[i]; }
-    F(i, 1, n) { sz[i] = sz[i - 1] + n - i + 1; }
-    F(i, 1, n) {
-        ll sum = ppre[n] - ppre[i - 1] - (n - i + 1) * pre[i - 1];
-        f[i] = f[i - 1] + sum;
+    F(i, 1, m) {
+        char op;
+        rd(op);
+        if (op == 'U') {
+            int k;
+            ll a;
+            rd(k, a);
+            ops.push_back(Op{op, k, a, 0, 0});
+            if (a > 0)
+                vals.pb(a);
+        } else {
+            ll c, s;
+            rd(c, s);
+            ops.push_back(Op{op, 0, 0, c, s});
+        }
     }
 
-    int q;
-    rd(q);
+    sort(all(vals));
+    vals.erase(unique(all(vals)), vals.end());
+    auto get_idx = [&](ll x) -> int { return (int) (lower_bound(all(vals), x) - vals.begin()) + 1; };
 
-    while (q--) {
-        ll l, r;
-        rd(l, r);
+    FenwickTree<ll> bitCnt((int) vals.size());
+    FenwickTree<ll> bitSumVal((int) vals.size());
 
-        auto calc2 = [&](ll x) -> ll {
-            if (x == 0)
-                return 0;
-            ll u = ranges::lower_bound(sz, x) - sz.begin();
-            u--;
-            ll res = f[u];
-            ll extra = x - sz[u];
-            if (extra > 0) {
-                ll i = u + 1;
-                ll j = u + extra;
-                res += (ppre[j] - ppre[i - 1]) - extra * pre[i - 1];
+    for (auto &o: ops) {
+        if (o.type == 'U') {
+            int k = o.k;
+            ll a = o.a;
+            ll old_val = A[k];
+
+            if (old_val > 0) {
+                int id = get_idx(old_val);
+                bitCnt.update(id, -1);
+                bitSumVal.update(id, -old_val);
             }
-            return res;
-        };
+            if (a > 0) {
+                int id = get_idx(a);
+                bitCnt.update(id, +1);
+                bitSumVal.update(id, +a);
+            }
 
-        prt(calc2(r) - calc2(l - 1));
+            A[k] = a;
+        } else {
+            ll c = o.c, s = o.s;
+            if (s == 0) {
+                prt("TAK");
+                continue;
+            }
+
+            int le_cnt_idx = (int) (upper_bound(all(vals), s) - vals.begin());
+            ll cnt_le = bitCnt.pre(le_cnt_idx);
+            ll sum_le = bitSumVal.pre(le_cnt_idx);
+            ll cnt_all = bitCnt.pre((int) vals.size());
+            ll sum_all = bitSumVal.pre((int) vals.size());
+            ll S = sum_all;
+            ll cnt_gt = cnt_all - cnt_le;
+            ll sum_gt = sum_all - sum_le;
+
+            __int128 T = (__int128) S - ((__int128) sum_gt - (__int128) s * cnt_gt);
+            __int128 need = (__int128) s * c;
+            if (T >= need)
+                prt("TAK");
+            else
+                prt("NIE");
+        }
     }
 }
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
