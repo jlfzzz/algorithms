@@ -21,60 +21,53 @@ using ll = long long;
 
 class Solution {
 public:
-    vector<int> processQueries(int c, vector<vector<int>> &connections, vector<vector<int>> &queries) {
-        vector<vector<int>> g(c + 1);
-        for (auto &v: connections) {
-            g[v[0]].push_back(v[1]);
-            g[v[1]].push_back(v[0]);
-        }
+    long long maxPower(vector<int> &stations, int r, int k) {
+        int n = stations.size();
 
-        int tot = 0;
-        vector<int> id(c + 1);
-        vector<priority_queue<int, vector<int>, greater<>>> pqs;
-        auto dfs = [&](this auto &&dfs, int u, int fa, priority_queue<int, vector<int>, greater<>> &pq) -> void {
-            id[u] = tot;
-            pq.push(u);
-            for (int v: g[u]) {
-                if (v == fa) {
-                    continue;
+        ll lo = 0;
+        ll hi = accumulate(stations.begin(), stations.end(), 0ll) + k;
+        ll ans = 0;
+
+        auto check = [&](ll target) -> bool {
+            ll window = 0;
+            int right = 0;
+            vector<ll> diff(n + 1, 0);
+            ll used = 0;
+
+            for (int i = 0; i < n; i++) {
+                window += diff[i];
+                while (right < n && right - i <= r) {
+                    window += stations[right];
+                    right++;
                 }
-                dfs(v, u, pq);
+                if (i - r - 1 >= 0) {
+                    window -= stations[i - r - 1];
+                }
+
+                if (window < target) {
+                    ll need = target - window;
+                    used += need;
+                    if (used > k) {
+                        return false;
+                    }
+
+                    window += need;
+                    int end = min(n - 1, i + 2 * r);
+                    diff[end + 1] -= need;
+                }
             }
+            return true;
         };
 
-
-        for (int i = 1; i <= c; i++) {
-            if (!id[i]) {
-                priority_queue<int, vector<int>, greater<>> pq;
-                dfs(i, 0, pq);
-                pqs.emplace_back(pq);
-                tot++;
-            }
-        }
-
-        vector<int> del(c + 1), ans;
-        for (auto &q: queries) {
-            int op = q[0];
-            int x = q[1];
-
-            if (op == 1) {
-                if (!del[x]) {
-                    ans.push_back(x);
-                } else {
-                    while (!pqs[id[x]].empty() && del[pqs[id[x]].top()]) {
-                        pqs[id[x]].pop();
-                    }
-                    if (pqs[id[x]].empty()) {
-                        ans.push_back(-1);
-                    } else {
-                        ans.push_back(pqs[id[x]].top());
-                    }
-                }
+        while (lo <= hi) {
+            ll mid = lo + (hi - lo) / 2;
+            if (check(mid)) {
+                ans = mid;
+                lo = mid + 1;
             } else {
-                del[x] = 1;
+                hi = mid - 1;
             }
         }
-
         return ans;
     }
 };
