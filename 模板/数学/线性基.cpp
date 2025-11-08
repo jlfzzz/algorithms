@@ -2,6 +2,7 @@
 using namespace std;
 using ll = long long;
 
+// 高斯消元版本
 // 每次调用 query min/max 前必须调用 rebuild
 struct LB {
     using i64 = long long;
@@ -129,4 +130,67 @@ struct LB {
         }
         return rank;
     }
+};
+
+// 贪心法版本
+struct GreedyLB {
+    using i64 = long long;
+    const int BASE = 63;
+    vector<i64> d;
+    int cnt;
+
+    GreedyLB() {
+        d.resize(BASE + 1);
+        cnt = 0;
+    }
+
+    void clear() {
+        d.assign(BASE + 1, 0);
+        cnt = 0;
+    }
+
+    bool insert(i64 val) {
+        for (int i = BASE - 1; i >= 0; i--) {
+            if (val & (1ll << i)) {
+                if (!d[i]) {
+                    d[i] = val;
+                    cnt++;
+                    return true;
+                }
+                val ^= d[i];
+            }
+        }
+
+        return false;
+    }
+
+    i64 ask_max() {
+        i64 res = 0;
+        for (int i = BASE - 1; i >= 0; i--) {
+            if ((res ^ d[i]) > res) {
+                res ^= d[i];
+            }
+        }
+        return res;
+    }
+
+    i64 ask_min() {
+        for (int i = 0; i <= BASE - 1; i++) {
+            if (d[i]) {
+                return d[i];
+            }
+        }
+        return 0;
+    }
+
+    bool check(i64 val) {
+        for (int i = BASE - 1; i >= 0; i--) {
+            if (val & (1ll << i)) {
+                val ^= d[i];
+            }
+        }
+        return val == 0;
+    }
+
+    int get_rank() { return cnt; }
 };

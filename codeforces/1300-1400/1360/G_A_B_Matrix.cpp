@@ -139,12 +139,51 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    
+    int n, m, a, b;
+    rd(n, m, a, b);
+
+    int t1 = (n * a + m - 1) / m;
+    if (t1 > b) {
+        prt("NO");
+        return;
+    }
+
+    t1 = (m * b + n - 1) / n;
+    if (t1 > a) {
+        prt("NO");
+        return;
+    }
+
+    if ((a * n % m) || (b * m % n)) {
+        prt("NO");
+        return;
+    }
+
+    prt("YES");
+
+    set<pii> cols;
+    vvi ans(n + 1, vi(m + 1));
+
+    F(i, 1, m) { cols.insert({0, i}); }
+
+    F(i, 1, n) {
+        F(j, 1, a) {
+            auto [cnt, pos] = *cols.begin();
+            cols.erase(cols.begin());
+            ans[i][pos] = 1;
+            cols.insert({cnt + 1, pos});
+        }
+    }
+
+    F(i, 1, n) {
+        F(j, 1, m) { cout << ans[i][j]; }
+        cout << '\n';
+    }
 }
 
 int main() {
