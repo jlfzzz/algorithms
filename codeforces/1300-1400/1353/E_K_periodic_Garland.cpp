@@ -139,29 +139,49 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    ll a, b, c, d;
-    rd(a, b, c, d);
+    int n, k;
+    rd(n, k);
 
-    ll ans = 0;
+    string s;
+    rd(s);
+    s = "#" + s;
 
-    F(s, c + 1, b + c) {
-        ll mn = max(a, s - c);
-        ll mx = min(b, s - b);
+    vi pref(n + 1, 0);
+    F(i, 1, n) { pref[i] = pref[i - 1] + (s[i] == '1'); }
 
-        ll cnt = max(0LL, mx - mn + 1);
+    vvi dp(n + 1, vi(2, inf));
 
-        if (cnt == 0) {
-            continue;
+    F(i, 1, n) {
+        int c1 = (s[i] == '0');
+        dp[i][0] = pref[i - 1] + c1;
+        int c2 = c1;
+        int c3 = 0;
+        if (i - k >= 1) {
+            c3 = pref[i - 1] - pref[i - k];
         }
 
-        ll cnt2 = max(0LL, min(d, (ll) s - 1) - c + 1);
+        int pre = inf;
+        if (i - k >= 1) {
+            pre = min(dp[i - k][1], dp[i - k][0]);
+        } else {
+            pre = 0;
+            c3 = pref[i - 1];
+        }
+        dp[i][1] = pre + c3 + c2;
+    }
 
-        ans += cnt * cnt2;
+    int ans = pref[n];
+    int num = 0;
+    D(i, n, 1) {
+        int cost = min(dp[i][0], dp[i][1]) + num;
+        ans = min(ans, cost);
+        if (s[i] == '1')
+            num++;
     }
 
     prt(ans);

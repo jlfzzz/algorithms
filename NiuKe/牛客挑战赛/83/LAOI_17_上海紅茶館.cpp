@@ -139,32 +139,123 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    ll a, b, c, d;
-    rd(a, b, c, d);
-
-    ll ans = 0;
-
-    F(s, c + 1, b + c) {
-        ll mn = max(a, s - c);
-        ll mx = min(b, s - b);
-
-        ll cnt = max(0LL, mx - mn + 1);
-
-        if (cnt == 0) {
-            continue;
-        }
-
-        ll cnt2 = max(0LL, min(d, (ll) s - 1) - c + 1);
-
-        ans += cnt * cnt2;
+    int n;
+    long long k;
+    rd(n, k);
+    vl a(n + 1), b(n + 1), c(n + 1);
+    F(i, 1, n) {
+        rd(a[i]);
     }
-
-    prt(ans);
+    F(i, 1, n) {
+        rd(b[i]);
+    }
+    F(i, 1, n) {
+        rd(c[i]);
+    }
+    long long maxB = 0;
+    F(i, 1, n) {
+        if (b[i] > maxB) {
+            maxB = b[i];
+        }
+    }
+    auto need_pair = [&](int i, long long y) -> long long {
+        long long s0 = a[i] + a[i + 1];
+        long long D = y - s0;
+        if (D <= 0) {
+            return 0;
+        }
+        long long v1 = b[i], m1 = c[i];
+        long long v2 = b[i + 1], m2 = c[i + 1];
+        if (v1 < v2) {
+            swap(v1, v2);
+            swap(m1, m2);
+        }
+        __int128 Smax = (__int128) v1 * m1 + (__int128) v2 * m2;
+        if ((__int128) D > Smax) {
+            return (long long) 4e18;
+        }
+        auto ceil_div = [](__int128 A, __int128 B) -> long long {
+            if (A <= 0) {
+                return 0LL;
+            }
+            return (long long) ((A + B - 1) / B);
+        };
+        __int128 cap1 = (__int128) v1 * m1;
+        if ((__int128) D <= cap1) {
+            return ceil_div(D, v1);
+        } else {
+            __int128 rem = (__int128) D - cap1;
+            return (long long) m1 + ceil_div(rem, v2);
+        }
+    };
+    auto ok = [&](long long y) -> bool {
+        vector<long long> w(n + 1, (long long) 4e18);
+        F(i, 1, n - 1) {
+            w[i] = need_pair(i, y);
+        }
+        const long long INFLL = (long long) 4e18;
+        vector<long long> dp1(n + 1, INFLL), dp2(n + 1, INFLL), dp3(n + 1, INFLL);
+        dp1[0] = INFLL;
+        dp2[0] = INFLL;
+        dp3[0] = INFLL;
+        F(i, 1, n - 1) {
+            dp1[i] = dp1[i - 1];
+            if (w[i] < dp1[i]) {
+                dp1[i] = w[i];
+            }
+            dp2[i] = dp2[i - 1];
+            if (i >= 2) {
+                if (dp1[i - 2] < INFLL && w[i] < INFLL) {
+                    long long cand = dp1[i - 2] + w[i];
+                    if (cand < dp2[i]) {
+                        dp2[i] = cand;
+                    }
+                }
+            }
+            dp3[i] = dp3[i - 1];
+            if (i >= 2) {
+                if (dp2[i - 2] < INFLL && w[i] < INFLL) {
+                    long long cand = dp2[i - 2] + w[i];
+                    if (cand < dp3[i]) {
+                        dp3[i] = cand;
+                    }
+                }
+            }
+        }
+        if (dp3[n - 1] <= k) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+    long long baseMax = 0;
+    F(i, 1, n - 1) {
+        long long s0 = a[i] + a[i + 1];
+        if (s0 > baseMax) {
+            baseMax = s0;
+        }
+    }
+    long long lo = 0, hi = baseMax + (__int128) k * maxB;
+    while (lo < hi) {
+        long long mid = lo + ((hi - lo + 1) >> 1);
+        if (ok(mid)) {
+            lo = mid;
+        } else {
+            hi = mid - 1;
+        }
+    }
+    long long y = lo;
+    long long p = y;
+    long long q = 2;
+    long long g = gcd(p, q);
+    p /= g;
+    q /= g;
+    cout << p << '/' << q << '\n';
 }
 
 int main() {

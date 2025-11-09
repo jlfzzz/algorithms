@@ -545,41 +545,57 @@ using Z = atcoder::static_modint<MOD>;
 
 using Matrix = vector<vector<Z>>;
 
-Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
-    int n = m1.size();
-    int p = m1[0].size();
-    int m = m2[0].size();
+namespace MatrixUtils {
+    Matrix identity(int n) {
+        Matrix unit(n, std::vector<Z>(n, 0));
+        for (int i = 0; i < n; ++i) {
+            unit[i][i] = 1;
+        }
+        return unit;
+    }
 
-    Matrix ret(n, vector<Z>(m, 0));
-    for (int i = 0; i < n; ++i) {
-        for (int k = 0; k < p; ++k) {
-            if (m1[i][k] == 0) {
-                continue;
-            }
-            for (int j = 0; j < m; ++j) {
-                ret[i][j] = ret[i][j] + m1[i][k] * m2[k][j];
+    Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
+        int n = m1.size();
+        int p = m1[0].size();
+        int m = m2[0].size();
+
+        if (p != static_cast<int>(m2.size())) {
+            throw std::runtime_error("Matrix multiplication dimensions mismatch");
+        }
+
+        Matrix ret(n, vector<Z>(m, 0));
+        for (int i = 0; i < n; ++i) {
+            for (int k = 0; k < p; ++k) {
+                if (m1[i][k] == 0) {
+                    continue;
+                }
+                for (int j = 0; j < m; ++j) {
+                    ret[i][j] = ret[i][j] + m1[i][k] * m2[k][j];
+                }
             }
         }
-    }
-    return ret;
-}
-
-Matrix quick_mul(Matrix mat, long long n) {
-    int m = mat.size();
-    Matrix unit(m, vector<Z>(m, 0));
-    for (int i = 0; i < m; ++i) {
-        unit[i][i] = 1;
+        return ret;
     }
 
-    while (n) {
-        if (n & 1) {
-            unit = mat_mul(unit, mat);
+    Matrix quick_mul(Matrix mat, long long n) {
+        int m = mat.size();
+
+        if (m == 0 || m != static_cast<int>(mat[0].size())) {
+            throw std::runtime_error("Matrix power requires a square matrix");
         }
-        mat = mat_mul(mat, mat);
-        n >>= 1;
+
+        Matrix res = identity(m);
+
+        while (n > 0) {
+            if (n & 1) {
+                res = mat_mul(res, mat);
+            }
+            mat = mat_mul(mat, mat);
+            n >>= 1;
+        }
+        return res;
     }
-    return unit;
-}
+} // namespace MatrixUtils
 
 
 // 斐波那契，1 - index。 f1 = f2 = 1, f3 = 2, f4 = 3...
@@ -597,12 +613,8 @@ Z fib(int n) {
 }
 
 // 矩阵可以同时处理前缀和
-// 多加一行一列，每行最后多加一个数字，就是行内的1的和
+// 多加一行一列，最后一行的除了右下角的值就是这一列的1的和
 // 最后右下角为1
-
-Matrix Mat = {{0, 0, 0, 0, 1, 1, 0, 0, 2}, {0, 0, 0, 0, 0, 0, 1, 1, 2}, {0, 0, 0, 0, 1, 1, 0, 0, 2},
-              {0, 0, 0, 0, 0, 0, 1, 1, 2}, {1, 0, 0, 0, 0, 0, 0, 0, 1}, {0, 0, 1, 1, 0, 0, 0, 0, 2},
-              {0, 1, 0, 0, 0, 0, 0, 0, 1}, {0, 0, 1, 1, 0, 0, 0, 0, 2}, {0, 0, 0, 0, 0, 0, 0, 0, 1}};
 
 // lc3337 调用示例
 class Solution {

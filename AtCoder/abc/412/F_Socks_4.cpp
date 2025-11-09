@@ -139,43 +139,39 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
-
-void init() {}
-
-void solve() {
-    ll a, b, c, d;
-    rd(a, b, c, d);
-
-    ll ans = 0;
-
-    F(s, c + 1, b + c) {
-        ll mn = max(a, s - c);
-        ll mx = min(b, s - b);
-
-        ll cnt = max(0LL, mx - mn + 1);
-
-        if (cnt == 0) {
-            continue;
-        }
-
-        ll cnt2 = max(0LL, min(d, (ll) s - 1) - c + 1);
-
-        ans += cnt * cnt2;
+#include <bits/stdc++.h>
+#pragma GCC optimize("O3")
+#define int long long
+#define mod 998244353
+#define N 300005
+using namespace std;
+int n, m, c, tot, E[N], b[N], vis[N];
+pair<int, int> a[N];
+int Pow(int x, int y) {
+    int res = 1;
+    while (y) {
+        if (y & 1)
+            res = res * x % mod;
+        x = x * x % mod;
+        y >>= 1;
     }
-
-    prt(ans);
+    return res;
 }
-
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
+signed main() {
+    ios::sync_with_stdio(0);
+    cin >> n >> c;
+    for (int i = 1; i <= n; i++)
+        cin >> a[i].first, m += a[i].first, a[i].second = i;
+    a[c].first++;
+    sort(a + 1, a + n + 1);
+    for (int i = 1; i <= n; i++)
+        b[i] = b[i - 1] + a[i].first, vis[a[i].second] = i;
+    for (int i = n; i >= 1; i--) {
+        int sum = tot;
+        sum = (sum + m) % mod;
+        E[i] = sum * Pow(m - b[i - 1], mod - 2) % mod;
+        tot = (tot + a[i].first * E[i] % mod);
     }
-    while (T--) {
-        solve();
-    }
+    cout << E[vis[c]];
+    return 0;
 }

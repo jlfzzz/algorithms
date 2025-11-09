@@ -21,61 +21,17 @@ using ll = long long;
 
 class Solution {
 public:
-    long long maxPower(vector<int> &stations, int r, int k) {
-        int n = stations.size();
-
-        ll lo = 0;
-        ll hi = accumulate(stations.begin(), stations.end(), 0ll) + k;
-        ll ans = 0;
-
-        auto check = [&](ll target) -> bool {
-            ll window = 0;
-            int right = 0;
-            vector<ll> diff(n + 1, 0);
-            ll used = 0;
-
-            for (int i = 0; i < n; i++) {
-                window += diff[i];
-                while (right < n && right - i <= r) {
-                    window += stations[right];
-                    right++;
-                }
-                if (i - r - 1 >= 0) {
-                    window -= stations[i - r - 1];
-                }
-
-                if (window < target) {
-                    ll need = target - window;
-                    used += need;
-                    if (used > k) {
-                        return false;
-                    }
-
-                    window += need;
-                    int end = min(n - 1, i + 2 * r);
-                    diff[end + 1] -= need;
-                }
-            }
-            return true;
-        };
-
-        while (lo <= hi) {
-            ll mid = lo + (hi - lo) / 2;
-            if (check(mid)) {
-                ans = mid;
-                lo = mid + 1;
-            } else {
-                hi = mid - 1;
-            }
-        }
-        return ans;
+    long long maximumScore(vector<int> &nums, int k) {
+        
     }
 };
 
 
 
 
-int main() {
+
+    int
+    main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     // Solution sol1;

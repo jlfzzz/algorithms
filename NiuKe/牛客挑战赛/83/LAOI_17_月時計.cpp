@@ -14,7 +14,6 @@ using pii = pair<ll, ll>;
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
 #define vvl vector<vector<long long>>
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 #define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
@@ -129,141 +128,13 @@ namespace utils {
     }
 } // namespace utils
 
-#define dbg(...) cerr << "[line: " << __LINE__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#ifdef LOCAL
+#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
 
-namespace helpers {
-    ostream &operator<<(ostream &os, i128 x) {
-        if (x == 0) {
-            os << '0';
-            return os;
-        }
-        if (x < 0) {
-            os << '-';
-            x = -x;
-        }
-        char buf[64];
-        int pos = 0;
-        while (x > 0) {
-            buf[pos++] = '0' + x % 10;
-            x /= 10;
-        }
-        while (pos--) {
-            os << buf[pos];
-        }
-        return os;
-    }
-
-    // 辅助函数：递归打印树的子节点
-    void printTreeHelper(int u, int parent, const vector<vector<int>> &adj, string prefix, bool isLast) {
-        cout << prefix;
-        cout << (isLast ? "└── " : "├── ");
-        cout << u << endl;
-
-        // 获取子节点
-        vector<int> children;
-        for (int v: adj[u]) {
-            if (v != parent) {
-                children.push_back(v);
-            }
-        }
-
-        // 递归打印子节点
-        for (int i = 0; i < children.size(); i++) {
-            bool last = (i == children.size() - 1);
-            string newPrefix = prefix + (isLast ? "    " : "│   ");
-            printTreeHelper(children[i], u, adj, newPrefix, last);
-        }
-    }
-
-    // 封装的打印树函数
-    // 参数：n - 节点数，edges - 边的列表，root - 根节点（默认为1）
-    void printTree(int n, const vector<pair<int, int>> &edges, int root = 1) {
-        // 构建邻接表
-        vector<vector<int>> adj(n + 1);
-        for (const auto &edge: edges) {
-            int u = edge.first;
-            int v = edge.second;
-            adj[u].push_back(v);
-            adj[v].push_back(u);
-        }
-
-        // 打印树结构
-        cout << "Tree structure (root = " << root << "):" << endl;
-        cout << root << endl;
-
-        // 获取根节点的所有子节点
-        vector<int> children;
-        for (int v: adj[root]) {
-            children.push_back(v);
-        }
-
-        // 打印所有子树
-        for (int i = 0; i < children.size(); i++) {
-            bool last = (i == children.size() - 1);
-            printTreeHelper(children[i], root, adj, "", last);
-        }
-    }
-
-    // 随机数组
-    vector<ll> random_array(int n, int lo, int hi) {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<ll> dist(lo, hi);
-
-        vector<ll> arr(n);
-        for (int i = 0; i < n; i++) {
-            arr[i] = (ll) dist(gen);
-        }
-        return arr;
-    }
-
-    // 打印整数的二进制表示
-    template<typename T>
-    void prt_bin(T x, int width = -1, char fill = '0') {
-        static_assert(is_integral_v<T>, "prt_bin only supports integral types");
-
-        string s;
-        if (x == 0) {
-            s = "0";
-        } else {
-            while (x != 0) {
-                s.push_back((x & 1) ? '1' : '0');
-                x >>= 1;
-            }
-            reverse(s.begin(), s.end());
-        }
-
-        // 如果指定了宽度，则填充
-        if (width > 0 && (int) s.size() < width) {
-            s = string(width - s.size(), fill) + s;
-        }
-
-        cout << s << "\n";
-    }
-
-    // 打印向量vector的二进制
-    template<typename T>
-    void prt_vec_bin(const vector<T> &v, int width = -1, char fill = '0') {
-        for (size_t i = 0; i < v.size(); i++) {
-            prt_bin(v[i], width, fill);
-        }
-    }
-
-    // 输入二进制字符串打印整数
-    template<typename T = long long>
-    void prt_int(const string &s) {
-        static_assert(is_integral_v<T>, "prt_int only supports integral types");
-        T x = 0;
-        for (char c: s) {
-            if (c != '0' && c != '1') {
-                throw invalid_argument("Input string must be binary (0/1 only)");
-            }
-            x = (x << 1) | (c - '0');
-        }
-        cout << x << "\n";
-    }
-
-} // namespace helpers
+using namespace utils;
 
 namespace atcoder {
 
@@ -800,7 +671,7 @@ namespace atcoder {
 
 } // namespace atcoder
 
-using Z = atcoder::static_modint<MOD>;
+using Z = atcoder::static_modint<MOD2>;
 
 Z q_pow(Z base, long long exp) {
     Z result(1);
@@ -813,248 +684,396 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
-namespace math {
-    // 组合数
-    struct Comb {
-        int n;
-        std::vector<Z> _fac;
-        std::vector<Z> _invfac;
-        std::vector<Z> _inv;
+namespace atcoder {
+    namespace internal {
 
-        Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
-        explicit Comb(int n) : Comb() { init(n); }
+#if __cplusplus >= 202002L
 
-        void init(int m) {
-            if (m <= n) {
+        using std::bit_ceil;
+
+#else
+
+        unsigned int bit_ceil(unsigned int n) {
+            unsigned int x = 1;
+            while (x < (unsigned int) (n))
+                x *= 2;
+            return x;
+        }
+
+#endif
+
+        int countr_zero(unsigned int n) {
+#ifdef _MSC_VER
+            unsigned long index;
+            _BitScanForward(&index, n);
+            return index;
+#else
+            return __builtin_ctz(n);
+#endif
+        }
+
+        constexpr int countr_zero_constexpr(unsigned int n) {
+            int x = 0;
+            while (!(n & (1 << x)))
+                x++;
+            return x;
+        }
+
+    } // namespace internal
+
+#if __cplusplus >= 201703L
+
+    template<class S, auto op, auto e, class F, auto mapping, auto composition, auto id>
+    struct lazy_segtree {
+        static_assert(std::is_convertible_v<decltype(op), std::function<S(S, S)>>, "op must work as S(S, S)");
+        static_assert(std::is_convertible_v<decltype(e), std::function<S()>>, "e must work as S()");
+        static_assert(std::is_convertible_v<decltype(mapping), std::function<S(F, S)>>, "mapping must work as S(F, S)");
+        static_assert(std::is_convertible_v<decltype(composition), std::function<F(F, F)>>,
+                      "composition must work as F(F, F)");
+        static_assert(std::is_convertible_v<decltype(id), std::function<F()>>, "id must work as F()");
+
+#else
+
+    template<class S, S (*op)(S, S), S (*e)(), class F, S (*mapping)(F, S), F (*composition)(F, F), F (*id)()>
+    struct lazy_segtree {
+
+#endif
+
+    public:
+        lazy_segtree() : lazy_segtree(0) {}
+        explicit lazy_segtree(int n) : lazy_segtree(std::vector<S>(n, e())) {}
+        explicit lazy_segtree(const std::vector<S> &v) : _n(int(v.size())) {
+            size = (int) internal::bit_ceil((unsigned int) (_n));
+            log = internal::countr_zero((unsigned int) size);
+            d = std::vector<S>(2 * size, e());
+            lz = std::vector<F>(size, id());
+            for (int i = 0; i < _n; i++)
+                d[size + i] = v[i];
+            for (int i = size - 1; i >= 1; i--) {
+                update(i);
+            }
+        }
+
+        void set(int p, S x) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            d[p] = x;
+            for (int i = 1; i <= log; i++)
+                update(p >> i);
+        }
+
+        S get(int p) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            return d[p];
+        }
+
+        S prod(int l, int r) {
+            assert(0 <= l && l <= r && r <= _n);
+            if (l == r)
+                return e();
+
+            l += size;
+            r += size;
+
+            for (int i = log; i >= 1; i--) {
+                if (((l >> i) << i) != l)
+                    push(l >> i);
+                if (((r >> i) << i) != r)
+                    push((r - 1) >> i);
+            }
+
+            S sml = e(), smr = e();
+            while (l < r) {
+                if (l & 1)
+                    sml = op(sml, d[l++]);
+                if (r & 1)
+                    smr = op(d[--r], smr);
+                l >>= 1;
+                r >>= 1;
+            }
+
+            return op(sml, smr);
+        }
+
+        S all_prod() { return d[1]; }
+
+        void apply(int p, F f) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            d[p] = mapping(f, d[p]);
+            for (int i = 1; i <= log; i++)
+                update(p >> i);
+        }
+        void apply(int l, int r, F f) {
+            assert(0 <= l && l <= r && r <= _n);
+            if (l == r)
                 return;
-            }
-            _fac.resize(m + 1);
-            _invfac.resize(m + 1);
-            _inv.resize(m + 1);
 
-            for (int i = n + 1; i <= m; i++) {
-                _fac[i] = _fac[i - 1] * i;
-            }
-            _invfac[m] = _fac[m].inv();
-            for (int i = m; i > n; i--) {
-                _invfac[i - 1] = _invfac[i] * i;
-                _inv[i] = _invfac[i] * _fac[i - 1];
-            }
-            n = m;
-        }
+            l += size;
+            r += size;
 
-        Z fac(int m) {
-            if (m > n) {
-                init(2 * m);
+            for (int i = log; i >= 1; i--) {
+                if (((l >> i) << i) != l)
+                    push(l >> i);
+                if (((r >> i) << i) != r)
+                    push((r - 1) >> i);
             }
-            return _fac[m];
-        }
-        Z invfac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _invfac[m];
-        }
-        Z inv(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _inv[m];
-        }
-        Z C(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(m) * invfac(n - m);
-        }
-        Z A(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(n - m);
-        }
-    } comb(100'005);
 
-    // 质因数分解
-    vector<int> decompose(int x) {
-        vector<int> primes;
-        for (int i = 2; i * i <= x; i++) {
-            if (x % i == 0) {
-                primes.push_back(i);
-                while (x % i == 0) {
-                    x /= i;
+            {
+                int l2 = l, r2 = r;
+                while (l < r) {
+                    if (l & 1)
+                        all_apply(l++, f);
+                    if (r & 1)
+                        all_apply(--r, f);
+                    l >>= 1;
+                    r >>= 1;
                 }
+                l = l2;
+                r = r2;
+            }
+
+            for (int i = 1; i <= log; i++) {
+                if (((l >> i) << i) != l)
+                    update(l >> i);
+                if (((r >> i) << i) != r)
+                    update((r - 1) >> i);
             }
         }
-        if (x > 1) {
-            primes.push_back(x);
-        }
-        return primes;
-    }
 
-    // 二分判断完全平方数
-    bool isPerfectSquare(long long n) {
-        if (n < 0)
-            return false;
-        long long lo = 0, hi = n;
-        while (lo <= hi) {
-            long long mid = lo + (hi - lo) / 2;
-            long long sq = mid * mid;
-            if (sq == n)
-                return true;
-            else if (sq < n)
-                lo = mid + 1;
-            else
-                hi = mid - 1;
+        template<bool (*g)(S)>
+        int max_right(int l) {
+            return max_right(l, [](S x) { return g(x); });
         }
-        return false;
-    }
-
-    i128 getGcd(i128 a, i128 b) {
-        while (b != 0) {
-            i128 t = a % b;
-            a = b;
-            b = t;
+        template<class G>
+        int max_right(int l, G g) {
+            assert(0 <= l && l <= _n);
+            assert(g(e()));
+            if (l == _n)
+                return _n;
+            l += size;
+            for (int i = log; i >= 1; i--)
+                push(l >> i);
+            S sm = e();
+            do {
+                while (l % 2 == 0)
+                    l >>= 1;
+                if (!g(op(sm, d[l]))) {
+                    while (l < size) {
+                        push(l);
+                        l = (2 * l);
+                        if (g(op(sm, d[l]))) {
+                            sm = op(sm, d[l]);
+                            l++;
+                        }
+                    }
+                    return l - size;
+                }
+                sm = op(sm, d[l]);
+                l++;
+            } while ((l & -l) != l);
+            return _n;
         }
-        return a;
-    }
 
-    i128 getLcm(i128 x, i128 y) {
-        if (x == 0 || y == 0)
+        template<bool (*g)(S)>
+        int min_left(int r) {
+            return min_left(r, [](S x) { return g(x); });
+        }
+        template<class G>
+        int min_left(int r, G g) {
+            assert(0 <= r && r <= _n);
+            assert(g(e()));
+            if (r == 0)
+                return 0;
+            r += size;
+            for (int i = log; i >= 1; i--)
+                push((r - 1) >> i);
+            S sm = e();
+            do {
+                r--;
+                while (r > 1 && (r % 2))
+                    r >>= 1;
+                if (!g(op(d[r], sm))) {
+                    while (r < size) {
+                        push(r);
+                        r = (2 * r + 1);
+                        if (g(op(d[r], sm))) {
+                            sm = op(d[r], sm);
+                            r--;
+                        }
+                    }
+                    return r + 1 - size;
+                }
+                sm = op(d[r], sm);
+            } while ((r & -r) != r);
             return 0;
-        return x / getGcd(x, y) * y;
-    }
-} // namespace math
-
-class BigInt {
-    std::vector<int> digits;
-    static const int BASE = 1000000000; // 10^9
-
-public:
-    BigInt() : digits(1, 0) {}
-
-    BigInt(int x) {
-        if (x == 0)
-            digits = {0};
-        else {
-            while (x > 0) {
-                digits.push_back(x % BASE);
-                x /= BASE;
-            }
         }
-    }
 
-    BigInt &operator=(int x) {
-        digits.clear();
-        if (x == 0)
-            digits = {0};
-        else {
-            while (x > 0) {
-                digits.push_back(x % BASE);
-                x /= BASE;
-            }
+    private:
+        int _n, size, log;
+        std::vector<S> d;
+        std::vector<F> lz;
+
+        void update(int k) { d[k] = op(d[2 * k], d[2 * k + 1]); }
+        void all_apply(int k, F f) {
+            d[k] = mapping(f, d[k]);
+            if (k < size)
+                lz[k] = composition(f, lz[k]);
         }
-        return *this;
+        void push(int k) {
+            all_apply(2 * k, lz[k]);
+            all_apply(2 * k + 1, lz[k]);
+            lz[k] = id();
+        }
+    };
+
+} // namespace atcoder
+
+struct Matrix {
+    Z a[3][3];
+
+    Matrix() {
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                a[i][j] = 0;
     }
 
-    BigInt &operator*=(int x) {
-        ll carry = 0;
-        for (int i = 0; i < digits.size(); i++) {
-            carry += (ll) digits[i] * x;
-            digits[i] = carry % BASE;
-            carry /= BASE;
-        }
-        while (carry > 0) {
-            digits.push_back(carry % BASE);
-            carry /= BASE;
-        }
-        return *this;
+    static Matrix identity() {
+        Matrix e;
+        for (int i = 0; i < 3; i++)
+            e.a[i][i] = 1;
+        return e;
     }
 
-    BigInt operator*(int x) const {
-        BigInt res = *this;
-        res *= x;
-        return res;
-    }
-
-    // 除法（返回商）
-    BigInt operator/(int x) const {
-        BigInt res;
-        res.digits.resize(digits.size());
-        ll rem = 0;
-        for (int i = digits.size() - 1; i >= 0; i--) {
-            rem = rem * BASE + digits[i];
-            res.digits[i] = rem / x;
-            rem %= x;
-        }
-        // 去除前导零
-        while (res.digits.size() > 1 && res.digits.back() == 0) {
-            res.digits.pop_back();
-        }
-        return res;
-    }
-
-    bool operator>(const BigInt &other) const {
-        if (digits.size() != other.digits.size()) {
-            return digits.size() > other.digits.size();
-        }
-        for (int i = digits.size() - 1; i >= 0; i--) {
-            if (digits[i] != other.digits[i]) {
-                return digits[i] > other.digits[i];
-            }
-        }
-        return false;
-    }
-
-    // 转换为 long long（注意可能溢出）
-    operator long long() const {
-        long long res = 0;
-        for (int i = digits.size() - 1; i >= 0; i--) {
-            res = res * BASE + digits[i];
-        }
-        return res;
-    }
-
-    // 输出
-    friend ostream &operator<<(ostream &os, const BigInt &num) {
-        os << num.digits.back();
-        for (int i = num.digits.size() - 2; i >= 0; i--) {
-            os << setw(9) << setfill('0') << num.digits[i];
-        }
-        return os;
+    friend Matrix operator*(const Matrix &A, const Matrix &B) {
+        Matrix C;
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                for (int k = 0; k < 3; k++) {
+                    C.a[i][k] += A.a[i][j] * B.a[j][k];
+                }
+        return C;
     }
 };
 
-using namespace utils;
-using namespace helpers;
-using namespace math;
+vl operator*(const Matrix &M, const vl &V) {
+    vl R(3, 0);
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++) {
+            R[i] += M.a[i][j].val() * V[j];
+        }
+    R[0] %= MOD2;
+    R[1] %= MOD2;
+    R[2] %= MOD2;
+    return R;
+}
 
-vector<pii> readTree(int n);
+Z dot(const Z V1[3], const Z V2[3]) { return V1[0] * V2[0] + V1[1] * V2[1] + V1[2] * V2[2]; }
 
-#define int ll
+using S = Matrix;
+using F = int;
 
-void func1() {
-    int n = 100;
+S op(S a, S b) { return b * a; }
 
-    vector<int> arr = {12, 3, 20, 5, 80, 1};
-    auto random_arr1 = random_array(n, 1, 1e5);
-    auto random_arr2 = random_array(n, 1, 1e7);
+S e() { return Matrix::identity(); }
 
-    F(i, 1, 100) {
-        i128 lcm = 1;
-        F(j, 1, i) { lcm = getLcm(lcm, j); }
-        dbg(i, (ll) lcm);
+S mapping(F f, S x) { return x; }
+
+F composition(F f, F g) { return 0; }
+
+F id() { return 0; }
+
+constexpr int N = 1e6 + 5;
+int a[N];
+
+Matrix build_matrix(int i) {
+    Matrix M;
+    int v = a[i];
+    Z w1 = (v == 0 || v == 1) ? 1 : 0;
+    Z w2 = (v == 0 || v == 2) ? 1 : 0;
+    Z w3 = (v == 0 || v == 3) ? 1 : 0;
+
+    M.a[0][0] = w1;
+    M.a[0][1] = w1;
+    M.a[0][2] = w1;
+    M.a[1][0] = w2;
+    M.a[1][1] = w2;
+    M.a[1][2] = 0;
+    M.a[2][0] = 0;
+    M.a[2][1] = w3;
+    M.a[2][2] = w3;
+    return M;
+}
+
+int Multitest = 0;
+
+void init() {}
+
+void solve() {
+    int n, q;
+    rd(n, q);
+    for (int i = 1; i <= n; i++)
+        rd(a[i]);
+
+    vector<S> initial_matrices(n);
+    for (int i = 0; i < n; i++) {
+        initial_matrices[i] = build_matrix(i + 1);
+    }
+    atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(initial_matrices);
+
+    while (q--) {
+        int op_type;
+        rd(op_type);
+        if (op_type == 1) {
+            int x, y;
+            rd(x, y);
+            a[x] = y;
+            seg.set(x - 1, build_matrix(x));
+        } else {
+            int l, r;
+            rd(l, r);
+
+            if (l == r) {
+                Z ans = (a[l] == 0 || a[l] == 3) ? 1 : 0;
+                prt(ans.val());
+                continue;
+            }
+
+            Z Vl[3];
+            Vl[0] = (a[l] == 0 || a[l] == 1) ? 1 : 0;
+            Vl[1] = 0;
+            Vl[2] = (a[l] == 0 || a[l] == 3) ? 1 : 0;
+
+            Matrix M_range = seg.prod(l, r);
+
+            Z Vr[3];
+            Vr[0] = M_range.a[0][0] * Vl[0] + M_range.a[0][1] * Vl[1] + M_range.a[0][2] * Vl[2];
+            Vr[1] = M_range.a[1][0] * Vl[0] + M_range.a[1][1] * Vl[1] + M_range.a[1][2] * Vl[2];
+            Vr[2] = M_range.a[2][0] * Vl[0] + M_range.a[2][1] * Vl[1] + M_range.a[2][2] * Vl[2];
+
+
+            Z ans = Vr[1] + Vr[2];
+            prt(ans.val());
+        }
     }
 }
 
-vector<pii> readTree(int n) {
-    vector<pii> edges;
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        edges.pb(u, v);
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-    return edges;
+    while (T--) {
+        solve();
+    }
 }
-
-signed main() { func1(); }

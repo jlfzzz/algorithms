@@ -144,25 +144,70 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    ll a, b, c, d;
-    rd(a, b, c, d);
+    int n, m;
+    rd(n, m);
+    set<pair<int, int>> initial_edges;
+    F(i, 1, m) {
+        int u, v;
+        rd(u, v);
+        if (u > v)
+            swap(u, v);
+        initial_edges.insert({u, v});
+    }
 
-    ll ans = 0;
+    int ans = inf;
+    vector<int> p(n + 1, 0);
+    vector<bool> used(n + 1, false);
 
-    F(s, c + 1, b + c) {
-        ll mn = max(a, s - c);
-        ll mx = min(b, s - b);
+    auto dfs = [&](auto &&dfs, int u) -> void {
+        if (u == n + 1) {
+            bool valid = true;
+            for (int i = 1; i <= n; i++) {
+                if (p[i] == i) {
+                    valid = false;
+                    break;
+                }
+                if (p[p[i]] == i) {
+                    valid = false;
+                    break;
+                }
+            }
 
-        ll cnt = max(0LL, mx - mn + 1);
+            if (!valid)
+                return;
+            set<pair<int, int>> target_edges;
+            for (int i = 1; i <= n; i++) {
+                int u_node = i;
+                int v_node = p[i];
+                if (u_node > v_node)
+                    swap(u_node, v_node);
+                target_edges.insert({u_node, v_node});
+            }
 
-        if (cnt == 0) {
-            continue;
+            int k = 0;
+            for (const auto &edge: target_edges) {
+                if (initial_edges.count(edge)) {
+                    k++;
+                }
+            }
+            int current_ops = (m - k) + (n - k);
+            ans = min(ans, current_ops);
+            return;
         }
 
-        ll cnt2 = max(0LL, min(d, (ll) s - 1) - c + 1);
+        for (int v = 1; v <= n; v++) {
+            if (!used[v]) {
+                p[u] = v;
+                used[v] = true;
 
-        ans += cnt * cnt2;
-    }
+                dfs(dfs, u + 1);
+
+                used[v] = false;
+                p[u] = 0;
+            }
+        }
+    };
+    dfs(dfs, 1);
 
     prt(ans);
 }

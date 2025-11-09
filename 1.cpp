@@ -1,250 +1,283 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
-#define i128 __int128_t
-#define db long double
-#define pb emplace_back
-#define pf emplace_front
-#define all(x) (x).begin(), (x).end()
-using pii = pair<ll, ll>;
-#define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vl vector<long long>
-#define vvi vector<vector<int>>
-#define vvp vector<vector<pii>>
-#define vvl vector<vector<long long>>
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
-#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
-#define SZ(a) ((int) (a).size())
-#define prq priority_queue
-#define fi first
-#define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
-constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
-constexpr int inf = 0x3f3f3f3f;
 
-namespace utils {
-    void dbg() { cerr << "\n"; }
+namespace atcoder::internal {
 
-    template<typename T, typename... Args>
-    void dbg(const string &s, T x, Args... args) {
-        cerr << s << " = " << x;
-        if (sizeof...(args) > 0)
-            cerr << ", ";
-        dbg(args...);
+#if __cplusplus >= 202002L
+
+    using std::bit_ceil;
+
+#else
+
+    unsigned int bit_ceil(unsigned int n) {
+        unsigned int x = 1;
+        while (x < (unsigned int) (n))
+            x *= 2;
+        return x;
     }
 
-    template<typename T>
-    void prt(const T &x) {
-        cout << x << '\n';
+#endif
+
+    int countr_zero(unsigned int n) {
+#ifdef _MSC_VER
+        unsigned long index;
+        _BitScanForward(&index, n);
+        return index;
+#else
+        return __builtin_ctz(n);
+#endif
     }
 
-    template<typename T, typename... Args>
-    void prt(const T &first, const Args &...rest) {
-        cout << first;
-        ((cout << ' ' << rest), ...);
-        cout << '\n';
+    constexpr int countr_zero_constexpr(unsigned int n) {
+        int x = 0;
+        while (!(n & (1 << x)))
+            x++;
+        return x;
     }
 
-    template<typename T>
-    void prv(const vector<T> &v) {
-        for (size_t i = 0; i < v.size(); i++) {
-            if (i)
-                cout << " ";
-            cout << v[i];
+} // namespace atcoder::internal
+
+namespace atcoder {
+
+#if __cplusplus >= 201703L
+
+    template<class S, auto op, auto e, class F, auto mapping, auto composition, auto id>
+    struct lazy_segtree {
+        static_assert(std::is_convertible_v<decltype(op), std::function<S(S, S)>>, "op must work as S(S, S)");
+        static_assert(std::is_convertible_v<decltype(e), std::function<S()>>, "e must work as S()");
+        static_assert(std::is_convertible_v<decltype(mapping), std::function<S(F, S)>>, "mapping must work as S(F, S)");
+        static_assert(std::is_convertible_v<decltype(composition), std::function<F(F, F)>>,
+                      "composition must work as F(F, F)");
+        static_assert(std::is_convertible_v<decltype(id), std::function<F()>>, "id must work as F()");
+
+#else
+
+    template<class S, S (*op)(S, S), S (*e)(), class F, S (*mapping)(F, S), F (*composition)(F, F), F (*id)()>
+    struct lazy_segtree {
+
+#endif
+
+    public:
+        lazy_segtree() : lazy_segtree(0) {}
+        explicit lazy_segtree(int n) : lazy_segtree(std::vector<S>(n, e())) {}
+        explicit lazy_segtree(const std::vector<S> &v) : _n(int(v.size())) {
+            size = (int) internal::bit_ceil((unsigned int) (_n));
+            log = internal::countr_zero((unsigned int) size);
+            d = std::vector<S>(2 * size, e());
+            lz = std::vector<F>(size, id());
+            for (int i = 0; i < _n; i++)
+                d[size + i] = v[i];
+            for (int i = size - 1; i >= 1; i--) {
+                update(i);
+            }
         }
-        cout << "\n";
-    }
 
-    template<typename T>
-    void prv(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < (int) v.size(); i++) {
-            if (i > start_index)
-                cout << " ";
-            cout << v[i];
+        void set(int p, S x) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            d[p] = x;
+            for (int i = 1; i <= log; i++)
+                update(p >> i);
         }
-        cout << "\n";
-    }
 
-    template<typename T>
-    void rd(T &x) {
-        cin >> x;
-    }
-
-    template<typename T, typename... Args>
-    void rd(T &x, Args &...args) {
-        cin >> x;
-        rd(args...);
-    }
-
-    template<typename A, typename B>
-    void rd(pair<A, B> &p) {
-        cin >> p.first >> p.second;
-    }
-
-    template<typename T>
-    void rv(vector<T> &v) {
-        for (auto &x: v) {
-            rd(x);
+        S get(int p) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            return d[p];
         }
-    }
 
-    template<typename T>
-    void rv(vector<T> &v, int start_index) {
-        for (int i = start_index; i < (int) v.size(); i++) {
-            rd(v[i]);
+        S prod(int l, int r) {
+            assert(0 <= l && l <= r && r <= _n);
+            if (l == r)
+                return e();
+
+            l += size;
+            r += size;
+
+            for (int i = log; i >= 1; i--) {
+                if (((l >> i) << i) != l)
+                    push(l >> i);
+                if (((r >> i) << i) != r)
+                    push((r - 1) >> i);
+            }
+
+            S sml = e(), smr = e();
+            while (l < r) {
+                if (l & 1)
+                    sml = op(sml, d[l++]);
+                if (r & 1)
+                    smr = op(d[--r], smr);
+                l >>= 1;
+                r >>= 1;
+            }
+
+            return op(sml, smr);
         }
-    }
-} // namespace utils
 
-using namespace utils;
+        S all_prod() { return d[1]; }
 
-constexpr int N = 1e6 + 5;
+        void apply(int p, F f) {
+            assert(0 <= p && p < _n);
+            p += size;
+            for (int i = log; i >= 1; i--)
+                push(p >> i);
+            d[p] = mapping(f, d[p]);
+            for (int i = 1; i <= log; i++)
+                update(p >> i);
+        }
+        void apply(int l, int r, F f) {
+            assert(0 <= l && l <= r && r <= _n);
+            if (l == r)
+                return;
 
-int Multitest = 0;
+            l += size;
+            r += size;
 
-void init() {}
+            for (int i = log; i >= 1; i--) {
+                if (((l >> i) << i) != l)
+                    push(l >> i);
+                if (((r >> i) << i) != r)
+                    push((r - 1) >> i);
+            }
 
-struct Fenwick {
-    int n;
-    vector<int> bit;
-    Fenwick() : n(0) {}
-    explicit Fenwick(int n_) { init(n_); }
-    void init(int n_) {
-        n = n_;
-        bit.assign(n + 1, 0);
-    }
-    void add(int idx, int delta) {
-        for (; idx <= n; idx += idx & -idx)
-            bit[idx] += delta;
-    }
-    int sumPrefix(int idx) const {
-        int s = 0;
-        for (; idx > 0; idx -= idx & -idx)
-            s += bit[idx];
-        return s;
-    }
-};
+            {
+                int l2 = l, r2 = r;
+                while (l < r) {
+                    if (l & 1)
+                        all_apply(l++, f);
+                    if (r & 1)
+                        all_apply(--r, f);
+                    l >>= 1;
+                    r >>= 1;
+                }
+                l = l2;
+                r = r2;
+            }
 
-struct SegTree {
-    struct Node {
-        ll x, y;
-        bool flip;
+            for (int i = 1; i <= log; i++) {
+                if (((l >> i) << i) != l)
+                    update(l >> i);
+                if (((r >> i) << i) != r)
+                    update((r - 1) >> i);
+            }
+        }
+
+        template<bool (*g)(S)>
+        int max_right(int l) {
+            return max_right(l, [](S x) { return g(x); });
+        }
+        template<class G>
+        int max_right(int l, G g) {
+            assert(0 <= l && l <= _n);
+            assert(g(e()));
+            if (l == _n)
+                return _n;
+            l += size;
+            for (int i = log; i >= 1; i--)
+                push(l >> i);
+            S sm = e();
+            do {
+                while (l % 2 == 0)
+                    l >>= 1;
+                if (!g(op(sm, d[l]))) {
+                    while (l < size) {
+                        push(l);
+                        l = (2 * l);
+                        if (g(op(sm, d[l]))) {
+                            sm = op(sm, d[l]);
+                            l++;
+                        }
+                    }
+                    return l - size;
+                }
+                sm = op(sm, d[l]);
+                l++;
+            } while ((l & -l) != l);
+            return _n;
+        }
+
+        template<bool (*g)(S)>
+        int min_left(int r) {
+            return min_left(r, [](S x) { return g(x); });
+        }
+        template<class G>
+        int min_left(int r, G g) {
+            assert(0 <= r && r <= _n);
+            assert(g(e()));
+            if (r == 0)
+                return 0;
+            r += size;
+            for (int i = log; i >= 1; i--)
+                push((r - 1) >> i);
+            S sm = e();
+            do {
+                r--;
+                while (r > 1 && (r % 2))
+                    r >>= 1;
+                if (!g(op(d[r], sm))) {
+                    while (r < size) {
+                        push(r);
+                        r = (2 * r + 1);
+                        if (g(op(d[r], sm))) {
+                            sm = op(d[r], sm);
+                            r--;
+                        }
+                    }
+                    return r + 1 - size;
+                }
+                sm = op(d[r], sm);
+            } while ((r & -r) != r);
+            return 0;
+        }
+
+    private:
+        int _n, size, log;
+        std::vector<S> d;
+        std::vector<F> lz;
+
+        void update(int k) { d[k] = op(d[2 * k], d[2 * k + 1]); }
+        void all_apply(int k, F f) {
+            d[k] = mapping(f, d[k]);
+            if (k < size)
+                lz[k] = composition(f, lz[k]);
+        }
+        void push(int k) {
+            all_apply(2 * k, lz[k]);
+            all_apply(2 * k + 1, lz[k]);
+            lz[k] = id();
+        }
     };
-    int n;
-    vector<Node> st;
-    SegTree() : n(0) {}
-    explicit SegTree(int n_) { init(n_); }
-    void init(int n_) {
-        n = max(1, n_);
-        st.assign(4 * n + 5, {0, 0, false});
-    }
-    static void applyFlip(Node &nd) {
-        nd.x = -nd.x;
-        nd.y = -nd.y;
-        nd.flip = !nd.flip;
-    }
-    void push(int p) {
-        if (!st[p].flip)
-            return;
-        applyFlip(st[p << 1]);
-        applyFlip(st[p << 1 | 1]);
-        st[p].flip = false;
-    }
-    static Node merge(const Node &a, const Node &b) { return {a.x + b.x, a.y + b.y, false}; }
-    void pointSet(int p, int l, int r, int idx, ll vx, ll vy) {
-        if (l == r) {
-            st[p].x = vx;
-            st[p].y = vy;
-            st[p].flip = false;
-            return;
-        }
-        push(p);
-        int m = (l + r) >> 1;
-        if (idx <= m)
-            pointSet(p << 1, l, m, idx, vx, vy);
-        else
-            pointSet(p << 1 | 1, m + 1, r, idx, vx, vy);
-        st[p] = merge(st[p << 1], st[p << 1 | 1]);
-    }
-    void rangeNeg(int p, int l, int r, int ql, int qr) {
-        if (ql > r || qr < l)
-            return;
-        if (ql <= l && r <= qr) {
-            applyFlip(st[p]);
-            return;
-        }
-        push(p);
-        int m = (l + r) >> 1;
-        rangeNeg(p << 1, l, m, ql, qr);
-        rangeNeg(p << 1 | 1, m + 1, r, ql, qr);
-        st[p] = merge(st[p << 1], st[p << 1 | 1]);
-    }
-    void setPoint(int idx, ll vx, ll vy) { pointSet(1, 1, n, idx, vx, vy); }
-    void negateRange(int l, int r) {
-        if (l <= r)
-            rangeNeg(1, 1, n, l, r);
-    }
-    pair<ll, ll> queryAll() const { return {st[1].x, st[1].y}; }
+
+} // namespace atcoder
+
+struct S {
+    int sum, len;
 };
 
-static inline pair<ll, ll> relVecByT(long long t) {
-    int m = int(t & 3LL);
-    if (m == 0)
-        return {-1, 0};
-    if (m == 1)
-        return {0, 1};
-    if (m == 2)
-        return {1, 0};
-    return {0, -1};
-}
+struct F {
+    int lazy;
+};
 
-void solve() {
-    int Nq;
-    int Tlen;
-    if (!(cin >> Nq >> Tlen))
-        return;
-    // 线段树覆盖 [1 .. T-1] 的时间点；每个叶子存当前带符号贡献 (+/- d_b)，初始为 0
-    SegTree st(max(1, Tlen - 1));
-    Fenwick fw(Tlen - 1); // 只用到 1..T-1
+S op(S a, S b) { return {a.sum + b.sum, a.len + b.len}; }
 
-    auto d0 = relVecByT(0);
-    auto dT = relVecByT(Tlen);
-    long long k = 0; // 已插入个数
+S e() { return {0, 0}; }
 
-    for (int i = 0; i < Nq; i++) {
-        int b;
-        cin >> b; // 1 <= b <= T-1
-        int cntLess = (b > 1 ? fw.sumPrefix(b - 1) : 0);
-        int sign = (cntLess % 2 == 0 ? +1 : -1);
-        auto vecB = relVecByT(b);
-        ll vx = sign * vecB.first, vy = sign * vecB.second;
-        st.setPoint(b, vx, vy);
-        if (b < Tlen - 1)
-            st.negateRange(b + 1, Tlen - 1);
-        fw.add(b, 1);
-        k++;
+S mapping(F f, S x) { return {x.sum + x.len * f.lazy, x.len}; }
 
-        auto S = st.queryAll();
-        long long addTx = (k % 2 == 0 ? dT.first : 0);
-        long long addTy = (k % 2 == 0 ? dT.second : 0);
-        long long ansx = S.first + addTx - d0.first;
-        long long ansy = S.second + addTy - d0.second;
-        cout << ansx << ' ' << ansy << '\n';
-    }
-}
+F composition(F f, F g) { return f; }
 
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
-    }
-    while (T--) {
-        solve();
-    }
-}
+F id() { return {0}; }
+
+
+vector<S> tree_arr;
+atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(tree_arr);
+
+class Solution {
+public:
+    long long maximumScore(vector<int> &nums, int k) {}
+};

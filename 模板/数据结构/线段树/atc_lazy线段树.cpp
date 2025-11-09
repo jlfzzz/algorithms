@@ -2,43 +2,42 @@
 using namespace std;
 
 
-namespace atcoder::internal {
+namespace atcoder {
+    namespace internal {
 
 #if __cplusplus >= 202002L
 
-    using std::bit_ceil;
+        using std::bit_ceil;
 
 #else
 
-    unsigned int bit_ceil(unsigned int n) {
-        unsigned int x = 1;
-        while (x < (unsigned int) (n))
-            x *= 2;
-        return x;
-    }
+        unsigned int bit_ceil(unsigned int n) {
+            unsigned int x = 1;
+            while (x < (unsigned int) (n))
+                x *= 2;
+            return x;
+        }
 
 #endif
 
-    int countr_zero(unsigned int n) {
+        int countr_zero(unsigned int n) {
 #ifdef _MSC_VER
-        unsigned long index;
-        _BitScanForward(&index, n);
-        return index;
+            unsigned long index;
+            _BitScanForward(&index, n);
+            return index;
 #else
-        return __builtin_ctz(n);
+            return __builtin_ctz(n);
 #endif
-    }
+        }
 
-    constexpr int countr_zero_constexpr(unsigned int n) {
-        int x = 0;
-        while (!(n & (1 << x)))
-            x++;
-        return x;
-    }
+        constexpr int countr_zero_constexpr(unsigned int n) {
+            int x = 0;
+            while (!(n & (1 << x)))
+                x++;
+            return x;
+        }
 
-} // namespace atcoder::internal
-
-namespace atcoder {
+    } // namespace internal
 
 #if __cplusplus >= 201703L
 
@@ -267,13 +266,9 @@ S op(S a, S b) { return {a.sum + b.sum, a.len + b.len}; }
 
 S e() { return {0, 0}; }
 
-S mapping(F f, S x) {
-    return {x.sum + x.len * f.lazy, x.len};
-}
+S mapping(F f, S x) { return {x.sum + x.len * f.lazy, x.len}; }
 
-F composition(F f, F g) {
-    return f;
-}
+F composition(F f, F g) { return f; }
 
 F id() { return {0}; }
 

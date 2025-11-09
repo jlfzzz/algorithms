@@ -139,43 +139,99 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
-void solve() {
-    ll a, b, c, d;
-    rd(a, b, c, d);
+#include <cmath>
+#include <iostream>
+#include <set>
+#include <vector>
 
-    ll ans = 0;
 
-    F(s, c + 1, b + c) {
-        ll mn = max(a, s - c);
-        ll mx = min(b, s - b);
+using namespace std;
 
-        ll cnt = max(0LL, mx - mn + 1);
-
-        if (cnt == 0) {
-            continue;
+// Sieve of Eratosthenes
+vector<int> sieve(int n) {
+    vector<bool> is_prime(n + 1, true);
+    is_prime[0] = is_prime[1] = false;
+    for (int p = 2; p * p <= n; p++) {
+        if (is_prime[p]) {
+            for (int i = p * p; i <= n; i += p)
+                is_prime[i] = false;
         }
-
-        ll cnt2 = max(0LL, min(d, (ll) s - 1) - c + 1);
-
-        ans += cnt * cnt2;
     }
-
-    prt(ans);
+    vector<int> primes;
+    for (int p = 2; p <= n; p++) {
+        if (is_prime[p]) {
+            primes.push_back(p);
+        }
+    }
+    return primes;
 }
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
+    long long L, R;
+    cin >> L >> R;
+
+    // L=R 的情况，区间 [L+1, R] 为空
+    if (L == R) {
+        cout << 1 << endl;
+        return 0;
     }
-    while (T--) {
-        solve();
+
+    long long l = L + 1;
+    long long r = R;
+
+    // 1. 基础筛法，筛到 sqrt(r)
+    int max_sieve = sqrt(r);
+    vector<int> primes = sieve(max_sieve);
+
+    long long count_primes = 0;
+    long long count_powers = 0;
+
+    // 2. 区间筛 (Segmented Sieve) 统计 k=1 的质数
+    // is_prime_segment[i] 对应数字 l+i
+    vector<bool> is_prime_segment(r - l + 1, true);
+
+    for (long long p: primes) {
+        // 找到 p 在 [l, r] 中的第一个倍数，但至少从 p*p 开始
+        long long start = (l + p - 1) / p * p;
+        if (start < p * p) {
+            start = p * p;
+        }
+
+        for (long long j = start; j <= r; j += p) {
+            if (j >= l) {
+                is_prime_segment[j - l] = false;
+            }
+        }
     }
+
+    for (int i = 0; i < is_prime_segment.size(); ++i) {
+        if (is_prime_segment[i]) {
+            count_primes++;
+        }
+    }
+
+    // 3. 统计 k >= 2 的质数幂
+    set<long long> found_powers;
+    for (long long p: primes) {
+        long long n = p;
+        // 循环检查 n*p 是否会溢出或超过 r
+        while (r / p >= n) {
+            n = n * p; // n = p^2, p^3, ...
+            if (n >= l) {
+                found_powers.insert(n);
+            }
+        }
+    }
+    count_powers = found_powers.size();
+
+    // 4. 最终答案
+    // 1 (来自 A_L) + 区间内的质数 + 区间内的质数幂(k>=2)
+    cout << 1 + count_primes + count_powers << endl;
+
+    return 0;
 }
+

@@ -139,13 +139,95 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve() {
-    
+int tree[4 * N + 5];
+void upd(int o, int l, int r, int i, int delta) {
+    if (l == r) {
+        tree[o] += delta;
+        return;
+    }
+
+    int m = (l + r) / 2;
+    if (i <= m) {
+        upd(o * 2, l, m, i, delta);
+    } else {
+        upd(o * 2 + 1, m + 1, r, i, delta);
+    }
+    tree[o] = tree[o * 2] + tree[o * 2 + 1];
 }
+
+void query(int o, int l, int r, int k) {
+    if (l == r) {
+        tree[o]--;
+        return;
+    }
+
+    int m = (l + r) / 2;
+    if (k <= tree[o * 2]) {
+        query(o * 2, l, m, k);
+    } else {
+        query(o * 2 + 1, m + 1, r, k - tree[o * 2]);
+    }
+    tree[o] = tree[o * 2] + tree[o * 2 + 1];
+}
+
+int query2(int o, int l, int r, int k) {
+    if (l == r) {
+        return tree[o];
+    }
+
+    int m = (l + r) / 2;
+    if (k <= m) {
+        return query2(o * 2, l, m, k);
+    } else {
+        return query2(o * 2 + 1, m + 1, r, k);
+    }
+}
+
+int find_first(int o, int l, int r) {
+    if (l == r) {
+        return l;
+    }
+
+    int m = (l + r) / 2;
+    if (tree[o * 2] > 0) {
+        return find_first(o * 2, l, m);
+    } else {
+        return find_first(o * 2 + 1, m + 1, r);
+    }
+}
+
+void solve() {
+    int n, q;
+    rd(n, q);
+
+    F(i, 1, n) {
+        int t;
+        rd(t);
+        upd(1, 1, n, t, 1);
+    }
+
+    while (q--) {
+        int k;
+        rd(k);
+        if (k >= 1) {
+            upd(1, 1, n, k, 1);
+        } else {
+            query(1, 1, n, -k);
+        }
+    }
+
+    if (tree[1] == 0) {
+        prt(0);
+    } else {
+        prt(find_first(1, 1, n));
+    }
+}
+
+
 
 int main() {
     ios::sync_with_stdio(false);

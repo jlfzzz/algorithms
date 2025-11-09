@@ -137,34 +137,70 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+template<typename T>
+struct FenwickTree {
+    int n;
+    vector<T> bit;
+
+    FenwickTree(int _n) : n(_n), bit(_n + 1, 0) {}
+
+    void add(int idx, T val) {
+        for (++idx; idx <= n; idx += idx & -idx) {
+            bit[idx] += val;
+        }
+    }
+
+    T query(int idx) {
+        T sum = 0;
+        for (++idx; idx > 0; idx -= idx & -idx) {
+            sum += bit[idx];
+        }
+        return sum;
+    }
+
+    T query(int l, int r) { return query(r) - query(l - 1); }
+};
+
+struct Player {
+    int id;
+    int cards[3];
+    int max_card;
+    int sec_max_card;
+};
 
 int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll a, b, c, d;
-    rd(a, b, c, d);
+    int n;
+    rd(n);
+    vector<Player> players(n);
+    int max_card_val = 0;
 
-    ll ans = 0;
-
-    F(s, c + 1, b + c) {
-        ll mn = max(a, s - c);
-        ll mx = min(b, s - b);
-
-        ll cnt = max(0LL, mx - mn + 1);
-
-        if (cnt == 0) {
-            continue;
-        }
-
-        ll cnt2 = max(0LL, min(d, (ll) s - 1) - c + 1);
-
-        ans += cnt * cnt2;
+    for (int i = 0; i < n; i++) {
+        players[i].id = i;
+        rd(players[i].cards[0], players[i].cards[1], players[i].cards[2]);
+        sort(players[i].cards, players[i].cards + 3);
+        players[i].max_card = players[i].cards[2];
+        players[i].sec_max_card = players[i].cards[1];
+        max_card_val = max({max_card_val, players[i].cards[0], players[i].cards[1], players[i].cards[2]});
     }
 
-    prt(ans);
+    sort(all(players), [](const Player &a, const Player &b) { return a.max_card < b.max_card; });
+
+    vi ans(n, 0);
+    FenwickTree<int> bit(max_card_val + 5);
+
+    D(i, n - 1, 0) {
+        auto &p1 = players[i];
+
+        ans[p1.id] += i;
+        ans[p1.id] += bit.query(p1.sec_max_card - 1);
+        bit.add(p1.sec_max_card, 1);
+    }
+
+    prv(ans);
 }
 
 int main() {
@@ -178,4 +214,5 @@ int main() {
     while (T--) {
         solve();
     }
+    return 0; // 加上 main 的返回值
 }

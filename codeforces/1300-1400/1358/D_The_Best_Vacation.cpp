@@ -144,36 +144,34 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vl a(n);
-    rv(a);
+    ll n, x;
+    rd(n, x);
 
-    map<ll, int> cnt;
-    stack<ll> stk;
+    vl d(n + 1);
+    rv(d, 1);
+    d.insert(d.end(), d.begin() + 1, d.end());
+    vl pref(2 * n + 1);
+    F(i, 1, 2 * n) { pref[i] = pref[i - 1] + d[i]; }
 
-    F(i, 0, n - 1) {
-        ll x = a[i];
-        dbg(i);
-        if (cnt.contains(x)) {
-            while (true) {
-                ll t = stk.top();
-                dbg(t);
-                stk.pop();
-                if (--cnt[t] == 0) {
-                    cnt.erase(t);
-                }
-                if (t == x) {
-                    break;
-                }
-            }
-        } else {
-            stk.push(x);
-            cnt[x]++;
-        }
+    vl vals(2 * n + 1);
+    F(i, 1, 2 * n) { vals[i] = (1ll + d[i]) * d[i] / 2; }
+    vl pref2(2 * n + 1);
+    F(i, 1, 2 * n) { pref2[i] = pref2[i - 1] + vals[i]; }
+
+    ll ans = 0;
+    F(i, 1, n) {
+        ll sum = pref[i - 1];
+        int j = ranges::upper_bound(pref, sum + x) - pref.begin() - 1;
+        ll val = pref2[j] - pref2[i - 1];
+        ll t1 = x - (pref[j] - pref[i - 1]);
+        ll sum1 = (t1 + 1) * t1 / 2;
+        ll extra = max(0ll, min(d[i] - 1, d[j + 1] - t1));
+        ll t2 = (t1 + 1 + t1 + extra) * extra / 2;
+        ll t3 = (1 + extra) * extra / 2;
+        ans = max(ans, val + t2 - t3 + sum1);
     }
 
-    prt(stk.size());
+    prt(ans);
 }
 
 int main() {

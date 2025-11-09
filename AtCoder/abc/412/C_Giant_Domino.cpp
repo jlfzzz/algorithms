@@ -139,32 +139,36 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    ll a, b, c, d;
-    rd(a, b, c, d);
+    int n;
+    rd(n);
+    vl a(n);
+    rv(a);
+    ll first = a[0];
+    ll last = a.back();
+    ranges::sort(a);
 
-    ll ans = 0;
-
-    F(s, c + 1, b + c) {
-        ll mn = max(a, s - c);
-        ll mx = min(b, s - b);
-
-        ll cnt = max(0LL, mx - mn + 1);
-
-        if (cnt == 0) {
-            continue;
+    int ans = 0;
+    while (true) {
+        if (first * 2 >= last) {
+            break;
         }
 
-        ll cnt2 = max(0LL, min(d, (ll) s - 1) - c + 1);
+        int i = ranges::upper_bound(a, 2 * first) - a.begin() - 1;
+        if (a[i] <= first) {
+            prt(-1);
+            return;
+        }
 
-        ans += cnt * cnt2;
+        first = a[i];
+        ans++;
     }
 
-    prt(ans);
+    prt(ans + 2);
 }
 
 int main() {
