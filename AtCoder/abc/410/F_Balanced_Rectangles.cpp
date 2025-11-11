@@ -6,6 +6,7 @@ using ll = long long;
 #define pb emplace_back
 #define pf emplace_front
 #define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
 #define vi vector<int>
@@ -26,7 +27,6 @@ constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
-    // ... (你的 utils 命名空间，保持不变) ...
     template<typename A, typename B>
     ostream &operator<<(ostream &os, const pair<A, B> &p) {
         return os << '(' << p.first << ", " << p.second << ')';
@@ -138,124 +138,73 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 2e5 + 5;
-
-vector<int> C(N);
-
-std::vector<std::vector<int>> divisors_table(int upper) {
-    std::vector<std::vector<int>> res(upper + 1);
-    for (int i = 2; i <= upper; i++) {
-        for (int j = i; j <= upper; j += i) {
-            res[j].push_back(i);
-        }
-    }
-    return res;
-}
-
-auto table = divisors_table(N - 1);
+constexpr int N = 1e6 + 5;
 
 int Multitest = 1;
 
 void init() {}
 
+static vi counts;
+static vi seen_indices;
+
 void solve() {
-    int n;
-    rd(n);
-    vi a(n);
-    rv(a);
-    vl b(n);
-    rv(b);
+    int h, w;
+    rd(h, w);
 
-    ll ans = INF;
-
-    for (int x: a) {
-        for (int y: table[x]) {
-            if (C[y]) {
-                ans = 0;
-            }
-            C[y]++;
-        }
+    vvi grid(h + 1, vi(w + 1));
+    F(i, 1, h) {
+        string s;
+        rd(s);
+        F(j, 1, w) { grid[i][j] = s[j - 1] == '#' ? 1 : -1; }
     }
 
-    if (ans == 0) {
-        for (int x: a) {
-            for (int y: table[x]) {
-                C[y]--;
+    if (h > w) {
+        vvi g2(w + 1, vi(h + 1));
+        F(i, 1, w) {
+            F(j, 1, h) {
+                g2[i][j] = grid[j][i];
             }
         }
-        prt(0);
-        return;
+        swap(h, w);
+        grid.swap(g2);
     }
 
-    {
-        ll min1 = INF, min2 = INF;
-        F(i, 0, n - 1) {
-            ll tmp_cost = 0;
-            if (a[i] % 2 != 0) {
-                tmp_cost = b[i];
-            }
-
-            if (tmp_cost < min1) {
-                min2 = min1;
-                min1 = tmp_cost;
-            } else if (tmp_cost < min2) {
-                min2 = tmp_cost;
-            }
-        }
-        ans = min(ans, min1 + min2);
+    vvl S(h + 1, vl(w + 1, 0LL));
+    F(i, 1, h) {
+        F(j, 1, w) { S[i][j] = grid[i][j] + S[i - 1][j] + S[i][j - 1] - S[i - 1][j - 1]; }
     }
 
-    F(i, 0, n - 1) {
-        int x = a[i];
-        for (int y: table[x]) {
-            C[y]--;
-        }
+    ll ans = 0;
+    int max_sum = h * w;
+    int offset = max_sum;
 
-        if (x + 1 < N) {
-            for (int y: table[x + 1]) {
-                if (C[y]) {
-                    ans = min(ans, b[i]);
-                }
-            }
-        }
-
-        for (int y: table[x]) {
-            C[y]++;
-        }
+    int required_size = 2 * max_sum + 1;
+    if (counts.size() < required_size) {
+        counts.resize(required_size);
     }
 
-    {
-        int mim = 0;
-        F(i, 1, n - 1) {
-            if (b[i] < b[mim]) {
-                mim = i;
+    seen_indices.reserve(w + 1);
+    F(r1_minus_1, 0, h - 1) {
+        F(r2, r1_minus_1 + 1, h) {
+            int base_idx = 0 + offset;
+            counts[base_idx] = 1;
+            seen_indices.pb(base_idx);
+            F(c, 1, w) {
+                ll prefix_rect_sum = S[r2][c] - S[r1_minus_1][c];
+                int idx = (int) prefix_rect_sum + offset;
+                ans += counts[idx];
+                counts[idx]++;
+                seen_indices.pb(idx);
             }
-        }
-
-        F(i, 0, n - 1) {
-            if (i == mim)
-                continue;
-
-            for (int x: table[a[i]]) {
-                ll v = (ll) x - (a[mim] % x);
-                if (v == x)
-                    v = 0;
-
-                ll cost = v * b[mim];
-                ans = min(ans, cost);
+            for (int idx: seen_indices) {
+                counts[idx] = 0;
             }
-        }
-    }
-
-    for (int x: a) {
-        for (int y: table[x]) {
-            C[y]--;
+            seen_indices.clear();
         }
     }
 
     prt(ans);
 }
-
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
@@ -264,10 +213,6 @@ int main() {
     if (Multitest) {
         rd(T);
     }
-
-    // 全局数组 C 在 main 循环外是全 0 的
-    // solve() 函数内部负责使用和清理
-
     while (T--) {
         solve();
     }

@@ -2,70 +2,198 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define int ll
-using pii = pair<int, int>;
-using pll = pair<ll, ll>;
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
 constexpr int MOD = int(1e9 + 7);
-constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
+constexpr int MOD2 = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+
+namespace utils {
+    template<typename A, typename B>
+    ostream &operator<<(ostream &os, const pair<A, B> &p) {
+        return os << '(' << p.first << ", " << p.second << ')';
+    }
+
+    template<typename Tuple, size_t... Is>
+    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
+        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
+    }
+
+    template<typename... Args>
+    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
+        os << '(';
+        print_tuple(os, t, index_sequence_for<Args...>{});
+        return os << ')';
+    }
+
+    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
+    ostream &operator<<(ostream &os, const T &v) {
+        os << '{';
+        bool first = true;
+        for (auto &x: v) {
+            if (!first)
+                os << ", ";
+            first = false;
+            os << x;
+        }
+        return os << '}';
+    }
+
+    void debug_out() { cerr << endl; }
+
+    template<typename Head, typename... Tail>
+    void debug_out(Head H, Tail... T) {
+        cerr << H;
+        if (sizeof...(T))
+            cerr << " ";
+        debug_out(T...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+#ifdef LOCAL
+#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
+
+using namespace utils;
+
+constexpr int N = 1e6 + 5;
+
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
     int n;
-    cin >> n;
+    rd(n);
 
-    int ans = 0;
-    vector<pii> vp;
-    For(i, n) {
-        int l, r;
-        cin >> l >> r;
-        ans += r - l;
-        vp.emplace_back(l, r);
-    }
+    vp segs(n + 1);
+    rv(segs, 1);
 
-    ranges::sort(vp, [](pii &a, pii &b) { return a.first + a.second < b.first + b.second; });
-
+    auto temp = segs;
+    sort(all2(temp, 1), [&](pii &a, pii &b) { return a.first + a.second < b.first + b.second; });
+    ll ans = 0;
+    F(i, 1, n) { ans += temp[i].second - temp[i].first; }
+    vl pref(n + 5), suf(n + 5);
+    F(i, 1, n) { pref[i] = pref[i - 1] + temp[i].first; }
+    D(i, n, 1) { suf[i] = suf[i + 1] + temp[i].second; }
     if (n % 2 == 0) {
-        int t = ans;
-        for (int i = 0; i < n / 2; i++) {
-            t += vp[n - 1 - i].first + vp[n - 1 - i].second - (vp[i].first + vp[i].second);
-        }
-
-        ans += t / 2;
-    } else {
-        int suf = 0, pre = 0;
-        for (int i = 0; i < n / 2 + 1; i++) {
-            pre += vp[i].first + vp[i].second;
-        }
-        for (int i = n / 2 + 1; i < n; i++) {
-            suf += vp[i].first + vp[i].second;
-        }
-        int t = 0;
-        for (int i = 0; i < n / 2 + 1; i++) {
-            int temp_pre = pre - (vp[i].first + vp[i].second);
-            t = max(t, suf - temp_pre + (ans - (vp[i].second - vp[i].first)));
-        }
-        pre -= vp[n / 2].first + vp[n / 2].second;
-        suf += vp[n / 2].first + vp[n / 2].second;
-        for (int i = n / 2 + 1; i < n; i++) {
-            int temp_suf = suf - (vp[i].first + vp[i].second);
-            t = max(t, temp_suf - pre + (ans - (vp[i].second - vp[i].first)));
-        }
-        ans += t / 2;
+        prt(ans + suf[n / 2 + 1] - pref[n / 2]);
+        return;
     }
 
-    cout << ans << '\n';
+    if (n == 5) {
+        dbg(temp);
+        dbg(ans);
+    }
+
+    ll best = 0;
+    F(i, 1, n / 2) {
+        ll r = suf[n / 2 + 2];
+        ll l = pref[n / 2 + 1];
+        best = max(best, r - (l - temp[i].first));
+    }
+
+    best = max(best, suf[n / 2 + 2] - pref[n / 2]);
+
+    F(i, n / 2 + 1, n) {
+        ll l = pref[n / 2];
+        ll r = suf[n / 2 + 1];
+        best = max(best, (r - temp[i].second) - l);
+    }
+    prt(ans + best);
 }
 
-signed main() {
+int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     init();
-    int t = 1;
-    cin >> t;
-    while (t--)
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
         solve();
-    return 0;
+    }
 }

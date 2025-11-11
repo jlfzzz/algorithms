@@ -6,6 +6,7 @@ using ll = long long;
 #define pb emplace_back
 #define pf emplace_front
 #define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
 #define vi vector<int>
@@ -26,7 +27,6 @@ constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
-    // ... (你的 utils 命名空间，保持不变) ...
     template<typename A, typename B>
     ostream &operator<<(ostream &os, const pair<A, B> &p) {
         return os << '(' << p.first << ", " << p.second << ')';
@@ -138,122 +138,69 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 2e5 + 5;
+constexpr int N = 1e6 + 5;
 
-vector<int> C(N);
-
-std::vector<std::vector<int>> divisors_table(int upper) {
-    std::vector<std::vector<int>> res(upper + 1);
-    for (int i = 2; i <= upper; i++) {
-        for (int j = i; j <= upper; j += i) {
-            res[j].push_back(i);
-        }
-    }
-    return res;
-}
-
-auto table = divisors_table(N - 1);
-
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vi a(n);
-    rv(a);
-    vl b(n);
-    rv(b);
+    int n, m;
+    rd(n, m);
+    vvi grid(n + 1, vi(m + 1));
+    vector<vvi> tree(n + 1, vvi(m + 1, vi(101, 0)));
 
-    ll ans = INF;
-
-    for (int x: a) {
-        for (int y: table[x]) {
-            if (C[y]) {
-                ans = 0;
+    auto add = [&](int x, int y, int c, int delta) {
+        for (int i = x; i <= n; i += i & -i) {
+            for (int j = y; j <= m; j += j & -j) {
+                tree[i][j][c] += delta;
             }
-            C[y]++;
+        }
+    };
+
+    auto query_sum = [&](int x, int y, int c) {
+        int res = 0;
+        for (int i = x; i > 0; i -= i & -i) {
+            for (int j = y; j > 0; j -= j & -j) {
+                res += tree[i][j][c];
+            }
+        }
+        return res;
+    };
+
+    auto range_query = [&](int x1, int y1, int x2, int y2, int c) {
+        return query_sum(x2, y2, c) - query_sum(x1 - 1, y2, c) - query_sum(x2, y1 - 1, c) +
+               query_sum(x1 - 1, y1 - 1, c);
+    };
+
+    F(i, 1, n) {
+        F(j, 1, m) {
+            int c;
+            rd(c);
+            grid[i][j] = c;
+            add(i, j, c, 1);
         }
     }
 
-    if (ans == 0) {
-        for (int x: a) {
-            for (int y: table[x]) {
-                C[y]--;
-            }
-        }
-        prt(0);
-        return;
-    }
+    int Q;
+    rd(Q);
+    while (Q--) {
+        int op_type;
+        rd(op_type);
+        if (op_type == 1) {
+            int x, y, c_new;
+            rd(x, y, c_new);
 
-    {
-        ll min1 = INF, min2 = INF;
-        F(i, 0, n - 1) {
-            ll tmp_cost = 0;
-            if (a[i] % 2 != 0) {
-                tmp_cost = b[i];
-            }
-
-            if (tmp_cost < min1) {
-                min2 = min1;
-                min1 = tmp_cost;
-            } else if (tmp_cost < min2) {
-                min2 = tmp_cost;
-            }
-        }
-        ans = min(ans, min1 + min2);
-    }
-
-    F(i, 0, n - 1) {
-        int x = a[i];
-        for (int y: table[x]) {
-            C[y]--;
-        }
-
-        if (x + 1 < N) {
-            for (int y: table[x + 1]) {
-                if (C[y]) {
-                    ans = min(ans, b[i]);
-                }
-            }
-        }
-
-        for (int y: table[x]) {
-            C[y]++;
+            int c_old = grid[x][y];
+            add(x, y, c_old, -1);
+            add(x, y, c_new, 1);
+            grid[x][y] = c_new;
+        } else {
+            int x1, x2, y1, y2, c;
+            rd(x1, x2, y1, y2, c);
+            prt(range_query(x1, y1, x2, y2, c));
         }
     }
-
-    {
-        int mim = 0;
-        F(i, 1, n - 1) {
-            if (b[i] < b[mim]) {
-                mim = i;
-            }
-        }
-
-        F(i, 0, n - 1) {
-            if (i == mim)
-                continue;
-
-            for (int x: table[a[i]]) {
-                ll v = (ll) x - (a[mim] % x);
-                if (v == x)
-                    v = 0;
-
-                ll cost = v * b[mim];
-                ans = min(ans, cost);
-            }
-        }
-    }
-
-    for (int x: a) {
-        for (int y: table[x]) {
-            C[y]--;
-        }
-    }
-
-    prt(ans);
 }
 
 int main() {
@@ -264,10 +211,6 @@ int main() {
     if (Multitest) {
         rd(T);
     }
-
-    // 全局数组 C 在 main 循环外是全 0 的
-    // solve() 函数内部负责使用和清理
-
     while (T--) {
         solve();
     }

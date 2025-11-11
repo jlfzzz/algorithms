@@ -6,6 +6,7 @@ using ll = long long;
 #define pb emplace_back
 #define pf emplace_front
 #define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
 #define vi vector<int>
@@ -26,7 +27,6 @@ constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
-    // ... (你的 utils 命名空间，保持不变) ...
     template<typename A, typename B>
     ostream &operator<<(ostream &os, const pair<A, B> &p) {
         return os << '(' << p.first << ", " << p.second << ')';
@@ -138,137 +138,62 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 2e5 + 5;
+constexpr int N = 1e6 + 5;
 
-vector<int> C(N);
-
-std::vector<std::vector<int>> divisors_table(int upper) {
-    std::vector<std::vector<int>> res(upper + 1);
-    for (int i = 2; i <= upper; i++) {
-        for (int j = i; j <= upper; j += i) {
-            res[j].push_back(i);
-        }
-    }
-    return res;
-}
-
-auto table = divisors_table(N - 1);
-
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
-
-void solve() {
-    int n;
-    rd(n);
-    vi a(n);
-    rv(a);
-    vl b(n);
-    rv(b);
-
-    ll ans = INF;
-
-    for (int x: a) {
-        for (int y: table[x]) {
-            if (C[y]) {
-                ans = 0;
-            }
-            C[y]++;
-        }
-    }
-
-    if (ans == 0) {
-        for (int x: a) {
-            for (int y: table[x]) {
-                C[y]--;
-            }
-        }
-        prt(0);
-        return;
-    }
-
-    {
-        ll min1 = INF, min2 = INF;
-        F(i, 0, n - 1) {
-            ll tmp_cost = 0;
-            if (a[i] % 2 != 0) {
-                tmp_cost = b[i];
-            }
-
-            if (tmp_cost < min1) {
-                min2 = min1;
-                min1 = tmp_cost;
-            } else if (tmp_cost < min2) {
-                min2 = tmp_cost;
-            }
-        }
-        ans = min(ans, min1 + min2);
-    }
-
-    F(i, 0, n - 1) {
-        int x = a[i];
-        for (int y: table[x]) {
-            C[y]--;
-        }
-
-        if (x + 1 < N) {
-            for (int y: table[x + 1]) {
-                if (C[y]) {
-                    ans = min(ans, b[i]);
-                }
-            }
-        }
-
-        for (int y: table[x]) {
-            C[y]++;
-        }
-    }
-
-    {
-        int mim = 0;
-        F(i, 1, n - 1) {
-            if (b[i] < b[mim]) {
-                mim = i;
-            }
-        }
-
-        F(i, 0, n - 1) {
-            if (i == mim)
-                continue;
-
-            for (int x: table[a[i]]) {
-                ll v = (ll) x - (a[mim] % x);
-                if (v == x)
-                    v = 0;
-
-                ll cost = v * b[mim];
-                ans = min(ans, cost);
-            }
-        }
-    }
-
-    for (int x: a) {
-        for (int y: table[x]) {
-            C[y]--;
-        }
-    }
-
-    prt(ans);
-}
+const int MAX_H = 3001;
+const int MAX_M = 3001;
+vector<bitset<MAX_M>> dp(MAX_H);
+vector<bitset<MAX_M>> next_dp(MAX_H);
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
+
+    int N, H, M;
+    cin >> N >> H >> M;
+
+    dp[H].set(M);
+
+    int defeated_count = 0;
+
+    for (int i = 0; i < N; ++i) {
+        int A, B;
+        cin >> A >> B;
+        for (int j = 0; j <= H; ++j) {
+            next_dp[j].reset();
+        }
+
+        bool possible_to_defeat = false;
+        for (int j = 0; j <= H; ++j) {
+            if (!dp[j].any()) {
+                continue;
+            }
+
+            next_dp[j] |= (dp[j] >> B);
+            if (j >= A) {
+                next_dp[j - A] |= dp[j];
+            }
+        }
+
+        for (int j = 0; j <= H; ++j) {
+            if (next_dp[j].any()) {
+                possible_to_defeat = true;
+                break;
+            }
+        }
+
+        if (!possible_to_defeat) {
+            break;
+        }
+
+        dp = next_dp;
+        defeated_count = i + 1;
     }
 
-    // 全局数组 C 在 main 循环外是全 0 的
-    // solve() 函数内部负责使用和清理
+    cout << defeated_count << endl;
 
-    while (T--) {
-        solve();
-    }
+    return 0;
 }
