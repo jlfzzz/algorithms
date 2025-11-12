@@ -140,12 +140,58 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    vl a(n);
+    rv(a);
+
+    int m;
+    rd(m);
+    vl b(m);
+    rv(b);
+
+    ranges::sort(a);
+    ranges::sort(b);
+
+    // vl prefA(n + 1), sufA(n + 5), prefB(n + 1), sufB(n + 5);
+    // F(i, 1, n) { prefA[i] = prefA[i - 1] + a[i]; }
+    // F(i, 1, m) { prefB[i] = prefB[i - 1] + b[i]; }
+    // D(i, n, 1) { sufA[i] = sufA[i + 1] + a[i]; }
+    // D(i, m, 1) { sufB[i] = sufB[i + 1] + b[i]; }
+
+    auto temp = a;
+    temp.pb(0);
+    temp.insert(temp.end(), all(b));
+
+    ranges::sort(temp);
+    temp.erase(unique(all(temp)), temp.end());
+
+    ll ansL = -INF;
+    ll ansR = 0;
+    for (ll x: temp) {
+        int i = ranges::upper_bound(a, x) - a.begin() + 1;
+        int j = ranges::upper_bound(b, x) - b.begin() + 1;
+
+        ll leA = i - 1;
+        ll gtA = n - leA;
+        ll leB = j - 1;
+        ll gtB = m - leB;
+
+        ll sum1 = leA * 2 + gtA * 3;
+        ll sum2 = leB * 2 + gtB * 3;
+        if (sum1 - sum2 > ansL - ansR) {
+            ansL = sum1;
+            ansR = sum2;
+        }
+    }
+
+    cout << ansL << ":" << ansR << endl;
 }
 
 int main() {
