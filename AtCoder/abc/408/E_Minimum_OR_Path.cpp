@@ -140,71 +140,72 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-void init() {}
-
-class UnionFind {
-public:
-    vi parent;
+struct UnionFind {
+    vector<int> parent;
     int count;
-
-    explicit UnionFind(const int n) : count(n) {
+    UnionFind(int n) : count(n) {
         parent.resize(n + 1);
-        iota(all(parent), 0);
+        iota(parent.begin(), parent.end(), 0);
     }
-
     int find(int x) {
         if (parent[x] == x)
             return x;
         return parent[x] = find(parent[x]);
     }
-
     bool unite(int x, int y) {
-        int root_x = find(x);
-        int root_y = find(y);
-
-        if (root_x != root_y) {
-            parent[root_x] = root_y;
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX != rootY) {
+            parent[rootX] = rootY;
             count--;
             return true;
         }
         return false;
     }
+    bool connected(int x, int y) { return find(x) == find(y); }
+};
+
+struct Edge {
+    int u, v, w;
 };
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int N, M;
+    if (!(cin >> N >> M))
+        return;
 
-    struct Edge {
-        int u, v, w;
-    };
-    vector<Edge> edges(m);
+    vector<Edge> edges(M);
+    for (int i = 0; i < M; i++) {
+        cin >> edges[i].u >> edges[i].v >> edges[i].w;
+    }
 
-    F(i, 0, m - 1) { rd(edges[i].u, edges[i].v, edges[i].w); }
+    int zero_mask = 0;
 
-    int zero = 0;
-    D(k, 29, 0) {
-        int t = zero | (1 << k);
-        UnionFind uf(n);
-        for (auto &[u, v, w]: edges) {
-            if ((w & t) == 0) {
-                uf.unite(u, v);
+    for (int k = 29; k >= 0; k--) {
+        int try_mask = zero_mask | (1 << k);
+
+        UnionFind uf(N);
+        for (const auto &e: edges) {
+            if ((e.w & try_mask) == 0) {
+                uf.unite(e.u, e.v);
             }
         }
-        if (uf.count == 1) {
-            zero = t;
+
+        if (uf.connected(1, N)) {
+            zero_mask = try_mask;
         }
     }
 
-    prt(((1 << 30) - 1) ^ zero);
+    int ans = ((1 << 30) - 1) ^ zero_mask;
+    cout << ans << "\n";
+
 }
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    init();
     int T = 1;
     if (Multitest) {
         rd(T);

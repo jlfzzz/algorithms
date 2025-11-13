@@ -138,77 +138,91 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 205; // 2 * 100 + 一点冗余，其实后面用动态 size 就无所谓了
 
-int Multitest = 1;
+using Matrix = vector<vector<int>>;
 
-void init() {}
+Matrix mat_mul(const Matrix &a, const Matrix &b) {
+    int sz = (int) a.size();
+    Matrix res(sz, vi(sz, inf));
 
-class UnionFind {
-public:
-    vi parent;
-    int count;
-
-    explicit UnionFind(const int n) : count(n) {
-        parent.resize(n + 1);
-        iota(all(parent), 0);
-    }
-
-    int find(int x) {
-        if (parent[x] == x)
-            return x;
-        return parent[x] = find(parent[x]);
-    }
-
-    bool unite(int x, int y) {
-        int root_x = find(x);
-        int root_y = find(y);
-
-        if (root_x != root_y) {
-            parent[root_x] = root_y;
-            count--;
-            return true;
-        }
-        return false;
-    }
-};
-
-void solve() {
-    int n, m;
-    rd(n, m);
-
-    struct Edge {
-        int u, v, w;
-    };
-    vector<Edge> edges(m);
-
-    F(i, 0, m - 1) { rd(edges[i].u, edges[i].v, edges[i].w); }
-
-    int zero = 0;
-    D(k, 29, 0) {
-        int t = zero | (1 << k);
-        UnionFind uf(n);
-        for (auto &[u, v, w]: edges) {
-            if ((w & t) == 0) {
-                uf.unite(u, v);
+    F(i, 0, sz - 1) {
+        F(k, 0, sz - 1) {
+            if (a[i][k] == inf)
+                continue;
+            F(j, 0, sz - 1) {
+                if (b[k][j] == inf)
+                    continue;
+                res[i][j] = min(res[i][j], a[i][k] + b[k][j]);
             }
         }
-        if (uf.count == 1) {
-            zero = t;
-        }
+    }
+    return res;
+}
+
+Matrix ksm(Matrix base, long long e) {
+    int sz = (int) base.size();
+    Matrix res(sz, vi(sz, inf));
+    F(i, 0, sz - 1) res[i][i] = 0;
+
+    while (e) {
+        if (e & 1)
+            res = mat_mul(res, base);
+        base = mat_mul(base, base);
+        e >>= 1;
+    }
+    return res;
+}
+
+void solve() {
+    int nEdges, t, s, e;
+    rd(nEdges, t, s, e);
+
+    map<int, int> id;
+    int tot = 0;
+
+    struct Edge {
+        int w, u, v;
+    };
+    vector<Edge> edges;
+    edges.reserve(t);
+
+    F(i, 1, t) {
+        int w, u, v;
+        rd(w, u, v);
+        edges.pb(Edge{w, u, v});
+
+        if (!id.contains(u))
+            id[u] = tot++;
+        if (!id.contains(v))
+            id[v] = tot++;
     }
 
-    prt(((1 << 30) - 1) ^ zero);
+    int V = tot;
+    Matrix A(V, vi(V, inf));
+
+    for (auto &ed: edges) {
+        int w = ed.w;
+        int u = ed.u;
+        int v = ed.v;
+        int iu = id[u];
+        int iv = id[v];
+        A[iu][iv] = min(A[iu][iv], w);
+        A[iv][iu] = min(A[iv][iu], w);
+    }
+    Matrix AN = ksm(A, nEdges);
+
+    int sId = id[s];
+    int eId = id[e];
+    int ans = AN[sId][eId];
+    prt(ans);
 }
+
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    init();
     int T = 1;
-    if (Multitest) {
-        rd(T);
-    }
     while (T--) {
         solve();
     }

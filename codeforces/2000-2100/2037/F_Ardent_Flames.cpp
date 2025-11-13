@@ -144,61 +144,63 @@ int Multitest = 1;
 
 void init() {}
 
-class UnionFind {
-public:
-    vi parent;
-    int count;
-
-    explicit UnionFind(const int n) : count(n) {
-        parent.resize(n + 1);
-        iota(all(parent), 0);
-    }
-
-    int find(int x) {
-        if (parent[x] == x)
-            return x;
-        return parent[x] = find(parent[x]);
-    }
-
-    bool unite(int x, int y) {
-        int root_x = find(x);
-        int root_y = find(y);
-
-        if (root_x != root_y) {
-            parent[root_x] = root_y;
-            count--;
-            return true;
-        }
-        return false;
-    }
-};
-
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n, m, k;
+    rd(n, m, k);
 
-    struct Edge {
-        int u, v, w;
-    };
-    vector<Edge> edges(m);
+    vi h(n), pos(n);
+    rv(h);
+    rv(pos);
 
-    F(i, 0, m - 1) { rd(edges[i].u, edges[i].v, edges[i].w); }
+    int lo = 1;
+    int hi = 2e9;
+    int ans = -1;
+    while (lo < hi) {
+        int mid = lo + (hi - lo) / 2;
 
-    int zero = 0;
-    D(k, 29, 0) {
-        int t = zero | (1 << k);
-        UnionFind uf(n);
-        for (auto &[u, v, w]: edges) {
-            if ((w & t) == 0) {
-                uf.unite(u, v);
+        auto check = [&]() {
+            vp ev;
+
+            F(i, 0, n - 1) {
+                ll x = pos[i];
+                ll hh = h[i];
+
+                ll need = (hh + mid - 1LL) / mid;
+                if (need > m) {
+                    continue;
+                }
+                ll rad = (ll) m - need;
+                ll L = x - rad;
+                ll R = x + rad;
+
+                ev.pb(L, +1);
+                ev.pb(R + 1, -1);
             }
-        }
-        if (uf.count == 1) {
-            zero = t;
+
+            if (ev.empty()) {
+                return false;
+            }
+
+            sort(all(ev));
+            int cur = 0;
+            for (auto &e: ev) {
+                cur += e.second;
+                if (cur >= k) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        if (check()) {
+            ans = mid;
+            hi = mid;
+        } else {
+            lo = mid + 1;
         }
     }
 
-    prt(((1 << 30) - 1) ^ zero);
+    prt(ans);
 }
 
 int main() {

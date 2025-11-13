@@ -797,7 +797,10 @@ namespace atcoder {
         using is_dynamic_modint_t = std::enable_if_t<is_dynamic_modint<T>::value>;
 
     } // namespace internal
-
+    template<int m>
+    ostream &operator<<(ostream &os, const static_modint<m> &x) {
+        return os << x.val();
+    }
 } // namespace atcoder
 
 using Z = atcoder::static_modint<MOD>;

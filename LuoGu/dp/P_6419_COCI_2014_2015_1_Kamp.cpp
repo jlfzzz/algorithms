@@ -140,65 +140,106 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-class UnionFind {
-public:
-    vi parent;
-    int count;
-
-    explicit UnionFind(const int n) : count(n) {
-        parent.resize(n + 1);
-        iota(all(parent), 0);
-    }
-
-    int find(int x) {
-        if (parent[x] == x)
-            return x;
-        return parent[x] = find(parent[x]);
-    }
-
-    bool unite(int x, int y) {
-        int root_x = find(x);
-        int root_y = find(y);
-
-        if (root_x != root_y) {
-            parent[root_x] = root_y;
-            count--;
-            return true;
-        }
-        return false;
-    }
-};
-
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n, k;
+    rd(n, k);
 
-    struct Edge {
-        int u, v, w;
-    };
-    vector<Edge> edges(m);
+    vvp g(n + 1);
+    F(i, 1, n - 1) {
+        ll u, v, w;
+        rd(u, v, w);
+        g[u].pb(v, w);
+        g[v].pb(u, w);
+    }
 
-    F(i, 0, m - 1) { rd(edges[i].u, edges[i].v, edges[i].w); }
+    vi kkk(n + 1);
+    F(i, 1, k) {
+        int t;
+        rd(t);
+        kkk[t] = 1;
+    }
 
-    int zero = 0;
-    D(k, 29, 0) {
-        int t = zero | (1 << k);
-        UnionFind uf(n);
-        for (auto &[u, v, w]: edges) {
-            if ((w & t) == 0) {
-                uf.unite(u, v);
+    vl sz(n + 1, 0);
+    vl d1(n + 1, -INF), d2(n + 1, -INF), up(n + 1, -INF);
+    ll cur_total = 0;
+    auto dfs1 = [&](this auto &&dfs, int u, int fa) -> void {
+        if (kkk[u]) {
+            sz[u] = 1;
+            d1[u] = 0;
+        }
+
+        for (auto [v, w]: g[u]) {
+            if (v == fa)
+                continue;
+
+            dfs(v, u);
+
+            sz[u] += sz[v];
+
+            if (sz[v] > 0) {
+                cur_total += 2 * w;
+            }
+
+            if (d1[v] != -INF) {
+                ll dist = d1[v] + w;
+                if (dist > d1[u]) {
+                    d2[u] = d1[u];
+                    d1[u] = dist;
+                } else if (dist > d2[u]) {
+                    d2[u] = dist;
+                }
             }
         }
-        if (uf.count == 1) {
-            zero = t;
-        }
-    }
+    };
 
-    prt(((1 << 30) - 1) ^ zero);
+    dfs1(1, 0);
+
+    vl ans(n + 1);
+
+    auto dfs2 = [&](this auto &&dfs, int u, int fa) -> void {
+        ll max_d = max(d1[u], up[u]);
+        if (max_d < 0)
+            max_d = 0;
+        ans[u] = cur_total - max_d;
+
+        for (auto [v, w]: g[u]) {
+            if (v == fa)
+                continue;
+
+            ll from_u = up[u];
+            if (d1[v] != -INF && d1[u] == d1[v] + w) {
+                from_u = max(from_u, d2[u]);
+            } else {
+                from_u = max(from_u, d1[u]);
+            }
+
+            if (from_u != -INF)
+                up[v] = from_u + w;
+            else if (kkk[u])
+                up[v] = w;
+            else
+                up[v] = -INF;
+
+
+            ll old_total = cur_total;
+            if (sz[v] == k)
+                cur_total -= 2 * w;
+            else if (sz[v] == 0)
+                cur_total += 2 * w;
+
+            dfs(v, u);
+
+            cur_total = old_total;
+        }
+    };
+
+    dfs2(1, 0);
+
+    F(i, 1, n) { prt(ans[i]); }
 }
 
 int main() {

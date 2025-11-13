@@ -1,10 +1,142 @@
 #include <bits/stdc++.h>
 using namespace std;
-vector<vector<int>> DIRS = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
 using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
 constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
-// 矩阵乘法，缓存友好版本。先算一整行的
+namespace utils {
+    template<typename A, typename B>
+    ostream &operator<<(ostream &os, const pair<A, B> &p) {
+        return os << '(' << p.first << ", " << p.second << ')';
+    }
+
+    template<typename Tuple, size_t... Is>
+    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
+        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
+    }
+
+    template<typename... Args>
+    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
+        os << '(';
+        print_tuple(os, t, index_sequence_for<Args...>{});
+        return os << ')';
+    }
+
+    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
+    ostream &operator<<(ostream &os, const T &v) {
+        os << '{';
+        bool first = true;
+        for (auto &x: v) {
+            if (!first)
+                os << ", ";
+            first = false;
+            os << x;
+        }
+        return os << '}';
+    }
+
+    void debug_out() { cerr << endl; }
+
+    template<typename Head, typename... Tail>
+    void debug_out(Head H, Tail... T) {
+        cerr << H;
+        if (sizeof...(T))
+            cerr << " ";
+        debug_out(T...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+#ifdef LOCAL
+#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
+
+using namespace utils;
 
 namespace atcoder {
 
@@ -541,109 +673,128 @@ namespace atcoder {
 
 } // namespace atcoder
 
-using Z = atcoder::static_modint<MOD>;
-
-using Matrix = vector<vector<Z>>;
-
-namespace MatrixUtils {
-    Matrix identity(int n) {
-        Matrix unit(n, std::vector<Z>(n, 0));
-        for (int i = 0; i < n; ++i) {
-            unit[i][i] = 1;
-        }
-        return unit;
+namespace atcoder {
+    template<int m>
+    ostream &operator<<(ostream &os, const static_modint<m> &x) {
+        return os << x.val();
     }
+} // namespace atcoder
 
-    Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
-        int n = m1.size();
-        int p = m1[0].size();
-        int m = m2[0].size();
+using Z = atcoder::static_modint<MOD2>;
 
-        if (p != static_cast<int>(m2.size())) {
-            throw std::runtime_error("Matrix multiplication dimensions mismatch");
-        }
+constexpr int N = 1e6 + 5;
 
-        Matrix ret(n, vector<Z>(m, 0));
-        for (int i = 0; i < n; ++i) {
-            for (int k = 0; k < p; ++k) {
-                if (m1[i][k] == 0) {
-                    continue;
-                }
-                for (int j = 0; j < m; ++j) {
-                    ret[i][j] = ret[i][j] + m1[i][k] * m2[k][j];
+struct Sieve {
+    bool is_not_prime[N + 1]{};
+    std::vector<int> primes;
+    int min_prime_factor[N + 1]{};
+    int distinct_factors_count[N + 1]{};
+
+    Sieve() { init(N); }
+
+    void init(int n) {
+        is_not_prime[0] = is_not_prime[1] = true;
+        min_prime_factor[0] = min_prime_factor[1] = 0;
+        distinct_factors_count[1] = 0;
+
+        for (int i = 2; i <= n; ++i) {
+            if (!is_not_prime[i]) {
+                primes.push_back(i);
+                min_prime_factor[i] = i;
+                distinct_factors_count[i] = 1;
+            }
+
+            for (int p: primes) {
+                if ((long long) i * p > n)
+                    break;
+                is_not_prime[i * p] = true;
+                min_prime_factor[i * p] = p;
+
+                if (i % p == 0) {
+                    distinct_factors_count[i * p] = distinct_factors_count[i];
+                    break;
+                } else {
+                    distinct_factors_count[i * p] = distinct_factors_count[i] + 1;
                 }
             }
         }
-        return ret;
     }
 
-    Matrix quick_mul(Matrix mat, long long n) {
-        int m = mat.size();
+    [[nodiscard]] bool is_prime(int x) const {
+        if (x <= 1 || x > N)
+            return false;
+        return !is_not_prime[x];
+    }
+} sieve;
 
-        if (m == 0 || m != static_cast<int>(mat[0].size())) {
-            throw std::runtime_error("Matrix power requires a square matrix");
-        }
+int Multitest = 0;
 
-        Matrix res = identity(m);
+Z dp[N];
 
-        while (n > 0) {
-            if (n & 1) {
-                res = mat_mul(res, mat);
+void init() {}
+
+void solve() {
+    int n;
+    rd(n);
+
+    vi a(n);
+    rv(a);
+
+    Z ans = 0;
+    int idx = 0;
+    for (int x: a) {
+        vi temp;
+        int t = x;
+        while (t > 1) {
+            int spf = sieve.min_prime_factor[t];
+            while (t % spf == 0) {
+                t /= spf;
             }
-            mat = mat_mul(mat, mat);
-            n >>= 1;
+            temp.pb(spf);
         }
-        return res;
+
+        int m = SZ(temp);
+        Z total = 0;
+        F(mask, 1, (1 << m) - 1) {
+            int bits = popcount((unsigned) mask);
+            int prod = 1;
+            F(j, 0, m - 1) {
+                if (mask >> j & 1) {
+                    prod *= temp[j];
+                }
+            }
+            if (bits & 1) {
+                total += dp[prod];
+            } else {
+                total -= dp[prod];
+            }
+        }
+
+        Z cur = (idx == 0 ? Z(1) : total);
+        F(mask, 1, (1 << m) - 1) {
+            int prod = 1;
+            F(j, 0, m - 1) {
+                if (mask >> j & 1) {
+                    prod *= temp[j];
+                }
+            }
+            dp[prod] += cur;
+        }
+        ans = cur;
+        idx++;
     }
-} // namespace MatrixUtils
-
-using namespace MatrixUtils;
-
-// 斐波那契，1 - index。 f1 = f2 = 1, f3 = 2, f4 = 3...
-Z fib(int n) {
-    auto mat1 = Matrix(1, vector<Z>(2, 0));
-    mat1[0][0] = 1;
-    auto mat2 = Matrix{{1, 1}, {1, 0}};
-
-    auto mat_pow = quick_mul(mat2, n - 1);
-    auto mat3 = mat_mul(mat1, mat_pow);
-
-    Z ans = mat3[0][0];
-
-    return ans;
+    prt(ans);
 }
 
-// 矩阵可以同时处理前缀和
-// 多加一行一列，最后一行的除了右下角的值就是这一列的1的和
-// 最后右下角为1
-
-// lc3337 调用示例
-class Solution {
-public:
-    int lengthAfterTransformations(string s, int t, vector<int> &nums) {
-        int SIZE = 26;
-        Matrix mat(SIZE, vector<Z>(SIZE, 0));
-        int n = nums.size();
-        for (int i = 0; i < n; ++i) {
-            int m = nums[i];
-            for (int j = 0; j < m; ++j) {
-                mat[(i + j + 1) % SIZE][i] += 1;
-            }
-        }
-
-        mat = quick_mul(mat, t);
-
-        Matrix mat2(SIZE, vector<Z>(1, 0));
-        for (char c: s) {
-            mat2[c - 'a'][0] += 1;
-        }
-
-        mat = mat_mul(mat, mat2);
-
-        Z total = 0;
-        for (int i = 0; i < SIZE; ++i) {
-            total += mat[i][0];
-        }
-        return (int) total;
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-};
+    while (T--) {
+        solve();
+    }
+}

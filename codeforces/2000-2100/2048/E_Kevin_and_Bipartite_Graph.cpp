@@ -144,61 +144,31 @@ int Multitest = 1;
 
 void init() {}
 
-class UnionFind {
-public:
-    vi parent;
-    int count;
-
-    explicit UnionFind(const int n) : count(n) {
-        parent.resize(n + 1);
-        iota(all(parent), 0);
-    }
-
-    int find(int x) {
-        if (parent[x] == x)
-            return x;
-        return parent[x] = find(parent[x]);
-    }
-
-    bool unite(int x, int y) {
-        int root_x = find(x);
-        int root_y = find(y);
-
-        if (root_x != root_y) {
-            parent[root_x] = root_y;
-            count--;
-            return true;
-        }
-        return false;
-    }
-};
-
 void solve() {
     int n, m;
     rd(n, m);
 
-    struct Edge {
-        int u, v, w;
-    };
-    vector<Edge> edges(m);
-
-    F(i, 0, m - 1) { rd(edges[i].u, edges[i].v, edges[i].w); }
-
-    int zero = 0;
-    D(k, 29, 0) {
-        int t = zero | (1 << k);
-        UnionFind uf(n);
-        for (auto &[u, v, w]: edges) {
-            if ((w & t) == 0) {
-                uf.unite(u, v);
-            }
-        }
-        if (uf.count == 1) {
-            zero = t;
-        }
+    if (m > 2 * n - 1) {
+        prt("NO");
+        return;
     }
 
-    prt(((1 << 30) - 1) ^ zero);
+    prt("YES");
+
+    vi base;
+    F(i, 1, n) {
+        base.pb(i);
+        base.pb(i);
+    }
+
+    F(i, 0, 2 * n - 1) {
+        F(j, 0, m - 1) {
+            if (j > 0)
+                cout << " ";
+            cout << base[(i + j) % (2 * n)];
+        }
+        cout << "\n";
+    }
 }
 
 int main() {

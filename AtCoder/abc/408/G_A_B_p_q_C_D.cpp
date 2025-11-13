@@ -140,76 +140,26 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-class UnionFind {
-public:
-    vi parent;
-    int count;
-
-    explicit UnionFind(const int n) : count(n) {
-        parent.resize(n + 1);
-        iota(all(parent), 0);
+void solve(ll a, ll b, ll c, ll d, ll &p, ll &q) {
+    if (a < b && c > d)
+        p = 1, q = 1;
+    else {
+        solve(d % c, c, b - (d / c) * a, a, q, p);
+        q += d / c * p;
     }
-
-    int find(int x) {
-        if (parent[x] == x)
-            return x;
-        return parent[x] = find(parent[x]);
-    }
-
-    bool unite(int x, int y) {
-        int root_x = find(x);
-        int root_y = find(y);
-
-        if (root_x != root_y) {
-            parent[root_x] = root_y;
-            count--;
-            return true;
-        }
-        return false;
-    }
-};
-
-void solve() {
-    int n, m;
-    rd(n, m);
-
-    struct Edge {
-        int u, v, w;
-    };
-    vector<Edge> edges(m);
-
-    F(i, 0, m - 1) { rd(edges[i].u, edges[i].v, edges[i].w); }
-
-    int zero = 0;
-    D(k, 29, 0) {
-        int t = zero | (1 << k);
-        UnionFind uf(n);
-        for (auto &[u, v, w]: edges) {
-            if ((w & t) == 0) {
-                uf.unite(u, v);
-            }
-        }
-        if (uf.count == 1) {
-            zero = t;
-        }
-    }
-
-    prt(((1 << 30) - 1) ^ zero);
 }
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
+    ll a, b, c, d, p, q, t;
+    cin >> t;
+    while (t--) {
+        cin >> a >> b >> c >> d;
+        solve(a, b, c, d, p, q);
+        cout << q << '\n';
     }
-    while (T--) {
-        solve();
-    }
+    return 0;
 }

@@ -138,78 +138,116 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+template<typename T>
+class FenwickTree {
+    vector<T> tree;
 
-int Multitest = 1;
-
-void init() {}
-
-class UnionFind {
 public:
-    vi parent;
-    int count;
+    FenwickTree(int n) : tree(n + 1) {}
 
-    explicit UnionFind(const int n) : count(n) {
-        parent.resize(n + 1);
-        iota(all(parent), 0);
-    }
-
-    int find(int x) {
-        if (parent[x] == x)
-            return x;
-        return parent[x] = find(parent[x]);
-    }
-
-    bool unite(int x, int y) {
-        int root_x = find(x);
-        int root_y = find(y);
-
-        if (root_x != root_y) {
-            parent[root_x] = root_y;
-            count--;
-            return true;
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
         }
-        return false;
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+
+    // 点更新取 max
+    void updateMax(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            if (val > tree[i]) {
+                tree[i] = val;
+            }
+        }
+    }
+
+    T preMax(int i) const {
+        T res = numeric_limits<T>::min();
+        for (; i > 0; i &= i - 1) {
+            res = max(res, tree[i]);
+        }
+        return res;
     }
 };
 
-void solve() {
-    int n, m;
-    rd(n, m);
+constexpr int N = 1e6 + 5;
 
-    struct Edge {
-        int u, v, w;
-    };
-    vector<Edge> edges(m);
+int Multitest = 0;
 
-    F(i, 0, m - 1) { rd(edges[i].u, edges[i].v, edges[i].w); }
+void init() {}
 
-    int zero = 0;
-    D(k, 29, 0) {
-        int t = zero | (1 << k);
-        UnionFind uf(n);
-        for (auto &[u, v, w]: edges) {
-            if ((w & t) == 0) {
-                uf.unite(u, v);
-            }
-        }
-        if (uf.count == 1) {
-            zero = t;
+bool solve() {
+    int n;
+    rd(n);
+    if (n == 0)
+        return false;
+
+    int m = 2 * n;
+    vector<int> a(m + 1);
+    rv(a, 1);
+
+    vector<vector<int>> pos(n + 1);
+    F(i, 1, m) { pos[a[i]].pb(i); }
+
+    vector<pair<int, int>> segs;
+
+    F(t, 1, n) {
+        auto &v = pos[t];
+        int cnt = SZ(v);
+        if (cnt == 0)
+            continue;
+        int k = cnt / 2;
+        F(i, 0, k - 1) {
+            int l = v[i];
+            int r = v[i + k];
+            if (l > r)
+                swap(l, r);
+            segs.pb(l, r);
         }
     }
+    sort(all(segs));
 
-    prt(((1 << 30) - 1) ^ zero);
+    FenwickTree<ll> bit(m);
+    ll inter = 0;
+
+    for (auto [l, r]: segs) {
+        if (r - l > 1) {
+            inter += bit.rangeSum(l + 1, r - 1);
+        }
+        bit.update(r, 1);
+    }
+
+    ll maxInter = 1LL * n * (n - 1) / 2;
+    ll ans = maxInter - inter;
+    prt(ans);
+
+    return true;
 }
+
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
+    while (solve()) {
     }
-    while (T--) {
-        solve();
-    }
+
+    return 0;
 }
