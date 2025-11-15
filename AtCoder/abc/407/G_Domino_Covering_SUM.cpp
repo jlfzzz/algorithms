@@ -138,6 +138,80 @@ namespace utils {
 
 using namespace utils;
 
+using ll = long long;
+using Flow = long long;
+
+struct Edge {
+    int to, rev;
+    Flow cap;
+    ll cost;
+};
+
+struct MCMF {
+    int n;
+    vector<vector<Edge>> g;
+    vector<ll> dis;
+    vector<int> pre, pre_e;
+
+    MCMF(int _n) : n(_n), g(_n), dis(_n), pre(_n), pre_e(_n) {}
+
+    void addEdge(int u, int v, Flow cap, ll cost) {
+        g[u].push_back({v, (int) g[v].size(), cap, cost});
+        g[v].push_back({u, (int) g[u].size() - 1, 0, -cost});
+    }
+
+    bool spfa(int s, int t) {
+        fill(dis.begin(), dis.end(), INF);
+        vector<bool> inq(n, false);
+        queue<int> q;
+
+        dis[s] = 0;
+        q.push(s);
+        inq[s] = true;
+        pre[s] = -1;
+
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+            inq[u] = false;
+            for (int i = 0; i < g[u].size(); i++) {
+                Edge &e = g[u][i];
+                if (e.cap > 0 && dis[u] + e.cost < dis[e.to]) {
+                    dis[e.to] = dis[u] + e.cost;
+                    pre[e.to] = u;
+                    pre_e[e.to] = i;
+                    if (!inq[e.to]) {
+                        q.push(e.to);
+                        inq[e.to] = true;
+                    }
+                }
+            }
+        }
+        return dis[t] != INF;
+    }
+
+    pair<Flow, ll> minCostMaxFlow(int s, int t) {
+        Flow flow = 0;
+        ll cost = 0;
+        while (spfa(s, t)) {
+            if (dis[t] >= 0)
+                break;
+            Flow f = INF;
+            for (int v = t; v != s; v = pre[v]) {
+                f = min(f, g[pre[v]][pre_e[v]].cap);
+            }
+            for (int v = t; v != s; v = pre[v]) {
+                Edge &e = g[pre[v]][pre_e[v]];
+                e.cap -= f;
+                g[v][e.rev].cap += f;
+                cost += (ll) f * e.cost;
+            }
+            flow += f;
+        }
+        return {flow, cost};
+    }
+};
+
 constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
@@ -145,81 +219,49 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int h, w;
+    rd(h, w);
 
-    vector<string> a(n);
-    vvi grid(n, vi(m));
-
-    pii s, t;
-    F(i, 0, n - 1) {
-        rd(a[i]);
-
-        F(j, 0, m - 1) {
-            if (a[i][j] == '#') {
-                grid[i][j] = 1;
-            } else if (a[i][j] == 'S') {
-                s = {i, j};
-            } else if (a[i][j] == 'T') {
-                t = {i, j};
-            }
+    vvl a(h, vl(w));
+    ll sum_all = 0;
+    F(i, 0, h - 1) {
+        F(j, 0, w - 1) {
+            rd(a[i][j]);
+            sum_all += a[i][j];
         }
     }
 
-    vector dis(n, vector(m, vvi(4, vi(4, inf))));
-    // F(i, 0, 3) {
-    //     F(j, 0, 2) { dis[s.first][s.second][i][j] = 0; }
-    // }
+    int S = h * w;
+    int T = h * w + 1;
+    MCMF mcmf(h * w + 2);
 
-    struct Info {
-        int x, y, dir, cnt, dis;
-    };
+    int dx[] = {0, 0, 1, -1};
+    int dy[] = {1, -1, 0, 0};
 
-    struct Cmp {
-        bool operator()(Info &a, Info &b) { return a.dis > b.dis; }
-    };
-    prq<Info, vector<Info>, Cmp> pq;
-
-    int DIR[4][2] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
-    pq.emplace(s.first, s.second, -1, 0, 0);
-
-    while (!pq.empty()) {
-        auto [x, y, dir, cnt, d] = pq.top();
-        pq.pop();
-
-        if (pii{x, y} == t) {
-            prt(d);
-            return;
-        }
-
-        if (dir != -1 && d > dis[x][y][dir][cnt]) {
-            continue;
-        }
-
-        for (int i = 0; i < 4; i++) {
-            auto &v = DIR[i];
-            int nx = x + v[0];
-            int ny = y + v[1];
-
-            if (nx >= 0 && nx < n && ny >= 0 && ny < m && grid[nx][ny] != 1) {
-                if (i != dir) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][1]) {
-                        dis[nx][ny][i][1] = nd;
-                        pq.emplace(nx, ny, i, 1, nd);
-                    }
-                } else if (cnt < 3) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][cnt + 1]) {
-                        dis[nx][ny][i][cnt + 1] = nd;
-                        pq.emplace(nx, ny, i, cnt + 1, nd);
+    F(i, 0, h - 1) {
+        F(j, 0, w - 1) {
+            if ((i + j) % 2 == 0) {
+                int u = i * w + j;
+                mcmf.addEdge(S, u, 1, 0);
+                F(k, 0, 3) {
+                    int ni = i + dx[k];
+                    int nj = j + dy[k];
+                    if (ni >= 0 && ni < h && nj >= 0 && nj < w) {
+                        int v = ni * w + nj;
+                        if (a[i][j] + a[ni][nj] < 0) {
+                            mcmf.addEdge(u, v, 1, a[i][j] + a[ni][nj]);
+                        }
                     }
                 }
+            } else {
+                int v = i * w + j;
+                mcmf.addEdge(v, T, 1, 0);
             }
         }
     }
 
-    prt(-1);
+    auto [flow, cost] = mcmf.minCostMaxFlow(S, T);
+    prt(sum_all - cost);
 }
 
 int main() {

@@ -138,88 +138,67 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 12;
 
 int Multitest = 0;
+
+ll cube[N][N][N];
+ll dp[1 << N][1 << N];
+ll ndp[1 << N][1 << N];
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-    vector<string> a(n);
-    vvi grid(n, vi(m));
-
-    pii s, t;
-    F(i, 0, n - 1) {
-        rd(a[i]);
-
-        F(j, 0, m - 1) {
-            if (a[i][j] == '#') {
-                grid[i][j] = 1;
-            } else if (a[i][j] == 'S') {
-                s = {i, j};
-            } else if (a[i][j] == 'T') {
-                t = {i, j};
-            }
+    F(x, 0, n - 1) {
+        F(y, 0, n - 1) {
+            F(z, 0, n - 1) { rd(cube[x][y][z]); }
         }
     }
 
-    vector dis(n, vector(m, vvi(4, vi(4, inf))));
-    // F(i, 0, 3) {
-    //     F(j, 0, 2) { dis[s.first][s.second][i][j] = 0; }
-    // }
-
-    struct Info {
-        int x, y, dir, cnt, dis;
-    };
-
-    struct Cmp {
-        bool operator()(Info &a, Info &b) { return a.dis > b.dis; }
-    };
-    prq<Info, vector<Info>, Cmp> pq;
-
-    int DIR[4][2] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
-    pq.emplace(s.first, s.second, -1, 0, 0);
-
-    while (!pq.empty()) {
-        auto [x, y, dir, cnt, d] = pq.top();
-        pq.pop();
-
-        if (pii{x, y} == t) {
-            prt(d);
-            return;
+    int limit = 1 << n;
+    F(i, 0, limit - 1) {
+        F(j, 0, limit - 1) { dp[i][j] = INF; }
+    }
+    dp[0][0] = 0;
+    F(z, 0, n - 1) {
+        F(i, 0, limit - 1) {
+            F(j, 0, limit - 1) { ndp[i][j] = INF; }
         }
+        F(mask1, 0, limit - 1) {
+            if (__builtin_popcount(mask1) != z)
+                continue;
 
-        if (dir != -1 && d > dis[x][y][dir][cnt]) {
-            continue;
-        }
+            F(mask2, 0, limit - 1) {
+                if (__builtin_popcount(mask2) != z)
+                    continue;
+                if (dp[mask1][mask2] == INF)
+                    continue;
+                F(x, 0, n - 1) {
+                    if ((mask1 >> x) & 1)
+                        continue;
+                    int nmask1 = mask1 | (1 << x);
 
-        for (int i = 0; i < 4; i++) {
-            auto &v = DIR[i];
-            int nx = x + v[0];
-            int ny = y + v[1];
-
-            if (nx >= 0 && nx < n && ny >= 0 && ny < m && grid[nx][ny] != 1) {
-                if (i != dir) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][1]) {
-                        dis[nx][ny][i][1] = nd;
-                        pq.emplace(nx, ny, i, 1, nd);
-                    }
-                } else if (cnt < 3) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][cnt + 1]) {
-                        dis[nx][ny][i][cnt + 1] = nd;
-                        pq.emplace(nx, ny, i, cnt + 1, nd);
+                    F(y, 0, n - 1) {
+                        if ((mask2 >> y) & 1)
+                            continue;
+                        int nmask2 = mask2 | (1 << y);
+                        ll cost = dp[mask1][mask2] + cube[x][y][z];
+                        if (cost < ndp[nmask1][nmask2]) {
+                            ndp[nmask1][nmask2] = cost;
+                        }
                     }
                 }
             }
         }
+        F(i, 0, limit - 1) {
+            F(j, 0, limit - 1) { dp[i][j] = ndp[i][j]; }
+        }
     }
-
-    prt(-1);
+    ll ans = dp[limit - 1][limit - 1];
+    prt(ans);
 }
 
 int main() {

@@ -691,13 +691,13 @@ void solve() {
     vector<vector<Z>> dp(n + 1, vector<Z>(t + 1));
     dp[0][0] = 1;
     F(len, 0, n - 1) {
-        F(tri, 0, t) {
-            if (dp[len][tri].val() == 0)
+        F(sum, 0, t) {
+            if (dp[len][sum].val() == 0)
                 continue;
-            F(part, 1, n - len) {
-                int add = part * (part - 1) / 2;
-                if (tri + add <= t) {
-                    dp[len + part][tri + add] += dp[len][tri];
+            F(l, 1, n - len) {
+                int add = l * (l - 1) / 2;
+                if (sum + add <= t) {
+                    dp[len + l][sum + add] += dp[len][sum];
                 }
             }
         }

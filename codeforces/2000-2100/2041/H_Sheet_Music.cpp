@@ -144,82 +144,64 @@ int Multitest = 0;
 
 void init() {}
 
+ll Add(ll a, ll b) { return (a + b) >= MOD2 ? (a + b - MOD2) : (a + b); }
+ll Sub(ll a, ll b) { return (a - b) < 0 ? (a - b + MOD2) : (a - b); }
+ll Mul(ll a, ll b) { return 1ll * a * b % MOD2; }
+
+ll ksm(ll base, ll e) {
+    ll res = 1;
+    while (e) {
+        if (e & 1)
+            res = Mul(res, base);
+        base = Mul(base, base);
+        e /= 2;
+    }
+    return res;
+}
+
+ll fact[N], inv[N];
+
+void precompute(int n) {
+    fact[0] = fact[1] = 1;
+    inv[0] = inv[1] = 1;
+    for (int i = 2; i <= n; ++i) {
+        fact[i] = Mul(fact[i - 1], i);
+        inv[i] = Mul(inv[MOD2 % i], MOD2 - MOD2 / i);
+    }
+    for (int i = 2; i <= n; ++i)
+        inv[i] = Mul(inv[i], inv[i - 1]);
+}
+
+ll binom(int n, int m) {
+    if (m < 0 || m > n)
+        return 0;
+    return Mul(fact[n], Mul(inv[m], inv[n - m]));
+}
+
+ll f[N], g[N];
+
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n, k;
+    rd(n, k);
+    n--;
 
-    vector<string> a(n);
-    vvi grid(n, vi(m));
+    precompute(n);
 
-    pii s, t;
-    F(i, 0, n - 1) {
-        rd(a[i]);
+    f[0] = g[0] = 2;
 
-        F(j, 0, m - 1) {
-            if (a[i][j] == '#') {
-                grid[i][j] = 1;
-            } else if (a[i][j] == 'S') {
-                s = {i, j};
-            } else if (a[i][j] == 'T') {
-                t = {i, j};
-            }
+    ll ans = 1;
+
+    F(i, 1, n) {
+        f[i] = g[i - 1];
+        if (i - k >= 0) {
+            f[i] = Sub(f[i], g[i - k]);
         }
+        g[i] = Add(g[i - 1], f[i]);
+
+        ans = Add(ans, Mul(binom(n, i), f[i]));
     }
 
-    vector dis(n, vector(m, vvi(4, vi(4, inf))));
-    // F(i, 0, 3) {
-    //     F(j, 0, 2) { dis[s.first][s.second][i][j] = 0; }
-    // }
-
-    struct Info {
-        int x, y, dir, cnt, dis;
-    };
-
-    struct Cmp {
-        bool operator()(Info &a, Info &b) { return a.dis > b.dis; }
-    };
-    prq<Info, vector<Info>, Cmp> pq;
-
-    int DIR[4][2] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
-    pq.emplace(s.first, s.second, -1, 0, 0);
-
-    while (!pq.empty()) {
-        auto [x, y, dir, cnt, d] = pq.top();
-        pq.pop();
-
-        if (pii{x, y} == t) {
-            prt(d);
-            return;
-        }
-
-        if (dir != -1 && d > dis[x][y][dir][cnt]) {
-            continue;
-        }
-
-        for (int i = 0; i < 4; i++) {
-            auto &v = DIR[i];
-            int nx = x + v[0];
-            int ny = y + v[1];
-
-            if (nx >= 0 && nx < n && ny >= 0 && ny < m && grid[nx][ny] != 1) {
-                if (i != dir) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][1]) {
-                        dis[nx][ny][i][1] = nd;
-                        pq.emplace(nx, ny, i, 1, nd);
-                    }
-                } else if (cnt < 3) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][cnt + 1]) {
-                        dis[nx][ny][i][cnt + 1] = nd;
-                        pq.emplace(nx, ny, i, cnt + 1, nd);
-                    }
-                }
-            }
-        }
-    }
-
-    prt(-1);
+    prt(ans);
 }
 
 int main() {

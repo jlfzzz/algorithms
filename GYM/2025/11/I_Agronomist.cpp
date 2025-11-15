@@ -145,81 +145,55 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    ll n, x, y, w, h;
+    rd(n, x, y, w, h);
 
-    vector<string> a(n);
-    vvi grid(n, vi(m));
+    ll xr = x + w;
+    ll yr = y + h;
+    x--;
+    y--;
 
-    pii s, t;
-    F(i, 0, n - 1) {
-        rd(a[i]);
+    ll g = 0;
+    for (ll i = 1; i <= 1000000; ++i) {
+        ll v = n - i * i;
+        if (v < 0)
+            break;
 
-        F(j, 0, m - 1) {
-            if (a[i][j] == '#') {
-                grid[i][j] = 1;
-            } else if (a[i][j] == 'S') {
-                s = {i, j};
-            } else if (a[i][j] == 'T') {
-                t = {i, j};
+        ll s = round(sqrt(v));
+        if (s * s == v) {
+            if (g == 0) {
+                g = std::gcd(i, s);
+            } else {
+                g = std::gcd(g, i);
+                g = std::gcd(g, s);
             }
         }
     }
 
-    vector dis(n, vector(m, vvi(4, vi(4, inf))));
-    // F(i, 0, 3) {
-    //     F(j, 0, 2) { dis[s.first][s.second][i][j] = 0; }
-    // }
+    ll ans = 0;
 
-    struct Info {
-        int x, y, dir, cnt, dis;
-    };
+    if (g > 0) {
+        auto calc = [&](ll a, ll b) {
+            ll res = a / b;
+            if (res * b > a)
+                res--;
+            return res;
+        };
 
-    struct Cmp {
-        bool operator()(Info &a, Info &b) { return a.dis > b.dis; }
-    };
-    prq<Info, vector<Info>, Cmp> pq;
-
-    int DIR[4][2] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
-    pq.emplace(s.first, s.second, -1, 0, 0);
-
-    while (!pq.empty()) {
-        auto [x, y, dir, cnt, d] = pq.top();
-        pq.pop();
-
-        if (pii{x, y} == t) {
-            prt(d);
-            return;
-        }
-
-        if (dir != -1 && d > dis[x][y][dir][cnt]) {
-            continue;
-        }
-
-        for (int i = 0; i < 4; i++) {
-            auto &v = DIR[i];
-            int nx = x + v[0];
-            int ny = y + v[1];
-
-            if (nx >= 0 && nx < n && ny >= 0 && ny < m && grid[nx][ny] != 1) {
-                if (i != dir) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][1]) {
-                        dis[nx][ny][i][1] = nd;
-                        pq.emplace(nx, ny, i, 1, nd);
-                    }
-                } else if (cnt < 3) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][cnt + 1]) {
-                        dis[nx][ny][i][cnt + 1] = nd;
-                        pq.emplace(nx, ny, i, cnt + 1, nd);
-                    }
-                }
-            }
+        ll step = 2 * g;
+        ll cnt1_x = calc(xr, step) - calc(x, step);
+        ll cnt1_y = calc(yr, step) - calc(y, step);
+        ans += cnt1_x * cnt1_y;
+        ll cnt2_x = calc(xr - g, step) - calc(x - g, step);
+        ll cnt2_y = calc(yr - g, step) - calc(y - g, step);
+        ans += cnt2_x * cnt2_y;
+    } else {
+        if (x < 0 && xr >= 0 && y < 0 && yr >= 0) {
+            ans = 1;
         }
     }
 
-    prt(-1);
+    prt(ans);
 }
 
 int main() {

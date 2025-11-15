@@ -140,86 +140,25 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-    vector<string> a(n);
-    vvi grid(n, vi(m));
+    int ans = 0;
+    F(i, 1, n) {
+        int sz;
+        rd(sz);
 
-    pii s, t;
-    F(i, 0, n - 1) {
-        rd(a[i]);
-
-        F(j, 0, m - 1) {
-            if (a[i][j] == '#') {
-                grid[i][j] = 1;
-            } else if (a[i][j] == 'S') {
-                s = {i, j};
-            } else if (a[i][j] == 'T') {
-                t = {i, j};
-            }
-        }
+        int t = ans;
+        F(j, 1, sz) { ans = max(ans, t | j); }
+        F(j, 1, sz - 1) { rd(t); }
     }
 
-    vector dis(n, vector(m, vvi(4, vi(4, inf))));
-    // F(i, 0, 3) {
-    //     F(j, 0, 2) { dis[s.first][s.second][i][j] = 0; }
-    // }
-
-    struct Info {
-        int x, y, dir, cnt, dis;
-    };
-
-    struct Cmp {
-        bool operator()(Info &a, Info &b) { return a.dis > b.dis; }
-    };
-    prq<Info, vector<Info>, Cmp> pq;
-
-    int DIR[4][2] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
-    pq.emplace(s.first, s.second, -1, 0, 0);
-
-    while (!pq.empty()) {
-        auto [x, y, dir, cnt, d] = pq.top();
-        pq.pop();
-
-        if (pii{x, y} == t) {
-            prt(d);
-            return;
-        }
-
-        if (dir != -1 && d > dis[x][y][dir][cnt]) {
-            continue;
-        }
-
-        for (int i = 0; i < 4; i++) {
-            auto &v = DIR[i];
-            int nx = x + v[0];
-            int ny = y + v[1];
-
-            if (nx >= 0 && nx < n && ny >= 0 && ny < m && grid[nx][ny] != 1) {
-                if (i != dir) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][1]) {
-                        dis[nx][ny][i][1] = nd;
-                        pq.emplace(nx, ny, i, 1, nd);
-                    }
-                } else if (cnt < 3) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][cnt + 1]) {
-                        dis[nx][ny][i][cnt + 1] = nd;
-                        pq.emplace(nx, ny, i, cnt + 1, nd);
-                    }
-                }
-            }
-        }
-    }
-
-    prt(-1);
+    prt(ans);
 }
 
 int main() {

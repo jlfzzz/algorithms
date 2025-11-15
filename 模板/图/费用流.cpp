@@ -3,7 +3,7 @@ using namespace std;
 
 using ll = long long;
 using Flow = long long;
-const ll INF = 1e18;
+constexpr ll INF = 1e18;
 
 struct Edge {
     int to, rev;

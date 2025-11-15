@@ -140,86 +140,103 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
+struct DSU {
+    int n;
+    vector<int> fa, sz;
+    vector<ll> w;
+
+    DSU() : n(0) {}
+
+    void init(int n_) {
+        n = n_;
+        fa.resize(n + 1);
+        sz.assign(n + 1, 1);
+        w.assign(n + 1, 0);
+        for (int i = 0; i <= n; i++) {
+            fa[i] = i;
+        }
+    }
+
+    int find(int x) {
+        if (fa[x] == x)
+            return x;
+        int f = fa[x];
+        int r = find(f);
+        w[x] += w[f];
+        return fa[x] = r;
+    }
+
+    bool unite(int u, int v, ll k) {
+        int ru = find(u);
+        int rv = find(v);
+        if (ru == rv) {
+            ll diff = w[u] - w[v];
+            return diff == k;
+        }
+
+        if (sz[ru] < sz[rv]) {
+            fa[ru] = rv;
+            w[ru] = k + w[v] - w[u];
+            sz[rv] += sz[ru];
+        } else {
+            fa[rv] = ru;
+            w[rv] = w[u] - w[v] - k;
+            sz[ru] += sz[rv];
+        }
+        return true;
+    }
+
+    bool same(int x, int y) { return find(x) == find(y); }
+
+    ll dist(int x) {
+        find(x);
+        return w[x];
+    }
+};
+
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n, q;
+    rd(n, q);
 
-    vector<string> a(n);
-    vvi grid(n, vi(m));
+    DSU dsu;
+    dsu.init(n);
 
-    pii s, t;
-    F(i, 0, n - 1) {
-        rd(a[i]);
-
-        F(j, 0, m - 1) {
-            if (a[i][j] == '#') {
-                grid[i][j] = 1;
-            } else if (a[i][j] == 'S') {
-                s = {i, j};
-            } else if (a[i][j] == 'T') {
-                t = {i, j};
+    while (q--) {
+        int op;
+        rd(op);
+        if (op == 1) {
+            int u, v;
+            ll k;
+            rd(u, v, k);
+            bool ok = dsu.unite(u, v, k);
+            if (ok)
+                prt("OK");
+            else
+                prt("CONTRADICTION");
+        } else if (op == 2) {
+            int u;
+            ll k;
+            rd(u, k);
+            bool ok = dsu.unite(u, 0, k);
+            if (ok)
+                prt("OK");
+            else
+                prt("CONTRADICTION");
+        } else if (op == 3) {
+            int u, v;
+            rd(u, v);
+            if (!dsu.same(u, v)) {
+                prt("UNKNOWN");
+            } else {
+                ll ans = dsu.dist(u) - dsu.dist(v);
+                prt(ans);
             }
         }
     }
-
-    vector dis(n, vector(m, vvi(4, vi(4, inf))));
-    // F(i, 0, 3) {
-    //     F(j, 0, 2) { dis[s.first][s.second][i][j] = 0; }
-    // }
-
-    struct Info {
-        int x, y, dir, cnt, dis;
-    };
-
-    struct Cmp {
-        bool operator()(Info &a, Info &b) { return a.dis > b.dis; }
-    };
-    prq<Info, vector<Info>, Cmp> pq;
-
-    int DIR[4][2] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
-    pq.emplace(s.first, s.second, -1, 0, 0);
-
-    while (!pq.empty()) {
-        auto [x, y, dir, cnt, d] = pq.top();
-        pq.pop();
-
-        if (pii{x, y} == t) {
-            prt(d);
-            return;
-        }
-
-        if (dir != -1 && d > dis[x][y][dir][cnt]) {
-            continue;
-        }
-
-        for (int i = 0; i < 4; i++) {
-            auto &v = DIR[i];
-            int nx = x + v[0];
-            int ny = y + v[1];
-
-            if (nx >= 0 && nx < n && ny >= 0 && ny < m && grid[nx][ny] != 1) {
-                if (i != dir) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][1]) {
-                        dis[nx][ny][i][1] = nd;
-                        pq.emplace(nx, ny, i, 1, nd);
-                    }
-                } else if (cnt < 3) {
-                    int nd = d + 1;
-                    if (nd < dis[nx][ny][i][cnt + 1]) {
-                        dis[nx][ny][i][cnt + 1] = nd;
-                        pq.emplace(nx, ny, i, cnt + 1, nd);
-                    }
-                }
-            }
-        }
-    }
-
-    prt(-1);
 }
 
 int main() {
