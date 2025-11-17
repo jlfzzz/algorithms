@@ -145,86 +145,172 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m, k;
-    rd(n, m, k);
-    string s;
-    rd(s);
-    string t = " " + s;
-    const int NEG_INF = -1000000000;
-    vector<int> a(n + 2, 0);
-    a[1] = 1;
-    for (int i = 2; i <= n; i++) {
-        a[i] = (t[i] != t[i - 1]) ? 1 : 0;
+    int n, m, q;
+    rd(n, m, q);
+
+    vector<string> g(n);
+    for (int i = 0; i < n; ++i) {
+        rd(g[i]);
     }
-    vector<vector<int>> g(k + 1, vector<int>(m + 1, NEG_INF));
-    g[0][0] = 0;
-    for (int i = 1; i <= k; i++) {
-        vector<int> pos;
-        for (int x = i; x <= n + 1; x += k) {
-            pos.push_back(x);
-        }
-        int cnt = (int) pos.size();
-        if (cnt == 0) {
-            for (int p = 0; p <= m; p++) {
-                g[i][p] = max(g[i][p], g[i - 1][p]);
-            }
-            continue;
-        }
-        vector<vector<array<int, 2>>> f(cnt + 1, vector<array<int, 2>>(m + 1));
-        for (int j = 0; j <= cnt; j++) {
-            for (int u = 0; u <= m; u++) {
-                f[j][u][0] = NEG_INF;
-                f[j][u][1] = NEG_INF;
-            }
-        }
-        f[1][0][0] = a[pos[0]];
-        for (int j = 1; j < cnt; j++) {
-            for (int used = 0; used <= min(m, j); used++) {
-                for (int p_prev = 0; p_prev <= 1; p_prev++) {
-                    int w = f[j][used][p_prev];
-                    if (w <= NEG_INF / 2) {
-                        continue;
+
+    vector<int> qs(q);
+    for (int i = 0; i < q; ++i) {
+        rd(qs[i]);
+    }
+
+    const int MAXV = 1'000'000;
+    vector<ll> cnt(MAXV + 1, 0);
+    auto processLine = [&](const string &s) {
+        int L = (int) s.size();
+        for (int i = 0; i < L; ++i) {
+            char c0 = s[i];
+            if (c0 < '0' || c0 > '9')
+                continue;
+
+            ll sum = 0;
+            ll prod = 1;
+            ll cur = 0;
+            bool lastDigit = false;
+
+            for (int j = i; j < L; ++j) {
+                char c = s[j];
+                if (c >= '0' && c <= '9') {
+                    int d = c - '0';
+                    if (!lastDigit)
+                        cur = d;
+                    else
+                        cur = cur * 10 + d;
+
+                    if (cur > MAXV)
+                        break;
+
+                    ll val = sum + prod * cur;
+                    if (val > MAXV)
+                        break;
+
+                    int len = j - i + 1;
+                    if (len >= 2) {
+                        cnt[val]++;
                     }
-                    int cur_pos = pos[j - 1];
-                    int nxt_pos = pos[j];
-                    int x = (cur_pos == 1 ? 1 : (a[cur_pos] ^ p_prev));
-                    int y = (nxt_pos == n + 1 ? 0 : a[nxt_pos]);
-                    if (f[j + 1][used][0] < w + y) {
-                        f[j + 1][used][0] = w + y;
+                    lastDigit = true;
+                } else {
+                    if (!lastDigit) {
+                        break;
                     }
-                    if (used + 1 <= m) {
-                        int xx = (cur_pos == 1 ? 1 : (x ^ 1));
-                        int yy = (nxt_pos == n + 1 ? 0 : (y ^ 1));
-                        int val = w + (xx - x) + yy;
-                        if (f[j + 1][used + 1][1] < val) {
-                            f[j + 1][used + 1][1] = val;
-                        }
+                    if (c == '+') {
+                        prod *= cur;
+                        if (prod > MAXV)
+                            break;
+                        sum += prod;
+                        if (sum > MAXV)
+                            break;
+                        prod = 1;
+                        cur = 0;
+                    } else {
+                        prod *= cur;
+                        if (prod > MAXV)
+                            break;
+                        cur = 0;
                     }
+                    lastDigit = false;
                 }
             }
         }
-        for (int used = 0; used <= min(cnt, m); used++) {
-            for (int last = 0; last < 2; last++) {
-                int best_val = f[cnt][used][last];
-                if (best_val <= NEG_INF / 2) {
-                    continue;
-                }
-                for (int p = used; p <= m; p++) {
-                    if (g[i][p] < g[i - 1][p - used] + best_val) {
-                        g[i][p] = g[i - 1][p - used] + best_val;
-                    }
-                }
+    };
+
+    for (int r = 0; r < n; ++r) {
+        string s = g[r];
+        processLine(s);
+        reverse(s.begin(), s.end());
+        processLine(s);
+    }
+    for (int c = 0; c < m; ++c) {
+        string s;
+        s.reserve(n);
+        for (int r = 0; r < n; ++r)
+            s.push_back(g[r][c]);
+        processLine(s);
+        reverse(s.begin(), s.end());
+        processLine(s);
+    }
+    for (int c0 = 0; c0 < m; ++c0) {
+        string s;
+        int r = 0, c = c0;
+        while (r < n && c < m) {
+            s.push_back(g[r][c]);
+            ++r;
+            ++c;
+        }
+        if (!s.empty()) {
+            processLine(s);
+            reverse(s.begin(), s.end());
+            processLine(s);
+        }
+    }
+    for (int r0 = 1; r0 < n; ++r0) {
+        string s;
+        int r = r0, c = 0;
+        while (r < n && c < m) {
+            s.push_back(g[r][c]);
+            ++r;
+            ++c;
+        }
+        if (!s.empty()) {
+            processLine(s);
+            reverse(s.begin(), s.end());
+            processLine(s);
+        }
+    }
+
+    for (int c0 = 0; c0 < m; ++c0) {
+        string s;
+        int r = 0, c = c0;
+        while (r < n && c >= 0) {
+            s.push_back(g[r][c]);
+            ++r;
+            --c;
+        }
+        if (!s.empty()) {
+            processLine(s);
+            reverse(s.begin(), s.end());
+            processLine(s);
+        }
+    }
+    for (int r0 = 1; r0 < n; ++r0) {
+        string s;
+        int r = r0, c = m - 1;
+        while (r < n && c >= 0) {
+            s.push_back(g[r][c]);
+            ++r;
+            --c;
+        }
+        if (!s.empty()) {
+            processLine(s);
+            reverse(s.begin(), s.end());
+            processLine(s);
+        }
+    }
+
+    for (int r = 0; r < n; ++r) {
+        for (int c = 0; c < m; ++c) {
+            char ch = g[r][c];
+            if (ch >= '0' && ch <= '9') {
+                int val = ch - '0';
+                if (val <= MAXV)
+                    cnt[val]++;
             }
         }
     }
-    int ans = 0;
-    for (int p = 0; p <= m; p++) {
-        if (ans < g[k][p]) {
-            ans = g[k][p];
-        }
+
+    for (int i = 0; i < q; ++i) {
+        int x = qs[i];
+        ll res = 0;
+        if (x >= 0 && x <= MAXV)
+            res = cnt[x];
+        prt(res);
     }
-    prt(ans);
 }
+
 
 int main() {
     ios::sync_with_stdio(false);

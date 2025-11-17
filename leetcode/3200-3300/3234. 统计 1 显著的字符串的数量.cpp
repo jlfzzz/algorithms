@@ -68,21 +68,50 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
-
-
 class Solution {
 public:
-    
-    vector<long long> countStableSubarrays(vector<int> &nums, vector<vector<int>> &queries) {
+    int numberOfSubstrings(string s) {
+        int n = s.size();
+        int B = sqrt(n) + 5;
+        s = '#' + s;
+        vector<int> nxt0(n + 5);
+        nxt0[n + 1] = n + 1;
+        nxt0[n + 2] = n + 1;
+        for (int i = n; i >= 1; i--) {
+            if (s[i] == '0') {
+                nxt0[i] = i;
+            } else {
+                nxt0[i] = nxt0[i + 1];
+            }
+        }
 
+        long long ans = 0;
+        for (int i = 1; i <= n; i++) {
+            int t1 = nxt0[i];
+            ans += (t1 - i);
+            int pre = nxt0[i];
+            if (pre > n)
+                continue;
+
+            for (int k = 1; k <= B; k++) {
+                int R = nxt0[pre + 1];
+                long long minR = (long long) k * k + k + i - 1;
+                long long L = max((long long) pre, minR);
+                long long RR = R - 1;
+
+                if (L <= RR) {
+                    ans += (RR - L + 1);
+                }
+                pre = R;
+                if (pre > n) {
+                    break;
+                }
+            }
+        }
+
+        return ans;
     }
 };
-
-
-
-
-
-
 
 int main() {
     ios::sync_with_stdio(false);

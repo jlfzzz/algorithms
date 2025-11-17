@@ -69,15 +69,46 @@ constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
 
-
 class Solution {
 public:
-    
     vector<long long> countStableSubarrays(vector<int> &nums, vector<vector<int>> &queries) {
+        int n = nums.size();
+        vector<long long> f(n, 1);
+        vector<int> breaks;
+        for (int i = 0; i < n; i++) {
+            if (i > 0 && nums[i] >= nums[i - 1]) {
+                f[i] = f[i - 1] + 1;
+            }
+            if (i < n - 1 && nums[i] > nums[i + 1]) {
+                breaks.push_back(i);
+            }
+        }
 
+        vector<long long> pref(n + 1, 0);
+        for (int i = 0; i < n; i++) {
+            pref[i + 1] = pref[i] + f[i];
+        }
+
+        vector<long long> ans;
+        for (auto &q: queries) {
+            int L = q[0];
+            int R = q[1];
+            auto it = lower_bound(breaks.begin(), breaks.end(), L);
+            int pos = (it == breaks.end()) ? -1 : *it;
+            if (pos == -1 || pos >= R) {
+                long long len = R - L + 1;
+                ans.push_back(len * (len + 1) / 2);
+            } else {
+                long long len1 = pos - L + 1;
+                long long res = len1 * (len1 + 1) / 2;
+                res += pref[R + 1] - pref[pos + 1];
+                ans.push_back(res);
+            }
+        }
+
+        return ans;
     }
 };
-
 
 
 

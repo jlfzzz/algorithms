@@ -68,21 +68,31 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
-
-
 class Solution {
 public:
-    
-    vector<long long> countStableSubarrays(vector<int> &nums, vector<vector<int>> &queries) {
+    long long countDistinct(long long N) {
+        string s = to_string(N);
+        int n = s.size();
+        ll ans = 0;
+        ll pow9 = 1;
+        for (int i = 0; i < n - 1; i++) {
+            pow9 *= 9;
+            ans += pow9;
+        }
 
+        vector<ll> pows(17, 1);
+        for (int i = 1; i < 17; i++) {
+            pows[i] = pows[i - 1] * 9;
+        }
+
+        for (int i = 0; i < n; i++) {
+            int cur = s[i] - '0';
+            ans += max((cur - 1), 0) * pows[n - i - 1];
+        }
+        // ans++;
+        return ans;
     }
 };
-
-
-
-
-
-
 
 int main() {
     ios::sync_with_stdio(false);
