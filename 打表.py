@@ -1,10 +1,9 @@
 from collections import *
 from functools import *
-from math import *
+# from math import *
 from itertools import *
 from heapq import *
 from bisect import *
-from operator import *
 from typing import *
 from queue import *
 from string import *
@@ -20,7 +19,8 @@ MOD = int(1e9 + 7)
 
 
 def main():
-    print(99995 * 99994 + 1)
+    t = pow(9, 191, 323)
+    print(t)
 
 
 if __name__ == "__main__":
