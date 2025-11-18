@@ -140,32 +140,42 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, k;
+    int n;
+    long long k;
     rd(n, k);
 
-    ll t1 = (n + 1) / 2;
-    if (k <= t1) {
-        prt(k * 2 - 1);
-        return;
-    }
+    int t = 0;
 
-    k -= t1;
-    ll pow2 = 2;
-    while (k) {
-        ll cur = (n - pow2) / (2 * pow2) + 1;
-        if (k <= cur) {
-            prt(pow2 + pow2 * 2 * (k - 1));
-            return;
+    while (t < n) {
+        int contribution = n - 1 - t;
+        if (k >= contribution) {
+            cout << "1 ";
+            k -= contribution;
+            t++;
+        } else {
+            break;
         }
-
-        pow2 *= 2;
-        k -= cur;
     }
+
+    for (int val = n; t < n; val++) {
+        int j = 0;
+        while (t < n) {
+            if (k >= j) {
+                cout << val << " ";
+                k -= j;
+                j++;
+                t++;
+            } else {
+                break;
+            }
+        }
+    }
+    cout << "\n";
 }
 
 int main() {

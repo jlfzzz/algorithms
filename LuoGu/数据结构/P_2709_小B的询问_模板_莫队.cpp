@@ -140,31 +140,70 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve() {
-    ll n, k;
-    rd(n, k);
+int cnt[N];
 
-    ll t1 = (n + 1) / 2;
-    if (k <= t1) {
-        prt(k * 2 - 1);
-        return;
+void solve() {
+    int n, m, k;
+    rd(n, m, k);
+
+    vi a(n + 1);
+    rv(a, 1);
+
+    struct Qs {
+        int l, r, id;
+    };
+    vector<Qs> qs(m);
+    F(i, 1, m) {
+        int l, r;
+        rd(l, r);
+        qs[i - 1] = {l, r, i - 1};
     }
 
-    k -= t1;
-    ll pow2 = 2;
-    while (k) {
-        ll cur = (n - pow2) / (2 * pow2) + 1;
-        if (k <= cur) {
-            prt(pow2 + pow2 * 2 * (k - 1));
-            return;
+    int B = sqrt(n) + 1;
+    ranges::sort(qs, [&](Qs &a, Qs &b) {
+        if (a.l / B != b.l / B) {
+            return a.l < b.l;
         }
+        return ((a.l / B) & 1) ? a.r < b.r : a.r > b.r;
+    });
 
-        pow2 *= 2;
-        k -= cur;
+    int L = 1, R = 0;
+    ll sum = 0;
+    auto add = [&](int x) {
+        sum -= cnt[x] * cnt[x];
+        cnt[x]++;
+        sum += cnt[x] * cnt[x];
+    };
+
+    auto del = [&](int x) {
+        sum -= cnt[x] * cnt[x];
+        cnt[x]--;
+        sum += cnt[x] * cnt[x];
+    };
+
+    vl ans(m);
+    for (auto [l, r, id]: qs) {
+        while (L > l) {
+            add(a[--L]);
+        }
+        while (R < r) {
+            add(a[++R]);
+        }
+        while (L < l) {
+            del(a[L++]);
+        }
+        while (R > r) {
+            del(a[R--]);
+        }
+        ans[id] = sum;
+    }
+
+    for (auto x: ans) {
+        prt(x);
     }
 }
 

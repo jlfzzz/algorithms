@@ -140,32 +140,88 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve() {
-    ll n, k;
-    rd(n, k);
+int cnt[N];
 
-    ll t1 = (n + 1) / 2;
-    if (k <= t1) {
-        prt(k * 2 - 1);
-        return;
+void solve() {
+    int n, m;
+    rd(n, m);
+
+    int B = sqrt(n) + 1;
+
+    vi a(n + 1);
+    rv(a, 1);
+
+    struct Qs {
+        int l, r, id;
+    };
+
+    vector<Qs> qs(m + 1);
+    F(i, 1, m) {
+        int l, r;
+        rd(l, r);
+        qs[i] = {l, r, i};
     }
 
-    k -= t1;
-    ll pow2 = 2;
-    while (k) {
-        ll cur = (n - pow2) / (2 * pow2) + 1;
-        if (k <= cur) {
-            prt(pow2 + pow2 * 2 * (k - 1));
-            return;
+    sort(all2(qs, 1), [&](Qs &a, Qs &b) {
+        if (a.l / B != b.l / B) {
+            return a.l < b.l;
         }
 
-        pow2 *= 2;
-        k -= cur;
+        return (a.l / B) & 1 ? a.r < b.r : a.r > b.r;
+    });
+
+    int L = 1;
+    int R = 0;
+    ll total = 0;
+    ll prob = 0;
+    auto add = [&](int x) {
+        total++;
+        prob -= (cnt[x] * (cnt[x] - 1)) / 2;
+        cnt[x]++;
+        prob += (cnt[x] * (cnt[x] - 1)) / 2;
+    };
+
+    auto del = [&](int x) {
+        total--;
+        prob -= (cnt[x] * (cnt[x] - 1)) / 2;
+        cnt[x]--;
+        prob += (cnt[x] * (cnt[x] - 1)) / 2;
+    };
+
+    vector<string> ans(m + 1);
+    F(i, 1, m) {
+        auto [l, r, id] = qs[i];
+
+        if (l == r) {
+            ans[id] = "0/1";
+            continue;
+        }
+
+        while (L > l) {
+            add(a[--L]);
+        }
+        while (R < r) {
+            add(a[++R]);
+        }
+        while (L < l) {
+            del(a[L++]);
+        }
+        while (R > r) {
+            del(a[R--]);
+        }
+
+        ll t = total * (total - 1) / 2;
+        ll g = gcd(t, prob);
+        ll t1 = prob / g;
+        ll t2 = t / g;
+        ans[id] = to_string(t1) + "/" + to_string(t2);
     }
+
+    F(i, 1, m) { prt(ans[i]); }
 }
 
 int main() {

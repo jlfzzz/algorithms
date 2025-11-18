@@ -140,32 +140,52 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, k;
-    rd(n, k);
+    int n;
+    rd(n);
+    vi c(n);
+    vl a(n);
+    rv(c, 1);
+    rv(a, 1);
 
-    ll t1 = (n + 1) / 2;
-    if (k <= t1) {
-        prt(k * 2 - 1);
-        return;
-    }
-
-    k -= t1;
-    ll pow2 = 2;
-    while (k) {
-        ll cur = (n - pow2) / (2 * pow2) + 1;
-        if (k <= cur) {
-            prt(pow2 + pow2 * 2 * (k - 1));
-            return;
+    int ans = 0;
+    D(i, n - 1, 1) {
+        if (!a[i]) {
+            continue;
+        }
+        ans++;
+        int left_bound = max(0, i - c[i]);
+        int best_pos = -1;
+        D(j, i - 1, left_bound) {
+            if (a[j]) {
+                best_pos = j;
+                break;
+            }
         }
 
-        pow2 *= 2;
-        k -= cur;
+        if (best_pos == -1) {
+            if (left_bound == 0) {
+                best_pos = 0;
+            } else {
+                int min_next_hop = inf;
+                D(j, i - 1, left_bound) {
+                    int next_hop = j - c[j]; // 下一跳的位置
+                    if (next_hop < min_next_hop) {
+                        min_next_hop = next_hop;
+                        best_pos = j;
+                    }
+                }
+            }
+        }
+
+        a[best_pos] += a[i];
     }
+
+    prt(ans);
 }
 
 int main() {

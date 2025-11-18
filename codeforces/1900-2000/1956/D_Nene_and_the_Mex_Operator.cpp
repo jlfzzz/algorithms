@@ -140,33 +140,78 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, k;
-    rd(n, k);
+    int n;
+    rd(n);
 
-    ll t1 = (n + 1) / 2;
-    if (k <= t1) {
-        prt(k * 2 - 1);
-        return;
+    vi a(n);
+    rv(a);
+
+    int u = 1 << n;
+    ll best = LLONG_MIN;
+    int bestMask = 0;
+    for (int mask = 0; mask < u; ++mask) {
+        ll sum = 0;
+        ll len = 0;
+        for (int i = 0; i < n; ++i) {
+            if (mask >> i & 1) {
+                ++len;
+            } else {
+                sum += len * len;
+                len = 0;
+                sum += a[i];
+            }
+        }
+        sum += len * len;
+
+        if (sum > best) {
+            best = sum;
+            bestMask = mask;
+        }
     }
 
-    k -= t1;
-    ll pow2 = 2;
-    while (k) {
-        ll cur = (n - pow2) / (2 * pow2) + 1;
-        if (k <= cur) {
-            prt(pow2 + pow2 * 2 * (k - 1));
+    vp ans;
+    auto dfs = [&](auto &&self, int L, int R) -> void {
+        int k = R - L + 1;
+        if (k == 1) {
+            ans.pb(L, L);
             return;
         }
+        self(self, L, R - 1);
+        for (int i = k - 2; i > 0; --i) {
+            ans.pb(L, L + i - 1);
+            self(self, L, L + i - 1);
+        }
+        ans.pb(L, R);
+    };
 
-        pow2 *= 2;
-        k -= cur;
+    int i = 0;
+    while (i < n) {
+        if (!(bestMask >> i & 1)) {
+            ++i;
+            continue;
+        }
+        int l = i, r = i;
+        while (r + 1 < n && (bestMask >> (r + 1) & 1))
+            ++r;
+        for (int p = l; p <= r; ++p) {
+            if (a[p] != 0)
+                ans.pb(p, p);
+        }
+        dfs(dfs, l, r);
+
+        i = r + 1;
+    }
+    prt(best, SZ(ans));
+    for (auto [l, r]: ans) {
+        prt(l + 1, r + 1);
     }
 }
+
 
 int main() {
     ios::sync_with_stdio(false);

@@ -145,27 +145,30 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    ll n, k;
-    rd(n, k);
+    int n, x;
+    rd(n, x);
 
-    ll t1 = (n + 1) / 2;
-    if (k <= t1) {
-        prt(k * 2 - 1);
-        return;
-    }
+    vi a(n);
+    rv(a);
 
-    k -= t1;
-    ll pow2 = 2;
-    while (k) {
-        ll cur = (n - pow2) / (2 * pow2) + 1;
-        if (k <= cur) {
-            prt(pow2 + pow2 * 2 * (k - 1));
-            return;
+    prq<int> pq;
+    int sum = 0;
+    F(i, 0, n - 1) {
+        int cur = a[i];
+        if (sum >= cur) {
+            sum -= cur;
+            pq.push(cur);
+        } else {
+            if (!pq.empty() && cur < pq.top()) {
+                sum += pq.top() - cur;
+                pq.pop();
+                pq.push(cur);
+            }
         }
-
-        pow2 *= 2;
-        k -= cur;
+        sum += x;
     }
+
+    prt(SZ(pq));
 }
 
 int main() {

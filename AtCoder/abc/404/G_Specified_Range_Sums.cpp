@@ -140,31 +140,60 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, k;
-    rd(n, k);
+    int n, m;
+    rd(n, m);
+    vector<ll> dis(n + 5, inf);
+    vector<ll> pre(n + 5, -1);
+    vector<bool> vis(n + 5, false);
+    vector<ll> cnt(n + 5, 0);
+    vector<vector<pii>> g(n + 2);
 
-    ll t1 = (n + 1) / 2;
-    if (k <= t1) {
-        prt(k * 2 - 1);
-        return;
+    F(i, 1, n) { g[i].pb(i + 1, -1); }
+    F(i, 1, m) {
+        int l, r, s;
+        rd(l, r, s);
+        g[l].pb(r + 1, -s);
+        g[r + 1].pb(l, s);
     }
+    auto spfa = [&]() -> bool {
+        queue<ll> q;
+        dis[1] = 0;
+        q.push(1);
+        vis[1] = true;
+        cnt[1] = 1;
 
-    k -= t1;
-    ll pow2 = 2;
-    while (k) {
-        ll cur = (n - pow2) / (2 * pow2) + 1;
-        if (k <= cur) {
-            prt(pow2 + pow2 * 2 * (k - 1));
-            return;
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+            vis[u] = false;
+
+            for (auto &[v, w]: g[u]) {
+                if (dis[u] + w < dis[v]) {
+                    dis[v] = dis[u] + w;
+                    pre[v] = u;
+
+                    if (!vis[v]) {
+                        cnt[v]++;
+                        if (cnt[v] >= n + 2)
+                            return false;
+                        q.push(v);
+                        vis[v] = true;
+                    }
+                }
+            }
         }
+        return true;
+    };
 
-        pow2 *= 2;
-        k -= cur;
+    if (!spfa()) {
+        prt(-1);
+    } else {
+        prt(-(long long) dis[n + 1]);
     }
 }
 
