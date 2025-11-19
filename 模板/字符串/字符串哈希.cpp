@@ -20,7 +20,23 @@ H[r] - H[l - 1] * P[r - l + 1]
 
 // 两个都是后缀哈希
 // query_rev_on_reversed 就是 区间[l, r]的哈希，不过是正着计算的
+// [极少用] 翻转串物理查询
+// 返回: "翻转后的字符串" 中第 l 到第 r 个字符的哈希值
+// 注意: 这里的 l 和 r 是针对 s_reversed 的下标
+//
+//
+// [常用] 3. 子串反向查询 (判断回文神器)
+// 返回: 原字符串 s 中下标 [l, r] 子串 "倒着读" 时的哈希值
+// 逻辑: 自动将原串坐标 [l, r] 映射到翻转串的对应位置 [n-r+1, n-l+1] 进行查询
+// 用途: 如果 query(l, r) == query_rev_sub(l, r)，说明 s[l...r] 是回文
 // query_rev_sub 是区间[l, r]的哈希，并且反转了。（可以理解为[r,l])
+//
+// 
+// H: 原字符串的前缀哈希
+// HR: 翻转后字符串(reverse(s))的前缀哈希
+
+// auto is_pal = [&](int l, int r) { return hs.query(l, r) == hs.query_rev_sub(l, r); };
+
 
 mt19937 rng(random_device{}());
 
@@ -67,6 +83,7 @@ struct HashSeq {
         return (long long) ((res + (__int128) MOD) % (__int128) MOD);
     }
 
+    // auto is_pal = [&](int l, int r) { return hs.query(l, r) == hs.query_rev_sub(l, r); };
     long long query_rev_sub(int l, int r) const {
         if (l > r)
             return 0;
