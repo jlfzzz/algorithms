@@ -138,47 +138,6 @@ namespace utils {
 
 using namespace utils;
 
-class UnionFind {
-public:
-    vector<int> parent;
-    vector<int> rank;
-    int count;
-
-    explicit UnionFind(const int n) : count(n) {
-        parent.resize(n);
-        rank.resize(n);
-        ranges::fill(rank, 1);
-        iota(parent.begin(), parent.end(), 0);
-    }
-
-    int find(int x) {
-        if (parent[x] != x) {
-            parent[x] = find(parent[x]);
-        }
-        return parent[x];
-    }
-
-    bool unite(int x, int y) {
-        int root_x = find(x);
-        int root_y = find(y);
-
-        if (root_x == root_y) {
-            return false;
-        }
-
-        if (rank[root_x] == rank[root_y]) {
-            parent[root_x] = root_y;
-            rank[root_y] += 1;
-        } else if (rank[root_x] > rank[root_y]) {
-            parent[root_y] = root_x;
-        } else {
-            parent[root_x] = root_y;
-        }
-        count--;
-        return true;
-    }
-};
-
 constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
@@ -186,7 +145,50 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    
+    int n, X;
+    rd(n, X);
+
+    vector<db> S(n), P(n);
+    vector<int> C(n);
+    for (int i = 0; i < n; ++i) {
+        int s, c, p;
+        rd(s, c, p);
+        S[i] = (db) s;
+        C[i] = c;
+        P[i] = (db) p / 100.0L;
+    }
+
+    int M = 1 << n;
+    vector<vector<db>> dp(M, vector<db>(X + 1, 0.0L));
+
+    for (int x = 1; x <= X; ++x) {
+        for (int mask = 0; mask < M; ++mask) {
+            db best = 0.0L;
+
+            for (int i = 0; i < n; ++i) {
+                if (mask & (1 << i))
+                    continue;
+                if (C[i] > x)
+                    continue;
+
+                int nx = x - C[i];
+                int nmask = mask | (1 << i);
+
+                db p = P[i];
+                db win = S[i] + dp[nmask][nx];
+                db lose = dp[mask][nx];
+
+                db cur = p * win + (1.0L - p) * lose;
+                if (cur > best)
+                    best = cur;
+            }
+
+            dp[mask][x] = best;
+        }
+    }
+
+    cout.setf(ios::fixed);
+    cout << setprecision(15) << dp[0][X] << '\n';
 }
 
 int main() {

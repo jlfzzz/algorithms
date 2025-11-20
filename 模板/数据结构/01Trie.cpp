@@ -2,79 +2,92 @@
 using namespace std;
 using ll = long long;
 
-struct TrieNode {
-    int count;
-    array<unique_ptr<TrieNode>, 2> nxt;
-
-    TrieNode() : count(0), nxt{nullptr, nullptr} {}
+struct Node {
+    int ch[2];
+    int cnt;
 };
 
 struct Trie {
-    unique_ptr<TrieNode> root;
+    static constexpr int MAXN = 100000 + 5;
+    static constexpr int MAXNODE = MAXN * 32;
+    Node d[MAXNODE];
+    int tot;
 
-    Trie() : root(make_unique<TrieNode>()) {}
+    void clear() {
+        tot = 1;
+        d[1].ch[0] = d[1].ch[1] = 0;
+        d[1].cnt = 0;
+    }
 
-    void insert(int x) const {
-        TrieNode *curr = root.get();
-        curr->count++;
+    void insert(int x) {
+        int u = 1;
+        d[u].cnt++;
         for (int i = 30; i >= 0; i--) {
             int bit = (x >> i) & 1;
-            if (!curr->nxt[bit]) {
-                curr->nxt[bit] = make_unique<TrieNode>();
+            if (!d[u].ch[bit]) {
+                ++tot;
+                d[tot].ch[0] = d[tot].ch[1] = 0;
+                d[tot].cnt = 0;
+                d[u].ch[bit] = tot;
             }
-            curr = curr->nxt[bit].get();
-            curr->count++;
+            u = d[u].ch[bit];
+            d[u].cnt++;
         }
     }
 
-    int get_max(int x) const {
-        TrieNode *curr = root.get();
-        int ans = 0;
-        if (!curr || curr->count == 0)
-            return ans;
-
+    void erase(int x) {
+        int u = 1;
+        d[u].cnt--;
         for (int i = 30; i >= 0; i--) {
             int bit = (x >> i) & 1;
-            int t = 1 - bit;
-            if (curr->nxt[t] && curr->nxt[t]->count > 0) {
-                ans |= (1 << i);
-                curr = curr->nxt[t].get();
-            } else if (curr->nxt[bit] && curr->nxt[bit]->count > 0) {
-                curr = curr->nxt[bit].get();
+            u = d[u].ch[bit];
+            d[u].cnt--;
+        }
+    }
+
+    int getMin(int x) const {
+        if (d[1].cnt == 0) {
+            return (1 << 30);
+        }
+        int u = 1;
+        int res = 0;
+        for (int i = 30; i >= 0; i--) {
+            int bit = (x >> i) & 1;
+            int same = d[u].ch[bit];
+            int diff = d[u].ch[bit ^ 1];
+            if (same && d[same].cnt > 0) {
+                u = same;
+            } else if (diff && d[diff].cnt > 0) {
+                res |= (1 << i);
+                u = diff;
             } else {
                 break;
             }
         }
-        return ans;
+        return res;
     }
 
-    int get_min(int x) const {
-        TrieNode *curr = root.get();
-        int ans = 0;
-        if (!curr || curr->count == 0)
-            return ans;
-
+    int getMax(int x) const {
+        if (d[1].cnt == 0) {
+            return 0;
+        }
+        int u = 1;
+        int res = 0;
         for (int i = 30; i >= 0; i--) {
             int bit = (x >> i) & 1;
-            if (curr->nxt[bit] && curr->nxt[bit]->count > 0) {
-                curr = curr->nxt[bit].get();
-            } else if (curr->nxt[1 - bit] && curr->nxt[1 - bit]->count > 0) {
-                ans |= (1 << i);
-                curr = curr->nxt[1 - bit].get();
+            int diff = d[u].ch[bit ^ 1];
+            int same = d[u].ch[bit];
+            if (diff && d[diff].cnt > 0) {
+                res |= (1 << i);
+                u = diff;
+            } else if (same && d[same].cnt > 0) {
+                u = same;
             } else {
                 break;
             }
         }
-        return ans;
-    }
-
-    void erase(int x) const {
-        TrieNode *curr = root.get();
-        curr->count--;
-        for (int i = 30; i >= 0; i--) {
-            int bit = (x >> i) & 1;
-            curr = curr->nxt[bit].get();
-            curr->count--;
-        }
+        return res;
     }
 };
+
+Trie trie;

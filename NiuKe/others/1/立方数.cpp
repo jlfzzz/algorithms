@@ -140,83 +140,179 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-struct Sieve {
-    bool is_not_prime[N + 1]{};
-    std::vector<int> primes;
-    int min_prime_factor[N + 1]{};
-    int distinct_factors_count[N + 1]{};
-
-    Sieve() { init(N); }
-
-    void init(int n) {
-        is_not_prime[0] = is_not_prime[1] = true;
-        min_prime_factor[0] = min_prime_factor[1] = 0;
-        distinct_factors_count[1] = 0;
-
-        for (int i = 2; i <= n; ++i) {
-            if (!is_not_prime[i]) {
-                primes.push_back(i);
-                min_prime_factor[i] = i;
-                distinct_factors_count[i] = 1;
+namespace MillerRabin {
+    ull qpow(ull a, ull d, ull mod) {
+        ull r = 1;
+        while (d) {
+            if (d & 1) {
+                r = (i128) r * a % mod;
             }
+            a = (i128) a * a % mod;
+            d >>= 1;
+        }
+        return r;
+    }
 
-            for (int p: primes) {
-                if ((long long) i * p > n)
-                    break;
-                is_not_prime[i * p] = true;
-                min_prime_factor[i * p] = p;
-
-                if (i % p == 0) {
-                    distinct_factors_count[i * p] = distinct_factors_count[i];
-                    break;
-                } else {
-                    distinct_factors_count[i * p] = distinct_factors_count[i] + 1;
-                }
+    bool check(ull a, ull s, ull d, ull n) {
+        if (n == a) {
+            return true;
+        }
+        ull x = qpow(a, d, n);
+        if (x == 1 || x == n - 1) {
+            return true;
+        }
+        F(i, 1, (int) s - 1) {
+            x = (i128) x * x % n;
+            if (x == n - 1) {
+                return true;
             }
         }
+        return false;
     }
 
-    [[nodiscard]] bool is_prime(int x) const {
-        if (x <= 1 || x > N)
+    bool is_prime(ull n) {
+        if (n < 2) {
             return false;
-        return !is_not_prime[x];
+        }
+        static ull test_primes[] = {2ull, 3ull, 5ull, 7ull, 11ull, 13ull, 17ull, 19ull, 23ull, 29ull, 31ull, 37ull};
+        for (ull p: test_primes) {
+            if (n % p == 0) {
+                return n == p;
+            }
+        }
+        ull d = n - 1;
+        ull s = 0;
+        while ((d & 1) == 0) {
+            d >>= 1;
+            s++;
+        }
+        static ull bases[] = {2ull, 325ull, 9375ull, 28178ull, 450775ull, 9780504ull, 1795265022ull};
+        for (ull a: bases) {
+            if (a % n == 0) {
+                continue;
+            }
+            if (!check(a, s, d, n)) {
+                return false;
+            }
+        }
+        return true;
     }
-} sieve;
+} // namespace MillerRabin
+
+namespace PollardRho {
+    mt19937_64 rng((uint64_t) chrono::steady_clock::now().time_since_epoch().count());
+
+    ull mul_mod(ull a, ull b, ull mod) { return (ull) ((i128) a * b % mod); }
+
+    ull f(ull x, ull c, ull mod) { return (mul_mod(x, x, mod) + c) % mod; }
+
+    ull rho(ull n) {
+        if ((n & 1ull) == 0ull) {
+            return 2ull;
+        }
+        if (n % 3ull == 0ull) {
+            return 3ull;
+        }
+        uniform_int_distribution<ull> dist(2ull, n - 2ull);
+        ull c = dist(rng);
+        ull x = dist(rng);
+        ull y = x;
+        ull d = 1;
+        while (d == 1) {
+            x = f(x, c, n);
+            y = f(f(y, c, n), c, n);
+            ull diff = x > y ? x - y : y - x;
+            d = std::gcd(diff, n);
+            if (d == n) {
+                return rho(n);
+            }
+        }
+        return d;
+    }
+
+    void factor(ull n, vector<ull> &res) {
+        if (n == 1) {
+            return;
+        }
+        if (MillerRabin::is_prime(n)) {
+            res.pb(n);
+            return;
+        }
+        ull d = rho(n);
+        factor(d, res);
+        factor(n / d, res);
+    }
+} // namespace PollardRho
+
+vector<int> primes;
 
 int Multitest = 1;
 
-void init() {}
+void init() {
+    if (!primes.empty()) {
+        return;
+    }
+    const int LIM = 100000;
+    vector<bool> is_comp(LIM + 1);
+    F(i, 2, LIM) {
+        if (!is_comp[i]) {
+            primes.pb(i);
+        }
+        for (int p: primes) {
+            ll v = 1ll * i * p;
+            if (v > LIM) {
+                break;
+            }
+            is_comp[(int) v] = true;
+            if (i % p == 0) {
+                break;
+            }
+        }
+    }
+}
 
 void solve() {
     ll n;
     rd(n);
+    ll m = 1;
 
-    vp a;
     ll t = n;
-    for (ll p: sieve.primes) {
+    for (int p: primes) {
         if (p > t) {
             break;
         }
-
-        if (t % p == 0) {
-            int cnt = 0;
-            while (t % p == 0) {
-                t /= p;
-                cnt++;
-            }
-
-            if (cnt >= 3) {
-                a.pb(p, cnt / 3 * 3);
+        if (t % p != 0) {
+            continue;
+        }
+        int cnt = 0;
+        while (t % p == 0) {
+            t /= p;
+            cnt++;
+            if (cnt % 3 == 0) {
+                m *= p;
             }
         }
     }
 
     ll ans = 1;
-    for (auto [p, cnt]: a) {
-        F(i, 1, cnt / 3) { ans *= p; }
+    ll l = 1;
+    ll r = 1000000;
+    while (l <= r) {
+        ll mid = (l + r) >> 1;
+        ll v = mid * mid * mid;
+        if (v == t) {
+            ans = mid;
+            break;
+        }
+        if (v > t) {
+            r = mid - 1;
+        } else {
+            l = mid + 1;
+        }
     }
 
-    prt(ans);
+    m *= ans;
+    prt(m);
 }
 
 int main() {

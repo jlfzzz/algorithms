@@ -68,70 +68,51 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
+
+
 class Solution {
 public:
-    int findMinimumTime(vector<vector<int>> &tasks) {
-        int mxT = 0;
-        for (auto &v: tasks) {
-            mxT = max(mxT, v[1]);
-        }
+    int intersectionSizeTwo(vector<vector<int>> &intervals) {
+        sort(intervals.begin(), intervals.end(), [](const vector<int> &a, const vector<int> &b) {
+            if (a[1] != b[1])
+                return a[1] < b[1];
+            return a[0] > b[0];
+        });
 
-        int n = mxT + 1;
-        vector<vector<pair<int, int>>> g(n);
-        for (int t = 1; t <= mxT; ++t) {
-            g[t - 1].push_back({t, 0});
-            g[t].push_back({t - 1, 1});
-        }
+        set<int> S;
 
-        for (auto &task: tasks) {
-            int s = task[0];
-            int e = task[1];
-            int d = task[2];
-            g[s - 1].push_back({e, -d});
-        }
+        for (auto &seg: intervals) {
+            int L = seg[0];
+            int R = seg[1];
 
-        constexpr int INF = 0x3f3f3f3f;
-        vector<int> dis(n, INF);
-        vector<int> pre(n, -1);
-        vector<bool> vis(n, false);
-        vector<int> cnt(n, 0);
-
-        auto spfa = [&]() -> bool {
-            queue<int> q;
-
-            dis[0] = 0;
-            q.push(0);
-            vis[0] = true;
-            cnt[0] = 1;
-
-            while (!q.empty()) {
-                int u = q.front();
-                q.pop();
-                vis[u] = false;
-
-                for (auto &[v, w]: g[u]) {
-                    if (dis[u] + w < dis[v]) {
-                        dis[v] = dis[u] + w;
-                        pre[v] = u;
-
-                        if (!vis[v]) {
-                            cnt[v]++;
-                            if (cnt[v] >= n)
-                                return false;
-                            q.push(v);
-                            vis[v] = true;
-                        }
-                    }
-                }
+            int cnt = 0;
+            auto it = S.lower_bound(L);
+            while (it != S.end() && *it <= R && cnt < 2) {
+                ++cnt;
+                ++it;
             }
-            return true;
-        };
 
-        spfa();
-        int ans = -dis[mxT];
-        return ans;
+            if (cnt >= 2) {
+                continue;
+            } else if (cnt == 1) {
+                int x = R;
+                if (S.count(x))
+                    x = R - 1;
+                S.insert(x);
+            } else {
+                S.insert(R - 1);
+                S.insert(R);
+            }
+        }
+
+        return S.size();
     }
 };
+
+
+
+
+
 
 int main() {
     ios::sync_with_stdio(false);
