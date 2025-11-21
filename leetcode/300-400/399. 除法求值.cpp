@@ -68,6 +68,57 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
+class Solution {
+public:
+    vector<double> calcEquation(vector<vector<string>> &equations, vector<double> &values,
+                                vector<vector<string>> &queries) {
+        unordered_map<string, unordered_map<string, double>> graph;
+        int n = equations.size();
+        for (int i = 0; i < n; i++) {
+            auto &v = equations[i];
+            auto &s1 = v[0];
+            auto &s2 = v[1];
+            double t = values[i];
+            graph[s1][s2] = t;
+            graph[s2][s1] = 1.0 / t;
+        }
+
+        vector<double> res;
+        for (auto &q: queries) {
+            auto &a = q[0];
+            auto &b = q[1];
+
+            if (!graph.contains(a)) {
+                res.push_back(-1);
+                continue;
+            }
+
+            unordered_set<string> vis;
+            double ans = -1;
+            auto dfs = [&](this auto &&dfs, string cur, double path) -> void {
+                if (ans != -1) {
+                    return;
+                }
+
+                if (cur == b) {
+                    ans = path;
+                    return;
+                }
+
+                for (auto &[v, val]: graph[cur]) {
+                    if (!vis.contains(v)) {
+                        vis.insert(v);
+                        dfs(v, path * val);
+                    }
+                }
+            };
+            dfs(a, 1);
+            res.push_back(ans);
+        }
+
+        return res;
+    }
+};
 
 
 int main() {

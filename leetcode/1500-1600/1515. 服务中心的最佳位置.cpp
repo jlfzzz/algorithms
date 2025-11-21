@@ -68,6 +68,59 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
+class Solution {
+public:
+    double getDist(double xc, double yc, vector<vector<int>> &positions) {
+        double ans = 0;
+        for (auto &p: positions) {
+            double d = sqrt(pow(p[0] - xc, 2) + pow(p[1] - yc, 2));
+            ans += d;
+        }
+        return ans;
+    }
+
+    double getMinDistSum(vector<vector<int>> &positions) {
+        int n = positions.size();
+        double x = 0, y = 0;
+        for (auto &p: positions) {
+            x += p[0];
+            y += p[1];
+        }
+        x /= n;
+        y /= n;
+
+        double minDist = getDist(x, y, positions);
+        double step = 100.0;
+        double eps = 1e-7;
+
+        int dx[4] = {0, 0, 1, -1};
+        int dy[4] = {1, -1, 0, 0};
+
+        while (step > eps) {
+            bool f = false;
+
+            for (int i = 0; i < 4; ++i) {
+                double nx = x + dx[i] * step;
+                double ny = y + dy[i] * step;
+                double newDist = getDist(nx, ny, positions);
+
+                if (newDist < minDist) {
+                    minDist = newDist;
+                    x = nx;
+                    y = ny;
+                    f = true;
+                    break;
+                }
+            }
+
+            if (!f) {
+                step /= 2.0;
+            }
+        }
+
+        return minDist;
+    }
+};
 
 
 int main() {
