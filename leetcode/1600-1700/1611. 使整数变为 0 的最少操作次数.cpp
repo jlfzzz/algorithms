@@ -72,11 +72,48 @@ using ll = long long;
 class Solution {
 public:
     int minimumOneBitOperations(int n) {
-        if (n == 0) {
+        int c1 = popcount((unsigned) n);
+        if (c1 == 0) {
             return 0;
         }
-        int k = bit_width((uint32_t) n);
-        return (1 << k) - 1 - minimumOneBitOperations(n - (1 << (k - 1)));
+
+        if (c1 == 1) {
+            int len = bit_width((unsigned) n);
+            return (1 << len) - 1;
+        }
+
+        int cnt = 0;
+        int len = bit_width((unsigned) n);
+        int ans = 0;
+        for (int i = len - 1; i >= 0; i--) {
+            if (n >> i & 1) {
+                cnt++;
+
+                if (cnt > 2) {
+                    ans += (1 << (i + 1)) - 1;
+                }
+            }
+        }
+
+        bool first = true;
+        for (int i = len - 1; i >= 0; i--) {
+            if (n >> i & 1) {
+                if (first) {
+                    first = false;
+                    continue;
+                }
+
+                for (int j = i + 1; j < len - 1; j++) {
+                    ans += 1 + (1 << (j)) - 1;
+                }
+                ans++;
+                ans += 1 << (len - 1);
+                ans--;
+                break;
+            }
+        }
+
+        return ans;
     }
 };
 

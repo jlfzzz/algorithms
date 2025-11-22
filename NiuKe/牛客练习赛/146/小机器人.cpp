@@ -147,49 +147,77 @@ void init() {}
 void solve() {
     int n;
     rd(n);
-    vl a(n + 1);
+    vector<ll> a(n + 1);
     rv(a, 1);
     int m;
     rd(m);
 
-    vp seg;
+    vector<int> pos;
+    pos.reserve(n);
 
     while (m--) {
         int l, r;
         ll k;
         rd(l, r, k);
 
-        seg.clear();
-        F(i, l, r) { seg.pb(a[i], i); }
+        while (k > 0) {
+            ll mn = INF;
+            ll mn2 = INF;
 
-        sort(all(seg));
+            F(i, l, r) {
+                if (a[i] < mn)
+                    mn = a[i];
+            }
 
-        ll height = seg[0].first;
-        int cnt = 1;
-        F(i, 0, SZ(seg) - 2) {
-            ll nxt = seg[i + 1].first;
-            ll diff = nxt - height;
-            ll need = diff * cnt;
+            pos.clear();
+            F(i, l, r) {
+                if (a[i] == mn) {
+                    pos.pb(i);
+                } else {
+                    if (a[i] < mn2)
+                        mn2 = a[i];
+                }
+            }
 
-            if (k >= need) {
-                k -= need;
-                height = nxt;
-                cnt++;
-            } else {
+            int cnt = SZ(pos);
+            if (mn2 == INF) {
+                ll len = r - l + 1;
+                ll add = k / len;
+                ll rem = k % len;
+                if (add > 0) {
+                    F(i, l, r) a[i] += add;
+                }
+                if (rem > 0) {
+                    F(i, l, l + rem - 1) a[i]++;
+                }
                 break;
             }
-        }
 
-        sort(seg.begin(), seg.begin() + cnt, [](pii &x, pii &y) { return x.second < y.second; });
+            ll diff = mn2 - mn;
+            bool can_fill = false;
+            if (cnt > 0 && k / cnt >= diff)
+                can_fill = true;
 
-        ll add = k / cnt;
-        ll rem = k % cnt;
+            if (can_fill) {
+                for (int idx: pos) {
+                    a[idx] = mn2;
+                }
+                k -= diff * cnt;
+            } else {
+                ll add = k / cnt;
+                ll rem = k % cnt;
+                if (add > 0) {
+                    for (int idx: pos) {
+                        a[idx] += add;
+                    }
+                }
 
-        F(i, 0, cnt - 1) {
-            ll val = height + add;
-            if (i < rem)
-                val++;
-            a[seg[i].second] = val;
+                for (int i = 0; i < rem; i++) {
+                    a[pos[i]]++;
+                }
+                k = 0;
+                break;
+            }
         }
     }
 
