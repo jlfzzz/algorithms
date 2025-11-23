@@ -145,12 +145,77 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
-    vi x(n), y(m);
-    rv(x), rv(y);
+    int n, m, k;
+    rd(n, m, k);
 
-    
+    vector<pii> segs(m);
+    for (int i = 0; i < m; ++i)
+        rd(segs[i].first, segs[i].second);
+
+    vector<int> diff(n + 2, 0);
+    for (auto [l, r]: segs) {
+        diff[l]++;
+        diff[r + 1]--;
+    }
+
+    vector<int> cnt(n + 1);
+    int zero_cnt = 0;
+    int cur = 0;
+    F(i, 1, n) {
+        cur += diff[i];
+        cnt[i] = cur;
+        if (cnt[i] == 0)
+            zero_cnt++;
+    }
+
+    vector<int> pref1(n + 1, 0), pref2(n + 1, 0);
+    F(i, 1, n) {
+        pref1[i] = pref1[i - 1] + (cnt[i] == 1);
+        pref2[i] = pref2[i - 1] + (cnt[i] == 2);
+    }
+
+    vector<int> one(m);
+    for (int i = 0; i < m; i++) {
+        int l = segs[i].first;
+        int r = segs[i].second;
+        one[i] = pref1[r] - pref1[l - 1];
+    }
+
+    vector<int> one2 = one;
+    sort(all(one2), greater<int>());
+    int ans = zero_cnt + one2[0] + one2[1];
+
+    vector<vector<int>> add_at(n + 2), remove_at(n + 2);
+    for (int i = 0; i < m; i++) {
+        add_at[segs[i].first].pb(i);
+        remove_at[segs[i].second + 1].pb(i);
+    }
+
+    set<int> active;
+    map<pii, int> overlap_len;
+
+    F(i, 1, n) {
+        for (int id: add_at[i])
+            active.insert(id);
+        for (int id: remove_at[i])
+            active.erase(id);
+
+        if (cnt[i] == 2) {
+            int u = *active.begin();
+            int v = *active.rbegin();
+            overlap_len[{u, v}]++;
+        }
+    }
+
+    for (auto const &[pair_ids, len]: overlap_len) {
+        int u = pair_ids.first;
+        int v = pair_ids.second;
+
+        int current_gain = zero_cnt + one[u] + one[v] + len;
+        ans = max(ans, current_gain);
+    }
+
+    prt(ans);
 }
 
 int main() {

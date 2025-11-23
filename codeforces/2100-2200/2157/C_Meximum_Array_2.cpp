@@ -145,12 +145,58 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
-    vi x(n), y(m);
-    rv(x), rv(y);
+    int n, k, q;
+    rd(n, k, q);
 
-    
+    vi ans(n + 1, -1);
+    vi bad(n + 1), mex(n + 1);
+    vp segs;
+    while (q--) {
+        int op, l, r;
+        rd(op, l, r);
+        if (op == 2) {
+            segs.pb(l, r);
+            F(i, l, r) { mex[i] = 1; }
+        } else {
+            F(i, l, r) { bad[i] = 1; }
+        }
+    }
+
+    F(i, 1, n) {
+        if (!mex[i]) {
+            ans[i] = k;
+        }
+    }
+
+    ranges::sort(segs);
+    for (auto [l, r]: segs) {
+        set<int> have;
+        vi temp;
+        F(i, l, r) {
+            if (ans[i] == -1 && !bad[i]) {
+                temp.pb(i);
+            } else if (ans[i] < k) {
+                have.insert(ans[i]);
+            }
+        }
+        int p = 0;
+        F(i, 0, k - 1) {
+            if (!have.contains(i)) {
+                dbg(l, r, i, p);
+                bad[temp[p]] = 1;
+                ans[temp[p]] = i;
+                p++;
+            }
+        }
+    }
+
+    F(i, 1, n) {
+        if (ans[i] == -1) {
+            ans[i] = 10000;
+        }
+    }
+
+    prv(ans, 1);
 }
 
 int main() {

@@ -145,12 +145,41 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
-    vi x(n), y(m);
-    rv(x), rv(y);
+    int n, k;
+    rd(n, k);
 
-    
+    vi a(n);
+    rv(a);
+
+    vi cnt(3 * n + 5);
+    for (int x: a) {
+        cnt[x]++;
+    }
+
+    ll carry = 0;
+    ll start = -1;
+    ll ans = 0;
+    F(i, 0, 3 * n) {
+        if (cnt[i] == 0 && carry == 0) {
+            if (start == -1)
+                continue;
+        }
+
+        ll sum = cnt[i] + carry;
+        if (sum > k) {
+            if (start == -1) {
+                start = i;
+            }
+
+            carry = sum - 1;
+            ans = max(ans, i - start + 1);
+        } else {
+            carry = 0;
+            start = -1;
+        }
+    }
+
+    prt(ans);
 }
 
 int main() {

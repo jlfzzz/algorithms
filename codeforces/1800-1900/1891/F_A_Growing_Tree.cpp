@@ -130,7 +130,7 @@ namespace utils {
     }
 } // namespace utils
 
-#ifdef WOAIHUTAO
+#ifdef LOCAL
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
 #else
 #define dbg(...) ((void) 0)
@@ -145,12 +145,74 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
-    vi x(n), y(m);
-    rv(x), rv(y);
+    int q;
+    rd(q);
 
-    
+    vi time(q + 100);
+    vvi g(q + 100);
+    vvp ev(q + 100);
+    int sz = 1;
+    F(i, 1, q) {
+        int type;
+        rd(type);
+
+        if (type == 1) {
+            int v;
+            rd(v);
+
+            sz++;
+            time[sz] = i;
+            g[v].pb(sz);
+        } else {
+            ll v, x;
+            rd(v, x);
+
+            ev[v].pb(i, x);
+        }
+    }
+
+    vl ans(sz + 1), bit(q + 100);
+
+    auto add = [&](int t, ll x) {
+        for (int i = t; i <= q; i += i & -i) {
+            bit[i] += x;
+        }
+    };
+
+    auto pre = [&](int i) {
+        ll res = 0;
+        while (i > 0) {
+            res += bit[i];
+            i -= i & -i;
+        }
+        return res;
+    };
+
+    auto rangeSum = [&](int i, int j) { return pre(j) - pre(i - 1); };
+
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        for (auto [t, delta]: ev[u]) {
+            add(t, delta);
+        }
+
+        ans[u] = rangeSum(time[u], q);
+        for (int v: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            dfs(v, u);
+        }
+
+        for (auto [t, delta]: ev[u]) {
+            add(t, -delta);
+        }
+    };
+    dfs(1, 0);
+
+    // dbg(1);
+
+    prv(ans, 1);
 }
 
 int main() {

@@ -145,12 +145,26 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
-    vi x(n), y(m);
-    rv(x), rv(y);
+    int n;
+    rd(n);
+    vi a(n);
+    rv(a);
 
-    
+    map<int, int> cnt;
+    for (int x: a) {
+        cnt[x]++;
+    }
+
+    int ans = 0;
+    for (auto [key, val]: cnt) {
+        if (val < key) {
+            ans += val;
+        } else {
+            ans += val - key;
+        }
+    }
+
+    prt(ans);
 }
 
 int main() {

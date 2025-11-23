@@ -145,12 +145,58 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
-    vi x(n), y(m);
-    rv(x), rv(y);
+    ll n, l, r;
+    rd(n, l, r);
 
-    
+    vl a(n + 1);
+    rv(a, 1);
+
+    sort(all2(a, 1));
+
+    ll ans = 0;
+    ll lsum = 0, lcnt = 0;
+    ll rsum = 0, rcnt = 0;
+    vl temp;
+    F(i, 1, n) {
+        ll x = a[i];
+        if (x < l) {
+            lcnt++;
+            lsum += x;
+        } else if (x > r) {
+            rcnt++;
+            rsum += x;
+        } else {
+            temp.pb(x);
+        }
+    }
+
+    int m = n / 2;
+    if (lcnt > m) {
+        ans = l * lcnt - lsum;
+        for (ll x: temp) {
+            rsum += x;
+            rcnt++;
+        }
+        ans += rsum - l * rcnt;
+    } else if (rcnt > m) {
+        ans = rsum - rcnt * r;
+        for (ll x: temp) {
+            lsum += x;
+            lcnt++;
+        }
+        ans += r * lcnt - lsum;
+    } else {
+        ll y = a[(n + 1) / 2];
+
+        ll left = 0;
+        ll right = 0;
+        D(i, n / 2, 1) { left += a[i]; }
+        F(i, (n + 1) / 2 + 1, n) { right += a[i]; }
+        ans = m * y - left + right - m * y;
+    }
+    dbg(ans);
+
+    prt(ans);
 }
 
 int main() {

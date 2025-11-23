@@ -145,12 +145,22 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
-    vi x(n), y(m);
-    rv(x), rv(y);
+    int n, x, y;
+    rd(n, x, y);
+    string s;
+    rd(s);
 
-    
+    int c8 = 0;
+    for (char c: s) {
+        c8 += c == '8';
+    }
+
+    int m = n + c8;
+    if (abs(x) + abs(y) <= m && abs(x) <= n && abs(y) <= n) {
+        prt("YES");
+    } else {
+        prt("NO");
+    }
 }
 
 int main() {
