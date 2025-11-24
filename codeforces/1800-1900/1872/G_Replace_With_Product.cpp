@@ -145,85 +145,67 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m, q;
-    rd(n, m, q);
-    vi a(n);
+    int n;
+    rd(n);
+    vl a(n);
     rv(a);
-    vi b(m);
-    rv(b);
 
-    vi rankA(n + 1);
-    F(i, 0, n - 1) { rankA[a[i]] = i + 1; }
-    F(i, 0, m - 1) { b[i] = rankA[b[i]]; }
+    vp b;
+    F(i, 0, n - 1) {
+        if (a[i] > 1) {
+            b.pb(a[i], i);
+        }
+    }
 
-    // 必须 resize，否则后续访问会 RE
-    vector<set<int>> pos(n + 2);
-    set<int> active;
+    if (b.empty()) {
+        prt(1, 1);
+        return;
+    }
+
+    bool overflow = false;
+    if (b.size() >= 60) {
+        overflow = true;
+    } else {
+        i128 prod = 1;
+        i128 LIMIT = 2e14;
+        for (auto [val, idx]: b) {
+            prod *= val;
+            if (prod > LIMIT) {
+                overflow = true;
+                break;
+            }
+        }
+    }
+
+    if (overflow) {
+        prt(b[0].second + 1, b.back().second + 1);
+        return;
+    }
+
+    vl pref(n + 1, 0);
+    F(i, 0, n - 1) { pref[i + 1] = pref[i] + a[i]; }
+
+    int m = SZ(b);
+    i128 max_gain = 0;
+    pii ans = {1, 1};
 
     F(i, 0, m - 1) {
-        pos[b[i]].insert(i);
-        active.insert(b[i]);
+        i128 current_prod = 1;
+        F(j, i, m - 1) {
+            current_prod *= b[j].first;
+
+            int L = b[i].second;
+            int R = b[j].second;
+
+            i128 current_sum = pref[R + 1] - pref[L];
+            if (current_prod - current_sum > max_gain) {
+                max_gain = current_prod - current_sum;
+                ans = {L + 1, R + 1};
+            }
+        }
     }
 
-    int bad = 0;
-    auto check = [&](int x) {
-        if (pos[x].empty() || pos[x + 1].empty())
-            return 0;
-        return *pos[x].begin() > *pos[x + 1].begin() ? 1 : 0;
-    };
-    F(i, 1, n - 1) { bad += check(i); }
-
-    auto out = [&]() {
-        bool f = false;
-        if (!active.empty()) {
-            if (*active.rbegin() != SZ(active))
-                f = true;
-        }
-
-        if (!f && bad == 0)
-            prt("YA");
-        else
-            prt("TIDAK");
-    };
-
-    out();
-
-    while (q--) {
-        int s, t;
-        rd(s, t);
-        s--;
-        t = rankA[t];
-
-        int old = b[s];
-
-        if (old == t) {
-            out();
-            continue;
-        }
-
-        bad -= check(old - 1);
-        bad -= check(old);
-
-        pos[old].erase(s);
-        if (pos[old].empty()) {
-            active.erase(old);
-        }
-
-        bad += check(old - 1);
-        bad += check(old);
-
-        bad -= check(t - 1);
-        bad -= check(t);
-
-        pos[t].insert(s);
-        active.insert(t);
-        bad += check(t - 1);
-        bad += check(t);
-
-        b[s] = t;
-
-        out();
-    }
+    prt(ans.first, ans.second);
 }
 
 int main() {

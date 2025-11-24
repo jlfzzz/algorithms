@@ -139,91 +139,77 @@ namespace utils {
 using namespace utils;
 
 constexpr int N = 1e6 + 5;
+constexpr int V = 200000 + 5;
+
+vector<multiset<int>> pos(V);
 
 int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, m, q;
-    rd(n, m, q);
-    vi a(n);
-    rv(a);
-    vi b(m);
-    rv(b);
+    int n, m;
+    rd(n, m);
 
-    vi rankA(n + 1);
-    F(i, 0, n - 1) { rankA[a[i]] = i + 1; }
-    F(i, 0, m - 1) { b[i] = rankA[b[i]]; }
+    vvi grid(n, vi(m));
+    F(i, 0, n - 1) { rv(grid[i]); }
 
-    // 必须 resize，否则后续访问会 RE
-    vector<set<int>> pos(n + 2);
-    set<int> active;
-
-    F(i, 0, m - 1) {
-        pos[b[i]].insert(i);
-        active.insert(b[i]);
+    if (n > m) {
+        vvi ngrid(m, vi(n));
+        F(i, 0, n - 1) {
+            F(j, 0, m - 1) { ngrid[j][i] = grid[i][j]; }
+        }
+        grid.swap(ngrid);
+        swap(n, m);
     }
 
-    int bad = 0;
-    auto check = [&](int x) {
-        if (pos[x].empty() || pos[x + 1].empty())
-            return 0;
-        return *pos[x].begin() > *pos[x + 1].begin() ? 1 : 0;
-    };
-    F(i, 1, n - 1) { bad += check(i); }
+    F(c, 1, V - 1) { pos[c].clear(); }
 
-    auto out = [&]() {
-        bool f = false;
-        if (!active.empty()) {
-            if (*active.rbegin() != SZ(active))
-                f = true;
+    ll ans = 0;
+    vector<int> used;
+    F(i, 0, n - 1) {
+        for (int c: used) {
+            pos[c].clear();
         }
 
-        if (!f && bad == 0)
-            prt("YA");
-        else
-            prt("TIDAK");
-    };
+        vi mnL(m, m);
 
-    out();
-
-    while (q--) {
-        int s, t;
-        rd(s, t);
-        s--;
-        t = rankA[t];
-
-        int old = b[s];
-
-        if (old == t) {
-            out();
-            continue;
+        F(j, i, n - 1) {
+            F(k, 0, m - 1) {
+                int c = grid[j][k];
+                auto &st = pos[c];
+                auto it = st.lower_bound(k);
+                if (it != st.end()) {
+                    int x = min(k, *it);
+                    int y = max(k, *it);
+                    if (mnL[x] > y) {
+                        mnL[x] = y;
+                    }
+                }
+                if (it != st.begin()) {
+                    int prv = *prev(it);
+                    int x = min(k, prv);
+                    int y = max(k, prv);
+                    if (mnL[x] > y) {
+                        mnL[x] = y;
+                    }
+                }
+                if (st.empty()) {
+                    used.pb(c);
+                }
+                st.insert(it, k);
+            }
+            int cur = m;
+            D(k, m - 1, 0) {
+                if (mnL[k] < cur) {
+                    cur = mnL[k];
+                }
+                ans += cur - k;
+            }
         }
-
-        bad -= check(old - 1);
-        bad -= check(old);
-
-        pos[old].erase(s);
-        if (pos[old].empty()) {
-            active.erase(old);
-        }
-
-        bad += check(old - 1);
-        bad += check(old);
-
-        bad -= check(t - 1);
-        bad -= check(t);
-
-        pos[t].insert(s);
-        active.insert(t);
-        bad += check(t - 1);
-        bad += check(t);
-
-        b[s] = t;
-
-        out();
     }
+
+    prt(ans);
 }
 
 int main() {

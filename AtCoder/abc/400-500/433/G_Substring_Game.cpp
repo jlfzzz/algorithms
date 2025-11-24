@@ -144,85 +144,93 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {
-    int n, m, q;
-    rd(n, m, q);
-    vi a(n);
-    rv(a);
-    vi b(m);
-    rv(b);
+const int MAXN = 400010;
 
-    vi rankA(n + 1);
-    F(i, 0, n - 1) { rankA[a[i]] = i + 1; }
-    F(i, 0, m - 1) { b[i] = rankA[b[i]]; }
+struct State {
+    int len, link;
+    int next[26];
 
-    // 必须 resize，否则后续访问会 RE
-    vector<set<int>> pos(n + 2);
-    set<int> active;
+    State() : len(0), link(-1) { memset(next, -1, sizeof(next)); }
+};
 
-    F(i, 0, m - 1) {
-        pos[b[i]].insert(i);
-        active.insert(b[i]);
+State st[MAXN];
+int sz, last;
+int memo[MAXN];
+
+void sam_init() {
+    st[0] = State();
+    sz = 1;
+    last = 0;
+}
+
+void sam_extend(char c) {
+    int cur = sz++;
+    st[cur] = State();
+    st[cur].len = st[last].len + 1;
+    int p = last;
+    int char_idx = c - 'a';
+
+    while (p != -1 && st[p].next[char_idx] == -1) {
+        st[p].next[char_idx] = cur;
+        p = st[p].link;
     }
 
-    int bad = 0;
-    auto check = [&](int x) {
-        if (pos[x].empty() || pos[x + 1].empty())
-            return 0;
-        return *pos[x].begin() > *pos[x + 1].begin() ? 1 : 0;
-    };
-    F(i, 1, n - 1) { bad += check(i); }
-
-    auto out = [&]() {
-        bool f = false;
-        if (!active.empty()) {
-            if (*active.rbegin() != SZ(active))
-                f = true;
+    if (p == -1) {
+        st[cur].link = 0;
+    } else {
+        int q = st[p].next[char_idx];
+        if (st[p].len + 1 == st[q].len) {
+            st[cur].link = q;
+        } else {
+            int clone = sz++;
+            st[clone] = st[q];
+            st[clone].len = st[p].len + 1;
+            while (p != -1 && st[p].next[char_idx] == q) {
+                st[p].next[char_idx] = clone;
+                p = st[p].link;
+            }
+            st[q].link = st[cur].link = clone;
         }
+    }
+    last = cur;
+}
 
-        if (!f && bad == 0)
-            prt("YA");
-        else
-            prt("TIDAK");
-    };
 
-    out();
+int get_winner(int u) {
+    if (memo[u] != 0)
+        return memo[u];
 
-    while (q--) {
-        int s, t;
-        rd(s, t);
-        s--;
-        t = rankA[t];
+    bool can_reach_losing_state = false;
 
-        int old = b[s];
-
-        if (old == t) {
-            out();
-            continue;
+    for (int i = 0; i < 26; i++) {
+        if (st[u].next[i] != -1) {
+            int v = st[u].next[i];
+            if (get_winner(v) == 2) {
+                can_reach_losing_state = true;
+                break;
+            }
         }
+    }
 
-        bad -= check(old - 1);
-        bad -= check(old);
+    return memo[u] = (can_reach_losing_state ? 1 : 2);
+}
 
-        pos[old].erase(s);
-        if (pos[old].empty()) {
-            active.erase(old);
-        }
+void solve() {
+    string S;
+    cin >> S;
 
-        bad += check(old - 1);
-        bad += check(old);
+    sam_init();
+    for (char c: S) {
+        sam_extend(c);
+    }
+    for (int i = 0; i < sz; i++) {
+        memo[i] = 0;
+    }
 
-        bad -= check(t - 1);
-        bad -= check(t);
-
-        pos[t].insert(s);
-        active.insert(t);
-        bad += check(t - 1);
-        bad += check(t);
-
-        b[s] = t;
-
-        out();
+    if (get_winner(0) == 1) {
+        cout << "Alice" << endl;
+    } else {
+        cout << "Bob" << endl;
     }
 }
 

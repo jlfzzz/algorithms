@@ -1,5 +1,6 @@
 from collections import *
 from functools import *
+
 # from math import *
 from itertools import *
 from heapq import *
@@ -19,7 +20,9 @@ MOD = int(1e9 + 7)
 
 
 def main():
-    t = pow(9, 191, 323)
+    t = 0
+    for i in range(1, 5):
+        t = t ^ i
     print(t)
 
 

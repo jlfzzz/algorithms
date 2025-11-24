@@ -145,86 +145,48 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m, q;
-    rd(n, m, q);
-    vi a(n);
+    int n;
+    rd(n);
+    vl a(n);
     rv(a);
-    vi b(m);
-    rv(b);
 
-    vi rankA(n + 1);
-    F(i, 0, n - 1) { rankA[a[i]] = i + 1; }
-    F(i, 0, m - 1) { b[i] = rankA[b[i]]; }
-
-    // 必须 resize，否则后续访问会 RE
-    vector<set<int>> pos(n + 2);
-    set<int> active;
-
-    F(i, 0, m - 1) {
-        pos[b[i]].insert(i);
-        active.insert(b[i]);
+    ll S = 0;
+    bool pair = false;
+    int cnt = 0;
+    for (ll x: a) {
+        S += x;
+        if (x >= 2)
+            pair = true;
+        if (x > 0)
+            cnt++;
     }
 
-    int bad = 0;
-    auto check = [&](int x) {
-        if (pos[x].empty() || pos[x + 1].empty())
-            return 0;
-        return *pos[x].begin() > *pos[x + 1].begin() ? 1 : 0;
-    };
-    F(i, 1, n - 1) { bad += check(i); }
-
-    auto out = [&]() {
-        bool f = false;
-        if (!active.empty()) {
-            if (*active.rbegin() != SZ(active))
-                f = true;
-        }
-
-        if (!f && bad == 0)
-            prt("YA");
-        else
-            prt("TIDAK");
-    };
-
-    out();
-
-    while (q--) {
-        int s, t;
-        rd(s, t);
-        s--;
-        t = rankA[t];
-
-        int old = b[s];
-
-        if (old == t) {
-            out();
-            continue;
-        }
-
-        bad -= check(old - 1);
-        bad -= check(old);
-
-        pos[old].erase(s);
-        if (pos[old].empty()) {
-            active.erase(old);
-        }
-
-        bad += check(old - 1);
-        bad += check(old);
-
-        bad -= check(t - 1);
-        bad -= check(t);
-
-        pos[t].insert(s);
-        active.insert(t);
-        bad += check(t - 1);
-        bad += check(t);
-
-        b[s] = t;
-
-        out();
+    if (!pair) {
+        prt(0);
+        return;
     }
+    if (n == 2) {
+        ll x = a[0], y = a[1];
+        ll ans;
+        if (x % 3 == y % 3) {
+            ans = S - 2;
+        } else {
+            ans = S - 1;
+        }
+        prt(ans);
+        return;
+    }
+
+    ll ans;
+    if (cnt == 1 && S == 3) {
+        ans = 1;
+    } else {
+        ans = S - 1;
+    }
+
+    prt(ans);
 }
+
 
 int main() {
     ios::sync_with_stdio(false);

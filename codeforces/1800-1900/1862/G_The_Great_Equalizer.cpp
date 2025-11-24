@@ -130,7 +130,7 @@ namespace utils {
     }
 } // namespace utils
 
-#ifdef LOCAL
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
 #else
 #define dbg(...) ((void) 0)
@@ -140,13 +140,86 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    vi a(n);
+    rv(a);
+
+    map<int, int> mp;
+    multiset<int> st;
+
+    auto add = [&](int x) {
+        mp[x]++;
+        if (mp[x] == 1) {
+            auto it = mp.find(x);
+            auto nxt = next(it);
+            auto prv = (it == mp.begin()) ? mp.end() : prev(it);
+
+            if (prv != mp.end() && nxt != mp.end()) {
+                st.erase(st.find(nxt->first - prv->first));
+            }
+            if (prv != mp.end()) {
+                st.insert(x - prv->first);
+            }
+            if (nxt != mp.end()) {
+                st.insert(nxt->first - x);
+            }
+        }
+    };
+
+    auto del = [&](int x) {
+        mp[x]--;
+        if (mp[x] == 0) {
+            auto it = mp.find(x);
+            auto nxt = next(it);
+            auto prv = (it == mp.begin()) ? mp.end() : prev(it);
+
+            if (prv != mp.end()) {
+                st.erase(st.find(x - prv->first));
+            }
+            if (nxt != mp.end()) {
+                st.erase(st.find(nxt->first - x));
+            }
+            if (prv != mp.end() && nxt != mp.end()) {
+                st.insert(nxt->first - prv->first);
+            }
+            mp.erase(it);
+        }
+    };
+
+    for (int x: a) {
+        add(x);
+    }
+
+    int q;
+    rd(q);
+
+    while (q--) {
+        int i, x;
+        rd(i, x);
+        i--;
+
+        del(a[i]);
+        a[i] = x;
+        add(a[i]);
+
+        ll mx = mp.rbegin()->first;
+        ll mxD = 0;
+        if (!st.empty()) {
+            mxD = *st.rbegin();
+        }
+
+        cout << mx + mxD << (q == 0 ? "" : " ");
+    }
+    cout << "\n";
 }
+
 
 int main() {
     ios::sync_with_stdio(false);

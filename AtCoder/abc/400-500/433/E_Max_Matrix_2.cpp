@@ -145,84 +145,100 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m, q;
-    rd(n, m, q);
-    vi a(n);
-    rv(a);
-    vi b(m);
-    rv(b);
+    int n, m;
+    rd(n, m);
+    vi x(n + 1), y(m + 1);
+    rv(x, 1), rv(y, 1);
 
-    vi rankA(n + 1);
-    F(i, 0, n - 1) { rankA[a[i]] = i + 1; }
-    F(i, 0, m - 1) { b[i] = rankA[b[i]]; }
-
-    // 必须 resize，否则后续访问会 RE
-    vector<set<int>> pos(n + 2);
-    set<int> active;
-
-    F(i, 0, m - 1) {
-        pos[b[i]].insert(i);
-        active.insert(b[i]);
+    unordered_map<int, pii> mp;
+    unordered_set<int> col, row;
+    set<pii> pos;
+    F(i, 1, n) { mp[x[i]] = {i, -1}; }
+    F(i, 1, m) {
+        auto it = mp.find(y[i]);
+        if (it == mp.end()) {
+            mp[y[i]] = {-1, i};
+        } else {
+            it->second.second = i;
+        }
     }
 
-    int bad = 0;
-    auto check = [&](int x) {
-        if (pos[x].empty() || pos[x + 1].empty())
-            return 0;
-        return *pos[x].begin() > *pos[x + 1].begin() ? 1 : 0;
-    };
-    F(i, 1, n - 1) { bad += check(i); }
+    vvi ans(n + 1, vi(m + 1));
+    D(i, n * m, 1) {
+        auto it = mp.find(i);
 
-    auto out = [&]() {
-        bool f = false;
-        if (!active.empty()) {
-            if (*active.rbegin() != SZ(active))
-                f = true;
+        if (it == mp.end()) {
+            if (pos.empty()) {
+                prt("No");
+                return;
+            }
+            auto [r, c] = *pos.begin();
+            pos.erase(pos.begin());
+            ans[r][c] = i;
+        } else {
+            auto [xx, yy] = it->second;
+
+            if (xx != -1 && yy != -1) {
+                if (ans[xx][yy]) {
+                    prt("No");
+                    return;
+                }
+                ans[xx][yy] = i;
+
+                for (auto c: col) {
+                    pos.insert({xx, c});
+                }
+                for (auto r: row) {
+                    pos.insert({r, yy});
+                }
+
+                row.insert(xx);
+                col.insert(yy);
+
+            } else if (xx != -1) {
+                if (col.empty()) {
+                    prt("No");
+                    return;
+                }
+                int pick_col = *col.begin();
+                if (ans[xx][pick_col]) {
+                    prt("No");
+                    return;
+                }
+                ans[xx][pick_col] = i;
+                for (auto c: col) {
+                    if (c != pick_col) {
+                        pos.insert({xx, c});
+                    }
+                }
+                row.insert(xx);
+
+            } else {
+                if (row.empty()) {
+                    prt("No");
+                    return;
+                }
+                int pick_row = *row.begin();
+                if (ans[pick_row][yy]) {
+                    prt("No");
+                    return;
+                }
+                ans[pick_row][yy] = i;
+
+                for (auto r: row) {
+                    if (r != pick_row) {
+                        pos.insert({r, yy});
+                    }
+                }
+                col.insert(yy);
+            }
         }
+    }
 
-        if (!f && bad == 0)
-            prt("YA");
-        else
-            prt("TIDAK");
-    };
-
-    out();
-
-    while (q--) {
-        int s, t;
-        rd(s, t);
-        s--;
-        t = rankA[t];
-
-        int old = b[s];
-
-        if (old == t) {
-            out();
-            continue;
-        }
-
-        bad -= check(old - 1);
-        bad -= check(old);
-
-        pos[old].erase(s);
-        if (pos[old].empty()) {
-            active.erase(old);
-        }
-
-        bad += check(old - 1);
-        bad += check(old);
-
-        bad -= check(t - 1);
-        bad -= check(t);
-
-        pos[t].insert(s);
-        active.insert(t);
-        bad += check(t - 1);
-        bad += check(t);
-
-        b[s] = t;
-
-        out();
+    prt("Yes");
+    F(i, 1, n) {
+        F(j, 1, m) { cout << ans[i][j] << (j == m ? "" : " "); }
+        cout << "\n";
     }
 }
 

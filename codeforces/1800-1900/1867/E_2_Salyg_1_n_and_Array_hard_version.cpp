@@ -145,85 +145,31 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m, q;
-    rd(n, m, q);
-    vi a(n);
-    rv(a);
-    vi b(m);
-    rv(b);
+    int n, k;
+    rd(n, k);
 
-    vi rankA(n + 1);
-    F(i, 0, n - 1) { rankA[a[i]] = i + 1; }
-    F(i, 0, m - 1) { b[i] = rankA[b[i]]; }
+    int block = n / k;
+    int rem = n % k;
 
-    // 必须 resize，否则后续访问会 RE
-    vector<set<int>> pos(n + 2);
-    set<int> active;
+    int ans = 0;
 
-    F(i, 0, m - 1) {
-        pos[b[i]].insert(i);
-        active.insert(b[i]);
-    }
-
-    int bad = 0;
-    auto check = [&](int x) {
-        if (pos[x].empty() || pos[x + 1].empty())
-            return 0;
-        return *pos[x].begin() > *pos[x + 1].begin() ? 1 : 0;
-    };
-    F(i, 1, n - 1) { bad += check(i); }
-
-    auto out = [&]() {
-        bool f = false;
-        if (!active.empty()) {
-            if (*active.rbegin() != SZ(active))
-                f = true;
-        }
-
-        if (!f && bad == 0)
-            prt("YA");
-        else
-            prt("TIDAK");
+    auto ask = [&](int i) {
+        cout << "? " << i << endl;
+        int t;
+        rd(t);
+        return t;
     };
 
-    out();
-
-    while (q--) {
-        int s, t;
-        rd(s, t);
-        s--;
-        t = rankA[t];
-
-        int old = b[s];
-
-        if (old == t) {
-            out();
-            continue;
-        }
-
-        bad -= check(old - 1);
-        bad -= check(old);
-
-        pos[old].erase(s);
-        if (pos[old].empty()) {
-            active.erase(old);
-        }
-
-        bad += check(old - 1);
-        bad += check(old);
-
-        bad -= check(t - 1);
-        bad -= check(t);
-
-        pos[t].insert(s);
-        active.insert(t);
-        bad += check(t - 1);
-        bad += check(t);
-
-        b[s] = t;
-
-        out();
+    for (int i = 1; i + k - 1 <= n; i += k) {
+        ans ^= ask(i);
     }
+
+    int j = block * k;
+    j += rem / 2;
+    ans ^= ask(j - k + 1);
+    ans ^= ask(n - k + 1);
+
+    cout << "! " << ans << endl;
 }
 
 int main() {

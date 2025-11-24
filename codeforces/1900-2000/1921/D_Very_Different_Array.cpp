@@ -147,11 +147,30 @@ void init() {}
 void solve() {
     int n, m;
     rd(n, m);
-    vi x(n), y(m);
-    rv(x), rv(y);
+    vl a(n), b(m);
+    rv(a);
+    rv(b);
 
-    
+    ranges::sort(a);
+    ranges::sort(b);
+
+    ll sum = 0;
+
+    F(i, 0, n - 1) { sum += abs(a[i] - b[m - 1 - i]); }
+
+    ll ans = sum;
+
+    F(k, 1, n) {
+        sum -= abs(a[n - k] - b[m - n + k - 1]);
+        sum += abs(a[n - k] - b[k - 1]);
+
+        ans = max(ans, sum);
+    }
+
+    prt(ans);
 }
+
+
 
 int main() {
     ios::sync_with_stdio(false);
