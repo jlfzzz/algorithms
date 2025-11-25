@@ -136,6 +136,8 @@ namespace utils {
 #define dbg(...) ((void) 0)
 #endif
 
+using namespace utils;
+
 template<int SIGMA = 26, char MIN_CHAR = 'a'>
 struct SuffixAutomaton {
     struct State {
@@ -297,45 +299,27 @@ struct SuffixAutomaton {
     }
 };
 
-using namespace utils;
-
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
     string s;
     rd(s);
-    SuffixAutomaton<> sam((int) s.size());
+
+    SuffixAutomaton<> sam(SZ(s));
     sam.build(s);
+    sam.prepare_occurrences();
+    ll ans = 0;
     int sz = (int) sam.st.size();
-    vector<int> win(sz, -1);
-    function<int(int)> dfs = [&](int v) -> int {
-        if (win[v] != -1) {
-            return win[v];
+    F(i, 0, sz - 1) {
+        if (sam.occ[i] > 1) {
+            ans = max(ans, sam.st[i].len * sam.occ[i]);
         }
-        bool can = false;
-        for (int c = 0; c < 26; c++) {
-            int to = sam.st[v].next[c];
-            if (to != -1) {
-                int res = dfs(to);
-                if (res == 0) {
-                    can = true;
-                    break;
-                }
-            }
-        }
-        win[v] = can ? 1 : 0;
-        return win[v];
-    };
-    int res = dfs(0);
-    if (res == 1) {
-        prt("Alice");
-    } else {
-        prt("Bob");
     }
+    prt(ans);
 }
 
 int main() {

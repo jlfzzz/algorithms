@@ -140,92 +140,59 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-std::mt19937_64 gen(std::random_device{}());
-
-
-int val[1'000'005];
-
-void init() {
-    F(i, 0, N - 1) { val[i] = gen(); }
-}
-
-void solve2() {
-    int n, q;
-    rd(n, q);
-    vector<int> a(n + 1);
-    rv(a, 1);
-
-    vector<int> pre(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] ^ val[a[i]]; }
-
-    while (q--) {
-        int l, r;
-        rd(l, r);
-
-        prt(((pre[r] ^ pre[l - 1]) == 0) ? "YES" : "NO");
+struct DSU {
+    vi fa;
+    DSU(int n) : fa(n + 1) { iota(all(fa), 0); }
+    int find(int x) { return fa[x] == x ? x : fa[x] = find(fa[x]); }
+    bool merge(int x, int y) {
+        int fx = find(x), fy = find(y);
+        if (fx != fy) {
+            fa[fx] = fy;
+            return true;
+        }
+        return false;
     }
-}
+};
 
-int cnt[1000005];
-int odd = 0;
+void init() {}
+
 void solve() {
-    int n, q;
-    odd = 0;
-    rd(n, q);
-    vi a(n + 1);
-    rv(a, 1);
+    int n, m;
+    rd(n, m);
 
-    struct Q {
-        int l, r, id;
-    };
-
-    vector<Q> qs(q);
-    F(i, 0, q - 1) {
-        int l, r;
-        rd(l, r);
-        qs[i] = {l, r, i};
+    vvi adj(n + 1);
+    F(i, 1, m) {
+        int u, v;
+        rd(u, v);
+        adj[u].pb(v);
+        adj[v].pb(u);
     }
 
-    int B = sqrt(n) + 1;
+    DSU dsu(n);
+    unordered_set<int> bad;
+    int cnt = 0;
 
-    ranges::sort(qs, [&](Q &a, Q &b) {
-        if (a.l / B != b.l / B) {
-            return a.l < b.l;
+    F(k, 1, n) {
+        if (bad.count(k))
+            bad.erase(k);
+
+        for (auto &v: adj[k]) {
+            if (v < k) {
+                if (dsu.merge(v, k)) {
+                    cnt++;
+                }
+            } else {
+                bad.insert(v);
+            }
         }
-        return (a.l / B) & 1 ? a.r < b.r : a.r > b.r;
-    });
 
-    int nl = 1, nr = 0;
-    vi ans(q);
-
-    auto upd = [&](int val) {
-        cnt[val] ^= 1;
-        if (cnt[val] == 1) {
-            odd++;
+        if (cnt == k - 1) {
+            prt(SZ(bad));
         } else {
-            odd--;
+            prt(-1);
         }
-    };
-
-    for (auto [l, r, id]: qs) {
-        while (nl > l)
-            upd(a[--nl]);
-        while (nr < r)
-            upd(a[++nr]);
-        while (nl < l)
-            upd(a[nl++]);
-        while (nr > r)
-            upd(a[nr--]);
-
-        ans[id] = (odd == 0);
-    }
-
-    F(i, 0, q - 1) { prt(ans[i] ? "YES" : "NO"); }
-
-    for (int x: a) {
-        cnt[x] = 0;
     }
 }
 

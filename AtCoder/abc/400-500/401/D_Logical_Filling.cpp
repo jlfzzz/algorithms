@@ -140,104 +140,75 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-std::mt19937_64 gen(std::random_device{}());
+void init() {}
 
 
-int val[1'000'005];
-
-void init() {
-    F(i, 0, N - 1) { val[i] = gen(); }
-}
-
-void solve2() {
-    int n, q;
-    rd(n, q);
-    vector<int> a(n + 1);
-    rv(a, 1);
-
-    vector<int> pre(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] ^ val[a[i]]; }
-
-    while (q--) {
-        int l, r;
-        rd(l, r);
-
-        prt(((pre[r] ^ pre[l - 1]) == 0) ? "YES" : "NO");
-    }
-}
-
-int cnt[1000005];
-int odd = 0;
-void solve() {
-    int n, q;
-    odd = 0;
-    rd(n, q);
-    vi a(n + 1);
-    rv(a, 1);
-
-    struct Q {
-        int l, r, id;
-    };
-
-    vector<Q> qs(q);
-    F(i, 0, q - 1) {
-        int l, r;
-        rd(l, r);
-        qs[i] = {l, r, i};
-    }
-
-    int B = sqrt(n) + 1;
-
-    ranges::sort(qs, [&](Q &a, Q &b) {
-        if (a.l / B != b.l / B) {
-            return a.l < b.l;
-        }
-        return (a.l / B) & 1 ? a.r < b.r : a.r > b.r;
-    });
-
-    int nl = 1, nr = 0;
-    vi ans(q);
-
-    auto upd = [&](int val) {
-        cnt[val] ^= 1;
-        if (cnt[val] == 1) {
-            odd++;
-        } else {
-            odd--;
-        }
-    };
-
-    for (auto [l, r, id]: qs) {
-        while (nl > l)
-            upd(a[--nl]);
-        while (nr < r)
-            upd(a[++nr]);
-        while (nl < l)
-            upd(a[nl++]);
-        while (nr > r)
-            upd(a[nr--]);
-
-        ans[id] = (odd == 0);
-    }
-
-    F(i, 0, q - 1) { prt(ans[i] ? "YES" : "NO"); }
-
-    for (int x: a) {
-        cnt[x] = 0;
-    }
-}
 
 int main() {
     ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
+    ios_base::sync_with_stdio(false);
+    cin.tie(0), cout.tie(0);
+    int n, k, cnt = 0;
+    cin >> n >> k;
+    string a;
+    cin >> a;
+    cnt = (a[0] == 'o' ? 1 : 0);
+    for (int i = 1; i < n; i++) {
+        if (a[i] == '?' && (a[i - 1] == 'o' || i < n - 1 && a[i + 1] == 'o')) {
+            a[i] = '.';
+        }
+        if (a[i] == 'o') {
+            cnt++;
+        }
     }
-    while (T--) {
-        solve();
+    if (cnt == k) {
+        for (int i = 0; i < n; i++) {
+            if (a[i] == '?') {
+                a[i] = '.';
+            }
+        }
+        cout << a;
+        return 0;
     }
+    if (a[0] == '?') {
+        if (a[1] == 'o') {
+            a[0] = '.';
+        }
+    }
+    for (int i = 0; i < n; i++) {
+        if (a[i] == '?') {
+            // 前后面一定是 .
+            int j = i;
+            while (a[i] == '?' && i < n) {
+                i++;
+            }
+            // o.????.o
+            cnt += (i - j + 1) / 2; // （区间长度 + 1） / 2，算的只是 ？ 最多可以替换成多少个 o，懒得用 ceil
+            // 不用 i--，因为 a[i] 一定为 .
+        }
+    }
+    if (cnt == k) {
+        for (int i = 0; i < n; i++) {
+            if (a[i] == '?') {
+                // 前后面一定是 .
+                int j = i;
+                while (a[i] == '?' && i < n) {
+                    i++;
+                }
+                if ((i - j) & 1) {
+                    for (int k = j; k < i; k++) {
+                        if ((k - j) % 2 == 0) {
+                            a[k] = 'o';
+                        } else {
+                            a[k] = '.';
+                        }
+                    }
+                }
+            }
+        }
+    }
+    cout << a;
+    return 0;
 }

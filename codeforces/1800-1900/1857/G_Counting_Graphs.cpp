@@ -142,91 +142,86 @@ constexpr int N = 1e6 + 5;
 
 int Multitest = 1;
 
-std::mt19937_64 gen(std::random_device{}());
+void init() {}
 
-
-int val[1'000'005];
-
-void init() {
-    F(i, 0, N - 1) { val[i] = gen(); }
-}
-
-void solve2() {
-    int n, q;
-    rd(n, q);
-    vector<int> a(n + 1);
-    rv(a, 1);
-
-    vector<int> pre(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] ^ val[a[i]]; }
-
-    while (q--) {
-        int l, r;
-        rd(l, r);
-
-        prt(((pre[r] ^ pre[l - 1]) == 0) ? "YES" : "NO");
+ll ksm(ll b, ll e) {
+    ll res = 1;
+    while (e) {
+        if (e & 1) {
+            res = res * b % MOD2;
+        }
+        b = b * b % MOD2;
+        e /= 2;
     }
+    return res;
 }
 
-int cnt[1000005];
-int odd = 0;
+class UnionFind {
+public:
+    vector<int> parent;
+    vector<int> sz;
+
+    explicit UnionFind(const int n) {
+        parent.resize(n);
+        sz.resize(n, 1);
+        iota(parent.begin(), parent.end(), 0);
+    }
+
+    int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
+        }
+        return parent[x];
+    }
+
+    bool unite(int x, int y) {
+        int root_x = find(x);
+        int root_y = find(y);
+        if (root_x == root_y)
+            return false;
+
+        if (sz[root_x] > sz[root_y])
+            swap(root_x, root_y);
+
+        parent[root_x] = root_y;
+        sz[root_y] += sz[root_x];
+        return true;
+    }
+};
+
 void solve() {
-    int n, q;
-    odd = 0;
-    rd(n, q);
-    vi a(n + 1);
-    rv(a, 1);
+    int n, s;
+    rd(n, s);
 
-    struct Q {
-        int l, r, id;
+    struct E {
+        int u, v, w;
     };
-
-    vector<Q> qs(q);
-    F(i, 0, q - 1) {
-        int l, r;
-        rd(l, r);
-        qs[i] = {l, r, i};
+    vector<E> e(n - 1);
+    F(i, 0, n - 2) {
+        int u, v, w;
+        rd(u, v, w);
+        e[i] = {u, v, w};
     }
 
-    int B = sqrt(n) + 1;
+    ranges::sort(e, [&](E &a, E &b) { return a.w < b.w; });
 
-    ranges::sort(qs, [&](Q &a, Q &b) {
-        if (a.l / B != b.l / B) {
-            return a.l < b.l;
-        }
-        return (a.l / B) & 1 ? a.r < b.r : a.r > b.r;
-    });
+    UnionFind uf(n);
+    ll ans = 1;
+    for (auto [u, v, w]: e) {
+        u--, v--;
+        int pu = uf.find(u);
+        int pv = uf.find(v);
+        
+        ll size_u = uf.sz[pu];
+        ll size_v = uf.sz[pv];
 
-    int nl = 1, nr = 0;
-    vi ans(q);
+        ll cnt = size_u * size_v - 1;
+        ans = ans * ksm(s - w + 1, cnt) % MOD2;
 
-    auto upd = [&](int val) {
-        cnt[val] ^= 1;
-        if (cnt[val] == 1) {
-            odd++;
-        } else {
-            odd--;
-        }
-    };
-
-    for (auto [l, r, id]: qs) {
-        while (nl > l)
-            upd(a[--nl]);
-        while (nr < r)
-            upd(a[++nr]);
-        while (nl < l)
-            upd(a[nl++]);
-        while (nr > r)
-            upd(a[nr--]);
-
-        ans[id] = (odd == 0);
+        uf.unite(u, v);
     }
 
-    F(i, 0, q - 1) { prt(ans[i] ? "YES" : "NO"); }
-
-    for (int x: a) {
-        cnt[x] = 0;
-    }
+    prt(ans);
 }
 
 int main() {

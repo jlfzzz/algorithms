@@ -138,94 +138,156 @@ namespace utils {
 
 using namespace utils;
 
+struct DSU {
+    vector<int> parent;
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+    }
+    int find(int x) {
+        if (parent[x] != x)
+            parent[x] = find(parent[x]);
+        return parent[x];
+    }
+    bool unite(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX != rootY) {
+            parent[rootX] = rootY;
+            return true;
+        }
+        return false;
+    }
+};
+
 constexpr int N = 1e6 + 5;
 
 int Multitest = 1;
 
-std::mt19937_64 gen(std::random_device{}());
+void init() {}
 
+struct Edge {
+    int u, v, w;
+    bool operator<(const Edge &other) const { return w < other.w; }
+};
 
-int val[1'000'005];
+int n, m;
+vector<int> h;
+vector<vector<pair<int, int>>> adj;
+vector<vector<int>> up;
+vector<vector<int>> max_w;
+vector<int> depth;
+vector<int> visited;
+int LOG;
 
-void init() {
-    F(i, 0, N - 1) { val[i] = gen(); }
-}
+void dfs(int u, int p, int w, int d) {
+    depth[u] = d;
+    up[u][0] = p;
+    max_w[u][0] = w;
+    visited[u] = 1;
 
-void solve2() {
-    int n, q;
-    rd(n, q);
-    vector<int> a(n + 1);
-    rv(a, 1);
+    for (int i = 1; i <= LOG; i++) {
+        up[u][i] = up[up[u][i - 1]][i - 1];
+        max_w[u][i] = max(max_w[u][i - 1], max_w[up[u][i - 1]][i - 1]);
+    }
 
-    vector<int> pre(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] ^ val[a[i]]; }
-
-    while (q--) {
-        int l, r;
-        rd(l, r);
-
-        prt(((pre[r] ^ pre[l - 1]) == 0) ? "YES" : "NO");
+    for (auto &edge: adj[u]) {
+        int v = edge.first;
+        int weight = edge.second;
+        if (v != p) {
+            dfs(v, u, weight, d + 1);
+        }
     }
 }
 
-int cnt[1000005];
-int odd = 0;
+int queryMax(int u, int v) {
+    if (depth[u] < depth[v])
+        swap(u, v);
+
+    int res = 0;
+
+    for (int i = LOG; i >= 0; i--) {
+        if (depth[u] - (1 << i) >= depth[v]) {
+            res = max(res, max_w[u][i]);
+            u = up[u][i];
+        }
+    }
+
+    if (u == v)
+        return res;
+
+    for (int i = LOG; i >= 0; i--) {
+        if (up[u][i] != up[v][i]) {
+            res = max(res, max_w[u][i]);
+            res = max(res, max_w[v][i]);
+            u = up[u][i];
+            v = up[v][i];
+        }
+    }
+
+    res = max(res, max_w[u][0]);
+    res = max(res, max_w[v][0]);
+
+    return res;
+}
+
 void solve() {
-    int n, q;
-    odd = 0;
-    rd(n, q);
-    vi a(n + 1);
-    rv(a, 1);
+    rd(n, m);
+    h.resize(n + 1);
+    rv(h, 1);
 
-    struct Q {
-        int l, r, id;
-    };
-
-    vector<Q> qs(q);
-    F(i, 0, q - 1) {
-        int l, r;
-        rd(l, r);
-        qs[i] = {l, r, i};
+    vector<Edge> edges;
+    F(i, 1, m) {
+        int u, v;
+        rd(u, v);
+        edges.pb(u, v, max(h[u], h[v]));
     }
 
-    int B = sqrt(n) + 1;
+    sort(all(edges));
+    DSU dsu(n);
+    adj.assign(n + 1, vector<pair<int, int>>());
 
-    ranges::sort(qs, [&](Q &a, Q &b) {
-        if (a.l / B != b.l / B) {
-            return a.l < b.l;
+    for (auto [u, v, w]: edges) {
+        if (dsu.unite(u, v)) {
+            adj[u].pb(v, w);
+            adj[v].pb(u, w);
         }
-        return (a.l / B) & 1 ? a.r < b.r : a.r > b.r;
-    });
+    }
 
-    int nl = 1, nr = 0;
-    vi ans(q);
+    LOG = 0;
+    while ((1 << (LOG + 1)) <= n)
+        LOG++;
 
-    auto upd = [&](int val) {
-        cnt[val] ^= 1;
-        if (cnt[val] == 1) {
-            odd++;
+    up.assign(n + 1, vector<int>(LOG + 1));
+    max_w.assign(n + 1, vector<int>(LOG + 1));
+    depth.assign(n + 1, 0);
+    visited.assign(n + 1, 0);
+
+    for (int i = 1; i <= n; i++) {
+        if (!visited[i]) {
+            dfs(i, i, 0, 0);
+        }
+    }
+
+    int q;
+    rd(q);
+    while (q--) {
+        int a, b;
+        ll e;
+        rd(a, b, e);
+
+        if (dsu.find(a) != dsu.find(b)) {
+            prt("NO");
+            continue;
+        }
+
+        int mx = queryMax(a, b);
+
+        if (h[a] + e >= mx) {
+            prt("YES");
         } else {
-            odd--;
+            prt("NO");
         }
-    };
-
-    for (auto [l, r, id]: qs) {
-        while (nl > l)
-            upd(a[--nl]);
-        while (nr < r)
-            upd(a[++nr]);
-        while (nl < l)
-            upd(a[nl++]);
-        while (nr > r)
-            upd(a[nr--]);
-
-        ans[id] = (odd == 0);
-    }
-
-    F(i, 0, q - 1) { prt(ans[i] ? "YES" : "NO"); }
-
-    for (int x: a) {
-        cnt[x] = 0;
     }
 }
 

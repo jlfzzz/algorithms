@@ -25,6 +25,8 @@ constexpr int MOD2 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 
+std::mt19937_64 gen(std::random_device{}());
+
 namespace utils {
     template<typename A, typename B>
     ostream &operator<<(ostream &os, const pair<A, B> &p) {

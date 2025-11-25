@@ -140,93 +140,62 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-std::mt19937_64 gen(std::random_device{}());
+void init() {}
 
-
-int val[1'000'005];
-
-void init() {
-    F(i, 0, N - 1) { val[i] = gen(); }
-}
-
-void solve2() {
-    int n, q;
-    rd(n, q);
-    vector<int> a(n + 1);
-    rv(a, 1);
-
-    vector<int> pre(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] ^ val[a[i]]; }
-
-    while (q--) {
-        int l, r;
-        rd(l, r);
-
-        prt(((pre[r] ^ pre[l - 1]) == 0) ? "YES" : "NO");
-    }
-}
-
-int cnt[1000005];
-int odd = 0;
 void solve() {
-    int n, q;
-    odd = 0;
-    rd(n, q);
-    vi a(n + 1);
-    rv(a, 1);
+    int n, m;
+    rd(n, m);
 
-    struct Q {
-        int l, r, id;
-    };
-
-    vector<Q> qs(q);
-    F(i, 0, q - 1) {
-        int l, r;
-        rd(l, r);
-        qs[i] = {l, r, i};
+    vvi adj(n + 1);
+    F(i, 1, m) {
+        int u, v;
+        rd(u, v);
+        adj[u].pb(v);
+        adj[v].pb(u);
     }
 
-    int B = sqrt(n) + 1;
+    vi target(n + 1);
+    rv(target, 1);
 
-    ranges::sort(qs, [&](Q &a, Q &b) {
-        if (a.l / B != b.l / B) {
-            return a.l < b.l;
+    vi cur(n + 1, 0);
+    vi chosen(n + 1, 0);
+    queue<int> q;
+
+    F(i, 1, n) {
+        if (cur[i] == target[i]) {
+            q.push(i);
         }
-        return (a.l / B) & 1 ? a.r < b.r : a.r > b.r;
-    });
+    }
 
-    int nl = 1, nr = 0;
-    vi ans(q);
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
 
-    auto upd = [&](int val) {
-        cnt[val] ^= 1;
-        if (cnt[val] == 1) {
-            odd++;
-        } else {
-            odd--;
+        if (cur[u] == target[u]) {
+            int delta = (chosen[u] == 0 ? 1 : -1);
+            chosen[u] ^= 1;
+            cur[u] += delta;
+
+            for (int v: adj[u]) {
+                cur[v] += delta;
+                if (cur[v] == target[v]) {
+                    q.push(v);
+                }
+            }
         }
-    };
-
-    for (auto [l, r, id]: qs) {
-        while (nl > l)
-            upd(a[--nl]);
-        while (nr < r)
-            upd(a[++nr]);
-        while (nl < l)
-            upd(a[nl++]);
-        while (nr > r)
-            upd(a[nr--]);
-
-        ans[id] = (odd == 0);
     }
 
-    F(i, 0, q - 1) { prt(ans[i] ? "YES" : "NO"); }
-
-    for (int x: a) {
-        cnt[x] = 0;
+    vi ans;
+    F(i, 1, n) {
+        if (chosen[i]) {
+            ans.pb(i);
+        }
     }
+
+    prt(SZ(ans));
+    prv(ans);
 }
 
 int main() {

@@ -140,93 +140,27 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-std::mt19937_64 gen(std::random_device{}());
+void init() {}
 
-
-int val[1'000'005];
-
-void init() {
-    F(i, 0, N - 1) { val[i] = gen(); }
-}
-
-void solve2() {
-    int n, q;
-    rd(n, q);
-    vector<int> a(n + 1);
-    rv(a, 1);
-
-    vector<int> pre(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] ^ val[a[i]]; }
-
-    while (q--) {
-        int l, r;
-        rd(l, r);
-
-        prt(((pre[r] ^ pre[l - 1]) == 0) ? "YES" : "NO");
-    }
-}
-
-int cnt[1000005];
-int odd = 0;
 void solve() {
-    int n, q;
-    odd = 0;
-    rd(n, q);
-    vi a(n + 1);
-    rv(a, 1);
-
-    struct Q {
-        int l, r, id;
-    };
-
-    vector<Q> qs(q);
-    F(i, 0, q - 1) {
-        int l, r;
-        rd(l, r);
-        qs[i] = {l, r, i};
+    ll n, k;
+    rd(n, k);
+    vector<ll> dp(n + 1);
+    ll window = 0;
+    F(i, 0, min((ll) n, k - 1)) {
+        dp[i] = 1;
+        window += dp[i];
     }
 
-    int B = sqrt(n) + 1;
-
-    ranges::sort(qs, [&](Q &a, Q &b) {
-        if (a.l / B != b.l / B) {
-            return a.l < b.l;
-        }
-        return (a.l / B) & 1 ? a.r < b.r : a.r > b.r;
-    });
-
-    int nl = 1, nr = 0;
-    vi ans(q);
-
-    auto upd = [&](int val) {
-        cnt[val] ^= 1;
-        if (cnt[val] == 1) {
-            odd++;
-        } else {
-            odd--;
-        }
-    };
-
-    for (auto [l, r, id]: qs) {
-        while (nl > l)
-            upd(a[--nl]);
-        while (nr < r)
-            upd(a[++nr]);
-        while (nl < l)
-            upd(a[nl++]);
-        while (nr > r)
-            upd(a[nr--]);
-
-        ans[id] = (odd == 0);
+    F(i, k, n) {
+        dp[i] = window;
+        window = (window - dp[i - k] + (ll) 1e9) % ll(1e9);
+        window = (window + dp[i]) % (ll) 1e9;
     }
 
-    F(i, 0, q - 1) { prt(ans[i] ? "YES" : "NO"); }
-
-    for (int x: a) {
-        cnt[x] = 0;
-    }
+    prt(dp[n]);
 }
 
 int main() {

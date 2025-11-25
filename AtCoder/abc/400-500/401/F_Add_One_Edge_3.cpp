@@ -140,93 +140,87 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-std::mt19937_64 gen(std::random_device{}());
+void init() {}
 
-
-int val[1'000'005];
-
-void init() {
-    F(i, 0, N - 1) { val[i] = gen(); }
-}
-
-void solve2() {
-    int n, q;
-    rd(n, q);
-    vector<int> a(n + 1);
-    rv(a, 1);
-
-    vector<int> pre(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] ^ val[a[i]]; }
-
-    while (q--) {
-        int l, r;
-        rd(l, r);
-
-        prt(((pre[r] ^ pre[l - 1]) == 0) ? "YES" : "NO");
-    }
-}
-
-int cnt[1000005];
-int odd = 0;
 void solve() {
-    int n, q;
-    odd = 0;
-    rd(n, q);
-    vi a(n + 1);
-    rv(a, 1);
+    auto calc = [&](ll &nn, vi &down, ll &mx) {
+        int n;
+        rd(n);
+        nn = n;
+        vvi g(n + 1);
+        F(i, 1, n - 1) {
+            int u, v;
+            rd(u, v);
+            g[u].pb(v);
+            g[v].pb(u);
+        }
 
-    struct Q {
-        int l, r, id;
+        down.resize(n + 1);
+        vi up(n + 1), mx1v(n + 1), mx2v(n + 1);
+        auto dfs = [&](auto &&dfs, int u, int fa) -> int {
+            ll mx1 = 0, mx2 = 0;
+            for (int v: g[u]) {
+                if (v == fa) {
+                    continue;
+                }
+
+                int t = dfs(dfs, v, u) + 1;
+                if (t > mx1) {
+                    mx2 = mx1;
+                    mx1 = t;
+                } else if (t > mx2) {
+                    mx2 = t;
+                }
+            }
+            mx = max(mx, mx1 + mx2);
+            down[u] = mx1;
+            mx1v[u] = mx1;
+            mx2v[u] = mx2;
+            return mx1;
+        };
+        dfs(dfs, 1, 0);
+        auto dfs2 = [&](auto &&dfs2, int u, int fa) -> void {
+            for (int v: g[u]) {
+                if (v == fa) {
+                    continue;
+                }
+                int use = mx1v[u];
+                int tv = down[v] + 1;
+                if (tv == use) {
+                    use = mx2v[u];
+                }
+                up[v] = max(up[u], use) + 1;
+                dfs2(dfs2, v, u);
+            }
+        };
+        dfs2(dfs2, 1, 0);
+        F(i, 1, n) { down[i] = max(down[i], up[i]); }
     };
 
-    vector<Q> qs(q);
-    F(i, 0, q - 1) {
-        int l, r;
-        rd(l, r);
-        qs[i] = {l, r, i};
+    vi down1, down2;
+    ll mx1 = 0, mx2 = 0;
+    ll n1 = 0, n2 = 0;
+    calc(n1, down1, mx1);
+    calc(n2, down2, mx2);
+
+    dbg(down1, down2, mx1, mx2);
+
+    sort(all2(down2, 1));
+    vl pref(n2 + 1);
+    F(i, 1, n2) { pref[i] = pref[i - 1] + down2[i]; }
+
+    ll ans = 0;
+    ll mx = max(mx1, mx2);
+    F(i, 1, n1) {
+        ll cur = down1[i];
+        ll j = upper_bound(all2(down2, 1), mx - cur - 1) - down2.begin() - 1;
+        ans += j * mx;
+        ans += (pref[n2] - pref[j]) + (n2 - j) * cur + n2 - j;
     }
 
-    int B = sqrt(n) + 1;
-
-    ranges::sort(qs, [&](Q &a, Q &b) {
-        if (a.l / B != b.l / B) {
-            return a.l < b.l;
-        }
-        return (a.l / B) & 1 ? a.r < b.r : a.r > b.r;
-    });
-
-    int nl = 1, nr = 0;
-    vi ans(q);
-
-    auto upd = [&](int val) {
-        cnt[val] ^= 1;
-        if (cnt[val] == 1) {
-            odd++;
-        } else {
-            odd--;
-        }
-    };
-
-    for (auto [l, r, id]: qs) {
-        while (nl > l)
-            upd(a[--nl]);
-        while (nr < r)
-            upd(a[++nr]);
-        while (nl < l)
-            upd(a[nl++]);
-        while (nr > r)
-            upd(a[nr--]);
-
-        ans[id] = (odd == 0);
-    }
-
-    F(i, 0, q - 1) { prt(ans[i] ? "YES" : "NO"); }
-
-    for (int x: a) {
-        cnt[x] = 0;
-    }
+    prt(ans);
 }
 
 int main() {

@@ -138,95 +138,144 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+class UnionFind {
+public:
+    vector<int> parent;
+    vector<int> rank;
+    int count;
 
-int Multitest = 1;
-
-std::mt19937_64 gen(std::random_device{}());
-
-
-int val[1'000'005];
-
-void init() {
-    F(i, 0, N - 1) { val[i] = gen(); }
-}
-
-void solve2() {
-    int n, q;
-    rd(n, q);
-    vector<int> a(n + 1);
-    rv(a, 1);
-
-    vector<int> pre(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] ^ val[a[i]]; }
-
-    while (q--) {
-        int l, r;
-        rd(l, r);
-
-        prt(((pre[r] ^ pre[l - 1]) == 0) ? "YES" : "NO");
-    }
-}
-
-int cnt[1000005];
-int odd = 0;
-void solve() {
-    int n, q;
-    odd = 0;
-    rd(n, q);
-    vi a(n + 1);
-    rv(a, 1);
-
-    struct Q {
-        int l, r, id;
-    };
-
-    vector<Q> qs(q);
-    F(i, 0, q - 1) {
-        int l, r;
-        rd(l, r);
-        qs[i] = {l, r, i};
+    explicit UnionFind(const int n) : count(n) {
+        parent.resize(n);
+        rank.resize(n);
+        ranges::fill(rank, 1);
+        iota(parent.begin(), parent.end(), 0);
     }
 
-    int B = sqrt(n) + 1;
-
-    ranges::sort(qs, [&](Q &a, Q &b) {
-        if (a.l / B != b.l / B) {
-            return a.l < b.l;
+    int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
         }
-        return (a.l / B) & 1 ? a.r < b.r : a.r > b.r;
-    });
+        return parent[x];
+    }
 
-    int nl = 1, nr = 0;
-    vi ans(q);
+    bool unite(int x, int y) {
+        int root_x = find(x);
+        int root_y = find(y);
 
-    auto upd = [&](int val) {
-        cnt[val] ^= 1;
-        if (cnt[val] == 1) {
-            odd++;
+        if (root_x == root_y) {
+            return false;
+        }
+
+        if (rank[root_x] == rank[root_y]) {
+            parent[root_x] = root_y;
+            rank[root_y] += 1;
+        } else if (rank[root_x] > rank[root_y]) {
+            parent[root_y] = root_x;
         } else {
-            odd--;
+            parent[root_x] = root_y;
         }
-    };
+        count--;
+        return true;
+    }
+};
 
-    for (auto [l, r, id]: qs) {
-        while (nl > l)
-            upd(a[--nl]);
-        while (nr < r)
-            upd(a[++nr]);
-        while (nl < l)
-            upd(a[nl++]);
-        while (nr > r)
-            upd(a[nr--]);
+constexpr int N = 2e5 + 5;
+int n, m;
 
-        ans[id] = (odd == 0);
+struct E {
+    ll u, v, w;
+    bool operator<(const E &other) const { return this->w < other.w; }
+};
+
+vector<E> e, e2;
+constexpr int LOG = 21;
+ll depth[N], dis[N];
+vp g[N];
+int parent[N][LOG];
+
+int Multitest = 0;
+
+void init() {}
+
+void dfs(int u, int fa, ll d) {
+    parent[u][0] = fa;
+    dis[u] = d;
+    for (auto [v, w]: g[u]) {
+        if (v != fa) {
+            depth[v] = depth[u] + 1;
+            dfs(v, u, d + w);
+        }
+    }
+}
+
+int get_lca(int u, int v) {
+    if (depth[u] < depth[v]) {
+        swap(u, v);
+    }
+    D(i, LOG - 1, 0) {
+        if (depth[u] - (1 << i) >= depth[v]) {
+            u = parent[u][i];
+        }
+    }
+    if (u == v)
+        return u;
+    D(i, LOG - 1, 0) {
+        if (parent[u][i] != parent[v][i]) {
+            u = parent[u][i];
+            v = parent[v][i];
+        }
+    }
+    return parent[u][0];
+}
+
+ll get_dist(int u, int v) {
+    int lca = get_lca(u, v);
+    return dis[u] + dis[v] - 2 * dis[lca];
+}
+
+void solve() {
+    rd(n, m);
+
+    F(i, 1, m) {
+        int u, v, w;
+        rd(u, v, w);
+        u--, v--;
+        e.pb(u, v, w);
     }
 
-    F(i, 0, q - 1) { prt(ans[i] ? "YES" : "NO"); }
+    sort(all(e));
+    UnionFind uf(n);
+    F(i, 0, n) F(j, 0, LOG - 1) parent[i][j] = -1;
 
-    for (int x: a) {
-        cnt[x] = 0;
+    for (auto [u, v, w]: e) {
+        if (uf.unite(u, v)) {
+            g[u].pb(v, w);
+            g[v].pb(u, w);
+        } else {
+            e2.pb(u, v, w);
+        }
     }
+
+    depth[0] = 0;
+    dfs(0, -1, 0);
+
+    F(i, 1, LOG - 1) {
+        F(x, 0, n - 1) {
+            int px = parent[x][i - 1];
+            if (px != -1) {
+                parent[x][i] = parent[px][i - 1];
+            }
+        }
+    }
+
+    for (auto [u, v, w]: e2) {
+        if (get_dist(u, v) > w) {
+            prt("NO");
+            return;
+        }
+    }
+
+    prt("YES");
 }
 
 int main() {

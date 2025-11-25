@@ -138,94 +138,165 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
-
-int Multitest = 1;
-
-std::mt19937_64 gen(std::random_device{}());
-
-
-int val[1'000'005];
+constexpr int MAXV = 1000005;
+int spf[MAXV];
+bool has_rad[MAXV];
+bool can_cover[MAXV];
 
 void init() {
-    F(i, 0, N - 1) { val[i] = gen(); }
-}
-
-void solve2() {
-    int n, q;
-    rd(n, q);
-    vector<int> a(n + 1);
-    rv(a, 1);
-
-    vector<int> pre(n + 1);
-    F(i, 1, n) { pre[i] = pre[i - 1] ^ val[a[i]]; }
-
-    while (q--) {
-        int l, r;
-        rd(l, r);
-
-        prt(((pre[r] ^ pre[l - 1]) == 0) ? "YES" : "NO");
+    iota(spf, spf + MAXV, 0);
+    for (int i = 2; i * i < MAXV; i++) {
+        if (spf[i] == i) {
+            for (int j = i * i; j < MAXV; j += i)
+                if (spf[j] == j)
+                    spf[j] = i;
+        }
     }
 }
 
-int cnt[1000005];
-int odd = 0;
+int get_rad(int n) {
+    int res = 1;
+    while (n > 1) {
+        int p = spf[n];
+        res *= p;
+        while (n % p == 0)
+            n /= p;
+    }
+    return res;
+}
+
+ll capped_pow(ll base, ll exp) {
+    ll res = 1;
+    for (int i = 0; i < exp; i++) {
+        res *= base;
+        if (res >= 30)
+            return 30;
+    }
+    return res;
+}
+
+ll solve_small_tower(vector<int> nums) {
+    if (nums.empty())
+        return 1;
+    sort(all(nums));
+    ll max_val = 0;
+    do {
+        ll cur = nums.back();
+        for (int i = (int) nums.size() - 2; i >= 0; i--) {
+            cur = capped_pow(nums[i], cur);
+        }
+        max_val = max(max_val, cur);
+        if (max_val >= 30)
+            return 30;
+    } while (next_permutation(all(nums)));
+    return max_val;
+}
+
+int Multitest = 0;
+
 void solve() {
     int n, q;
-    odd = 0;
     rd(n, q);
-    vi a(n + 1);
-    rv(a, 1);
-
-    struct Q {
-        int l, r, id;
-    };
-
-    vector<Q> qs(q);
-    F(i, 0, q - 1) {
-        int l, r;
-        rd(l, r);
-        qs[i] = {l, r, i};
+    vi a;
+    for (int i = 0; i < n; ++i) {
+        int x;
+        rd(x);
+        if (x >= 2)
+            a.pb(x);
     }
 
-    int B = sqrt(n) + 1;
-
-    ranges::sort(qs, [&](Q &a, Q &b) {
-        if (a.l / B != b.l / B) {
-            return a.l < b.l;
+    bool big_mode = (SZ(a) >= 7);
+    if (big_mode) {
+        for (int x: a) {
+            has_rad[get_rad(x)] = true;
         }
-        return (a.l / B) & 1 ? a.r < b.r : a.r > b.r;
-    });
+        for (int i = 1; i < MAXV; i++) {
+            if (has_rad[i]) {
+                for (int j = 1; j * j <= i; j++) {
+                    if (i % j == 0) {
+                        can_cover[j] = true;
+                        if (j * j != i)
+                            can_cover[i / j] = true;
+                    }
+                }
+            }
+        }
+    }
 
-    int nl = 1, nr = 0;
-    vi ans(q);
+    while (q--) {
+        int x;
+        rd(x);
+        if (x == 1) {
+            prt("Yes");
+            continue;
+        }
+        if (a.empty()) {
+            prt("No");
+            continue;
+        }
 
-    auto upd = [&](int val) {
-        cnt[val] ^= 1;
-        if (cnt[val] == 1) {
-            odd++;
+        if (big_mode) {
+            if (can_cover[get_rad(x)])
+                prt("Yes");
+            else
+                prt("No");
         } else {
-            odd--;
+            bool possible = false;
+
+            vp facts;
+            int temp_x = x;
+            while (temp_x > 1) {
+                int p = spf[temp_x];
+                int cnt = 0;
+                while (temp_x % p == 0) {
+                    temp_x /= p;
+                    cnt++;
+                }
+                facts.pb(p, cnt);
+            }
+
+            for (int i = 0; i < SZ(a); i++) {
+                int base = a[i];
+                bool base_ok = true;
+                ll needed_exp = 1;
+
+                for (auto &[p, cnt]: facts) {
+                    if (base % p != 0) {
+                        base_ok = false;
+                        break;
+                    }
+                    int b_cnt = 0;
+                    int tmp = base;
+                    while (tmp % p == 0) {
+                        tmp /= p;
+                        b_cnt++;
+                    }
+                    needed_exp = max(needed_exp, (ll) (cnt + b_cnt - 1) / b_cnt);
+                }
+
+                if (!base_ok)
+                    continue;
+
+                if (needed_exp == 1) {
+                    possible = true;
+                    break;
+                }
+
+                vi remaining;
+                for (int j = 0; j < SZ(a); ++j)
+                    if (i != j)
+                        remaining.pb(a[j]);
+
+                if (solve_small_tower(remaining) >= needed_exp) {
+                    possible = true;
+                    break;
+                }
+            }
+            if (possible)
+                prt("Yes");
+            else
+                prt("No");
         }
-    };
-
-    for (auto [l, r, id]: qs) {
-        while (nl > l)
-            upd(a[--nl]);
-        while (nr < r)
-            upd(a[++nr]);
-        while (nl < l)
-            upd(a[nl++]);
-        while (nr > r)
-            upd(a[nr--]);
-
-        ans[id] = (odd == 0);
-    }
-
-    F(i, 0, q - 1) { prt(ans[i] ? "YES" : "NO"); }
-
-    for (int x: a) {
-        cnt[x] = 0;
     }
 }
 
