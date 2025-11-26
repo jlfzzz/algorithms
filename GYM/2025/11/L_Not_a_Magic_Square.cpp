@@ -144,76 +144,35 @@ int Multitest = 1;
 
 void init() {}
 
-void solve2() {
-    ll n, k;
-    rd(n, k);
-
-    vi a(n);
-    rv(a);
-
-    ll ans = -INF;
-    F(i, 0, n - 1) {
-        F(j, max(0ll, i - k - 10), i - 1) { ans = max(ans, 1ll * (i + 1) * (j + 1) - k * (a[i] | a[j])); }
-    }
-
-    prt(ans);
-}
-
-// sosdp
 void solve() {
-    ll n;
-    ll k;
-    rd(n, k);
-    vi a(n + 1);
-    rv(a, 1);
+    int n;
+    rd(n);
+    vvi grid(n, vi(n));
 
-    int mx = ranges::max(a);
-    int len = bit_width((unsigned) mx);
-    int u = 1 << len;
-
-    vp dp(u + 1, {-1, -1});
-
-    auto merge = [&](pii p1, pii p2) -> pii {
-        vi c;
-        if (p1.fi != -1)
-            c.pb(p1.fi);
-        if (p1.se != -1)
-            c.pb(p1.se);
-        if (p2.fi != -1)
-            c.pb(p2.fi);
-        if (p2.se != -1)
-            c.pb(p2.se);
-
-        sort(all(c), greater<>());
-        c.erase(unique(all(c)), c.end());
-
-        pii res = {-1, -1};
-        if (SZ(c) >= 1)
-            res.fi = c[0];
-        if (SZ(c) >= 2)
-            res.se = c[1];
-        return res;
-    };
-
-    F(i, 1, n) { dp[a[i]] = merge(dp[a[i]], {i, -1}); }
-
-    F(i, 0, len - 1) {
-        F(mask, 0, u) {
-            if (mask & (1 << i)) {
-                dp[mask] = merge(dp[mask], dp[mask ^ (1 << i)]);
+    F(i, 0, n - 1) {
+        F(j, 0, n - 1) {
+            if (i + j < n - 1) {
+                grid[i][j] = 1;
+            } else if (i + j > n - 1) {
+                grid[i][j] = 3;
+            } else {
+                if (i < n / 2) {
+                    grid[i][j] = 3;
+                } else {
+                    grid[i][j] = 2;
+                }
             }
         }
     }
 
-    ll ans = -INF;
-    F(mask, 0, u - 1) {
-        if (dp[mask].second != -1) {
-            ll val = dp[mask].first * dp[mask].second - k * mask;
-            ans = max(ans, val);
-        }
+    if (n % 2 == 1) {
+        grid[n / 2][n - 1] = 4;
     }
 
-    prt(ans);
+    F(i, 0, n - 1) {
+        F(j, 0, n - 1) { cout << grid[i][j]; }
+        cout << "\n";
+    }
 }
 
 int main() {

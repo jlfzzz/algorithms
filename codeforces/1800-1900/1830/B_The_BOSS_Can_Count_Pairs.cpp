@@ -144,72 +144,47 @@ int Multitest = 1;
 
 void init() {}
 
-void solve2() {
-    ll n, k;
-    rd(n, k);
-
-    vi a(n);
-    rv(a);
-
-    ll ans = -INF;
-    F(i, 0, n - 1) {
-        F(j, max(0ll, i - k - 10), i - 1) { ans = max(ans, 1ll * (i + 1) * (j + 1) - k * (a[i] | a[j])); }
-    }
-
-    prt(ans);
-}
-
-// sosdp
 void solve() {
-    ll n;
-    ll k;
-    rd(n, k);
-    vi a(n + 1);
-    rv(a, 1);
+    int n;
+    rd(n);
+    vi a(n), b(n);
+    rv(a), rv(b);
 
-    int mx = ranges::max(a);
-    int len = bit_width((unsigned) mx);
-    int u = 1 << len;
+    int B = sqrt(2 * n) + 1;
 
-    vp dp(u + 1, {-1, -1});
+    vvi groups(B + 1);
+    vi cnt(n + 1, 0);
 
-    auto merge = [&](pii p1, pii p2) -> pii {
-        vi c;
-        if (p1.fi != -1)
-            c.pb(p1.fi);
-        if (p1.se != -1)
-            c.pb(p1.se);
-        if (p2.fi != -1)
-            c.pb(p2.fi);
-        if (p2.se != -1)
-            c.pb(p2.se);
-
-        sort(all(c), greater<>());
-        c.erase(unique(all(c)), c.end());
-
-        pii res = {-1, -1};
-        if (SZ(c) >= 1)
-            res.fi = c[0];
-        if (SZ(c) >= 2)
-            res.se = c[1];
-        return res;
-    };
-
-    F(i, 1, n) { dp[a[i]] = merge(dp[a[i]], {i, -1}); }
-
-    F(i, 0, len - 1) {
-        F(mask, 0, u) {
-            if (mask & (1 << i)) {
-                dp[mask] = merge(dp[mask], dp[mask ^ (1 << i)]);
-            }
+    F(i, 0, n - 1) {
+        if (a[i] <= B) {
+            groups[a[i]].pb(b[i]);
         }
     }
 
-    ll ans = -INF;
-    F(mask, 0, u - 1) {
-        if (dp[mask].second != -1) {
-            ll val = dp[mask].first * dp[mask].second - k * mask;
-            ans = max(ans, val);
+    ll ans = 0;
+    F(i, 1, B) {
+        if (groups[i].empty())
+            continue;
+
+        for (int y: groups[i]) {
+            int target = i * i - y;
+            if (target >= 1 && target <= n) {
+                ans += cnt[target];
+            }
+            cnt[y]++;
+        }
+
+        F(j, 0, n - 1) {
+            if (a[j] > i) {
+                int target = i * a[j] - b[j];
+                if (target >= 1 && target <= n) {
+                    ans += cnt[target];
+                }
+            }
+        }
+
+        for (int y: groups[i]) {
+            cnt[y]--;
         }
     }
 

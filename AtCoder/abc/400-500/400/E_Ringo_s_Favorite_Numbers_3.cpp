@@ -138,82 +138,105 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 1000000 + 5;
 
-int Multitest = 1;
+struct Sieve {
+    bool is_not_prime[N + 1]{};
+    std::vector<int> primes;
+    int min_prime_factor[N + 1]{};
+    int distinct_factors_count[N + 1]{};
 
-void init() {}
+    Sieve() { init(N); }
 
-void solve2() {
-    ll n, k;
-    rd(n, k);
+    void init(int n) {
+        is_not_prime[0] = is_not_prime[1] = true;
+        min_prime_factor[0] = min_prime_factor[1] = 0;
+        distinct_factors_count[1] = 0;
 
-    vi a(n);
-    rv(a);
+        for (int i = 2; i <= n; ++i) {
+            if (!is_not_prime[i]) {
+                primes.push_back(i);
+                min_prime_factor[i] = i;
+                distinct_factors_count[i] = 1;
+            }
 
-    ll ans = -INF;
-    F(i, 0, n - 1) {
-        F(j, max(0ll, i - k - 10), i - 1) { ans = max(ans, 1ll * (i + 1) * (j + 1) - k * (a[i] | a[j])); }
-    }
+            for (int p: primes) {
+                if ((long long) i * p > n)
+                    break;
+                is_not_prime[i * p] = true;
+                min_prime_factor[i * p] = p;
 
-    prt(ans);
-}
-
-// sosdp
-void solve() {
-    ll n;
-    ll k;
-    rd(n, k);
-    vi a(n + 1);
-    rv(a, 1);
-
-    int mx = ranges::max(a);
-    int len = bit_width((unsigned) mx);
-    int u = 1 << len;
-
-    vp dp(u + 1, {-1, -1});
-
-    auto merge = [&](pii p1, pii p2) -> pii {
-        vi c;
-        if (p1.fi != -1)
-            c.pb(p1.fi);
-        if (p1.se != -1)
-            c.pb(p1.se);
-        if (p2.fi != -1)
-            c.pb(p2.fi);
-        if (p2.se != -1)
-            c.pb(p2.se);
-
-        sort(all(c), greater<>());
-        c.erase(unique(all(c)), c.end());
-
-        pii res = {-1, -1};
-        if (SZ(c) >= 1)
-            res.fi = c[0];
-        if (SZ(c) >= 2)
-            res.se = c[1];
-        return res;
-    };
-
-    F(i, 1, n) { dp[a[i]] = merge(dp[a[i]], {i, -1}); }
-
-    F(i, 0, len - 1) {
-        F(mask, 0, u) {
-            if (mask & (1 << i)) {
-                dp[mask] = merge(dp[mask], dp[mask ^ (1 << i)]);
+                if (i % p == 0) {
+                    distinct_factors_count[i * p] = distinct_factors_count[i];
+                    break;
+                } else {
+                    distinct_factors_count[i * p] = distinct_factors_count[i] + 1;
+                }
             }
         }
     }
 
-    ll ans = -INF;
-    F(mask, 0, u - 1) {
-        if (dp[mask].second != -1) {
-            ll val = dp[mask].first * dp[mask].second - k * mask;
-            ans = max(ans, val);
+    [[nodiscard]] bool is_prime(int x) const {
+        if (x <= 1 || x > N)
+            return false;
+        return !is_not_prime[x];
+    }
+} sieve;
+
+int Multitest = 0;
+
+void init() {}
+
+void solve() {
+    static bool inited = false;
+    static vector<ll> v;
+    if (!inited) {
+        const ll LIMIT = 1000000000000LL;
+        int m = (int) sieve.primes.size();
+        for (int i = 0; i < m; i++) {
+            ll p = sieve.primes[i];
+            ll p2 = p * p;
+            if (p2 > LIMIT) {
+                break;
+            }
+            for (int j = i + 1; j < m; j++) {
+                ll q = sieve.primes[j];
+                if (p * q > 1000000LL) {
+                    break;
+                }
+                ll q2 = q * q;
+                if (p2 > LIMIT / q2) {
+                    break;
+                }
+                for (ll x = p2; x <= LIMIT / q2; ) {
+                    for (ll y = q2; x <= LIMIT / y; ) {
+                        v.pb(x * y);
+                        if (y > LIMIT / q2) {
+                            break;
+                        }
+                        y *= q2;
+                    }
+                    if (x > LIMIT / p2) {
+                        break;
+                    }
+                    x *= p2;
+                }
+            }
         }
+        sort(all(v));
+        v.erase(unique(all(v)), v.end());
+        inited = true;
     }
 
-    prt(ans);
+    int q;
+    rd(q);
+    while (q--) {
+        ll A;
+        rd(A);
+        auto it = upper_bound(all(v), A);
+        it--;
+        prt(*it);
+    }
 }
 
 int main() {

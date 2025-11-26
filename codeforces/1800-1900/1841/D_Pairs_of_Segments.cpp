@@ -144,76 +144,66 @@ int Multitest = 1;
 
 void init() {}
 
-void solve2() {
-    ll n, k;
-    rd(n, k);
-
-    vi a(n);
-    rv(a);
-
-    ll ans = -INF;
-    F(i, 0, n - 1) {
-        F(j, max(0ll, i - k - 10), i - 1) { ans = max(ans, 1ll * (i + 1) * (j + 1) - k * (a[i] | a[j])); }
+struct BIT {
+    int n;
+    vi tree;
+    BIT(int n) : n(n), tree(n + 1, 0) {}
+    void upd(int i, int val) {
+        for (; i <= n; i += i & -i) {
+            tree[i] = max(tree[i], val);
+        }
     }
 
-    prt(ans);
-}
-
-// sosdp
-void solve() {
-    ll n;
-    ll k;
-    rd(n, k);
-    vi a(n + 1);
-    rv(a, 1);
-
-    int mx = ranges::max(a);
-    int len = bit_width((unsigned) mx);
-    int u = 1 << len;
-
-    vp dp(u + 1, {-1, -1});
-
-    auto merge = [&](pii p1, pii p2) -> pii {
-        vi c;
-        if (p1.fi != -1)
-            c.pb(p1.fi);
-        if (p1.se != -1)
-            c.pb(p1.se);
-        if (p2.fi != -1)
-            c.pb(p2.fi);
-        if (p2.se != -1)
-            c.pb(p2.se);
-
-        sort(all(c), greater<>());
-        c.erase(unique(all(c)), c.end());
-
-        pii res = {-1, -1};
-        if (SZ(c) >= 1)
-            res.fi = c[0];
-        if (SZ(c) >= 2)
-            res.se = c[1];
+    int get(int i) {
+        int res = 0;
+        for (; i > 0; i -= i & -i) {
+            res = max(res, tree[i]);
+        }
         return res;
-    };
+    }
+};
 
-    F(i, 1, n) { dp[a[i]] = merge(dp[a[i]], {i, -1}); }
+void solve() {
+    int n;
+    rd(n);
+    vp a(n);
+    vi xs;
 
-    F(i, 0, len - 1) {
-        F(mask, 0, u) {
-            if (mask & (1 << i)) {
-                dp[mask] = merge(dp[mask], dp[mask ^ (1 << i)]);
+    F(i, 0, n - 1) {
+        rd(a[i].fi, a[i].se);
+        xs.pb(a[i].fi);
+        xs.pb(a[i].se);
+    }
+
+    sort(all(xs));
+    xs.erase(unique(all(xs)), xs.end());
+
+    auto Get = [&](int x) { return lower_bound(all(xs), x) - xs.begin() + 1; };
+
+    int m = SZ(xs);
+    vvi ev(m + 1);
+    F(i, 0, n - 1) {
+        F(j, i + 1, n - 1) {
+            if (max(a[i].fi, a[j].fi) <= min(a[i].se, a[j].se)) {
+                int l = min(a[i].fi, a[j].fi);
+                int r = max(a[i].se, a[j].se);
+
+                ev[Get(r)].pb(Get(l));
             }
         }
     }
 
-    ll ans = -INF;
-    F(mask, 0, u - 1) {
-        if (dp[mask].second != -1) {
-            ll val = dp[mask].first * dp[mask].second - k * mask;
-            ans = max(ans, val);
+    BIT bit(m);
+    F(r, 1, m) {
+        for (int l: ev[r]) {
+            int val = bit.get(l - 1) + 1;
+            bit.upd(r, val);
         }
     }
 
-    prt(ans);
+    int mx = bit.get(m);
+
+    prt(n - 2 * mx);
 }
 
 int main() {

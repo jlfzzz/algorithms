@@ -140,80 +140,80 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve2() {
-    ll n, k;
-    rd(n, k);
+void solve() {
+    ll sx, sy, tx, ty;
+    rd(sx, sy, tx, ty);
 
-    vi a(n);
-    rv(a);
+    int n;
+    rd(n);
 
-    ll ans = -INF;
-    F(i, 0, n - 1) {
-        F(j, max(0ll, i - k - 10), i - 1) { ans = max(ans, 1ll * (i + 1) * (j + 1) - k * (a[i] | a[j])); }
+    map<ll, set<ll>> rows;
+
+    F(i, 1, n) {
+        ll r, a, b;
+        rd(r, a, b);
+        F(c, a, b) { rows[r].insert(c); }
     }
 
-    prt(ans);
-}
+    auto it1 = rows.find(sx);
+    if (it1 == rows.end()) {
+        prt(-1);
+        return;
+    }
+    if (!it1->second.count(sy)) {
+        prt(-1);
+        return;
+    }
 
-// sosdp
-void solve() {
-    ll n;
-    ll k;
-    rd(n, k);
-    vi a(n + 1);
-    rv(a, 1);
+    map<pii, ll> dist;
+    queue<pii> q;
 
-    int mx = ranges::max(a);
-    int len = bit_width((unsigned) mx);
-    int u = 1 << len;
+    pii st = {sx, sy};
+    dist[st] = 0;
+    q.push(st);
+    it1->second.erase(sy);
 
-    vp dp(u + 1, {-1, -1});
+    while (!q.empty()) {
+        auto cur = q.front();
+        q.pop();
+        ll x = cur.fi;
+        ll y = cur.se;
+        ll d = dist[cur];
 
-    auto merge = [&](pii p1, pii p2) -> pii {
-        vi c;
-        if (p1.fi != -1)
-            c.pb(p1.fi);
-        if (p1.se != -1)
-            c.pb(p1.se);
-        if (p2.fi != -1)
-            c.pb(p2.fi);
-        if (p2.se != -1)
-            c.pb(p2.se);
+        if (x == tx && y == ty) {
+            prt(d);
+            return;
+        }
 
-        sort(all(c), greater<>());
-        c.erase(unique(all(c)), c.end());
-
-        pii res = {-1, -1};
-        if (SZ(c) >= 1)
-            res.fi = c[0];
-        if (SZ(c) >= 2)
-            res.se = c[1];
-        return res;
-    };
-
-    F(i, 1, n) { dp[a[i]] = merge(dp[a[i]], {i, -1}); }
-
-    F(i, 0, len - 1) {
-        F(mask, 0, u) {
-            if (mask & (1 << i)) {
-                dp[mask] = merge(dp[mask], dp[mask ^ (1 << i)]);
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                if (dx == 0 && dy == 0) {
+                    continue;
+                }
+                ll nx = x + dx;
+                ll ny = y + dy;
+                auto it2 = rows.find(nx);
+                if (it2 == rows.end()) {
+                    continue;
+                }
+                auto &st2 = it2->second;
+                auto it3 = st2.find(ny);
+                if (it3 == st2.end()) {
+                    continue;
+                }
+                st2.erase(it3);
+                pii np = {nx, ny};
+                dist[np] = d + 1;
+                q.push(np);
             }
         }
     }
 
-    ll ans = -INF;
-    F(mask, 0, u - 1) {
-        if (dp[mask].second != -1) {
-            ll val = dp[mask].first * dp[mask].second - k * mask;
-            ans = max(ans, val);
-        }
-    }
-
-    prt(ans);
+    prt(-1);
 }
 
 int main() {
