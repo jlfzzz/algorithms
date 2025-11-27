@@ -20,8 +20,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD2 = int(1e9 + 7);
-constexpr int MOD = int(998244353);
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -145,7 +145,66 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    cout << "+ " << n + 1 << endl;
+    int t;
+    cin >> t;
+
+    cout << "+ " << n + 2 << endl;
+    cin >> t;
+
+    int idx = 1;
+    int mx = -1;
+
+    F(i, 2, n) {
+        cout << "? 1 " << i << endl;
+        int d;
+        cin >> d;
+
+        if (d > mx) {
+            mx = d;
+            idx = i;
+        }
+    }
+
+    vi dist(n + 1);
+    dist[idx] = 0;
+
+    F(i, 1, n) {
+        if (i == idx)
+            continue;
+        cout << "? " << idx << " " << i << endl;
+        int d;
+        cin >> d;
+        dist[i] = d;
+    }
+
+    vi path(n);
+    int l = 1, r = n;
+    F(i, 0, n - 1) {
+        if (i % 2 == 0)
+            path[i] = l++;
+        else
+            path[i] = r--;
+    }
+
+    vi ans1(n), ans2(n);
+    F(i, 1, n) {
+        int d = dist[i];
+        ans1[i - 1] = path[d];
+        ans2[i - 1] = path[n - 1 - d];
+    }
+
+    cout << "!";
+    for (int x: ans1)
+        cout << " " << x;
+    for (int x: ans2)
+        cout << " " << x;
+    cout << endl;
+
+    cin >> t;
 }
 
 int main() {

@@ -20,8 +20,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD2 = int(1e9 + 7);
-constexpr int MOD = int(998244353);
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -145,7 +145,49 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+    vi a(n);
+    rv(a);
+
+    ll ans = 0;
+
+    for (int i = 0; i < n - 1; i++) {
+        vi L;
+        int mx = -1;
+        D(j, i, 0) {
+            if (j == i)
+                mx = a[j];
+            else
+                mx = max(mx, a[j]);
+            L.pb(mx);
+        }
+
+        vi R;
+        int mn = 2e9;
+        F(j, i + 1, n - 1) {
+            if (j == i + 1)
+                mn = a[j];
+            else
+                mn = min(mn, a[j]);
+            R.pb(mn);
+        }
+
+        reverse(L.begin(), L.end());
+
+        int p = 0;
+        int sz = SZ(R);
+
+        for (int x: L) {
+            while (p < sz && R[p] >= x) {
+                p++;
+            }
+
+            ans += (ll) (sz - p);
+        }
+    }
+
+    prt(ans);
 }
 
 int main() {

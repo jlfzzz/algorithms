@@ -20,8 +20,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD2 = int(1e9 + 7);
-constexpr int MOD = int(998244353);
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -138,14 +138,37 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 1e5 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
+int n, m, ansmn, ansmx;
+
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+    for (int i = 1; i <= n; i++) {
+        string a;
+        rd(a);
+        a = '#' + a;
+        int resmn = 0, resmx = 0, res = 0;
+        int cnt = 0;
+        for (int j = 1; j <= m; j++)
+            if (a[j] == '1')
+                res++;
+        for (int j = 1; j < m; j++)
+            if (a[j] == '1' && a[j + 1] == '1' && cnt < m / 4)
+                j++, cnt++, resmn++;
+        cnt = 0;
+        for (int j = 1; j < m; j++)
+            if ((a[j] != '1' || a[j + 1] != '1') && (cnt < m / 4))
+                j++, cnt++, resmx++;
+        ansmn += res - resmn, ansmx += res - (m / 4 - resmx);
+    }
+
+    prt(ansmn, ansmx);
 }
 
 int main() {

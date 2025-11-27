@@ -20,8 +20,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD2 = int(1e9 + 7);
-constexpr int MOD = int(998244353);
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -140,23 +140,57 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
-
+int Multitest = 0;
+const int maxn = 1e6 + 5;
 void init() {}
-
-void solve() {
-    
+int n, cnt;
+string s, t;
+int vis[maxn], to[maxn], sum, r[maxn], ans, f[maxn];
+void dfs(char c) {
+    vis[c] = 1;
+    if (!vis[to[c]])
+        dfs(to[c]);
 }
-
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
+queue<int> q;
+set<char> st;
+void topu() {
+    for (char i = 'a'; i <= 'z'; i += 1)
+        if (!r[i])
+            q.push(i);
+    while (!q.empty()) {
+        int x = q.front();
+        vis[x] = 1;
+        q.pop();
+        if (!vis[to[x]])
+            r[to[x]] = 0, q.push(to[x]);
     }
-    while (T--) {
-        solve();
+}
+signed main() {
+    cin >> n >> s >> t;
+    for (int i = 0; i < n; i++) {
+        if (to[s[i]] && to[s[i]] != t[i]) {
+            cout << -1;
+            return 0;
+        }
+        if (!to[s[i]] && s[i] != t[i])
+            ans++, r[t[i]]++;
+        st.emplace(t[i]);
+        to[s[i]] = t[i];
     }
+    if (st.size() == 26) {
+        int f = 0;
+        for (int i = 0; i < n; i++)
+            f += (s[i] != t[i]);
+        if (f)
+            cout << -1;
+        else
+            cout << 0;
+        return 0;
+    }
+    topu();
+    for (char i = 'a'; i <= 'z'; i += 1)
+        if (!vis[i])
+            ans++, dfs(i);
+    cout << ans;
+    return 0;
 }

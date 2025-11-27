@@ -20,8 +20,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD2 = int(1e9 + 7);
-constexpr int MOD = int(998244353);
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -140,12 +140,48 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
+struct DSU {
+    vector<int> parent;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+    }
+
+    int find(int x) {
+        if (parent[x] == x)
+            return x;
+        return parent[x] = find(parent[x]);
+    }
+
+    bool unite(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+
+        if (rootX != rootY) {
+            parent[rootX] = rootY;
+            return true;
+        }
+        return false;
+    }
+};
 
 void solve() {
-    
+    int n, m;
+    rd(n, m);
+    DSU dsu(n);
+    int delete_count = 0;
+    for (int i = 0; i < m; ++i) {
+        int u, v;
+        cin >> u >> v;
+        if (!dsu.unite(u, v)) {
+            delete_count++;
+        }
+    }
+    cout << delete_count << endl;
 }
 
 int main() {

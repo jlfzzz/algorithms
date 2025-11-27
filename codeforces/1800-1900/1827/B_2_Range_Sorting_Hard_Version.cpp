@@ -20,8 +20,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD2 = int(1e9 + 7);
-constexpr int MOD = int(998244353);
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -145,7 +145,40 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+    vi a(n + 2);
+    F(i, 1, n) rd(a[i]);
+    ll sum = 0;
+    F(i, 2, n) { sum += 1LL * (i - 1) * (n - i + 1); }
+
+    set<int> s1, s2;
+    F(i, 0, n + 1) s1.insert(i);
+    s2.insert(0);
+    s2.insert(n + 1);
+
+    vector<int> id(n + 1);
+    iota(id.begin(), id.end(), 0);
+    sort(id.begin() + 1, id.end(), [&](int x, int y) { return a[x] < a[y]; });
+
+    F(i, 1, n) {
+        int b = id[i];
+
+
+        auto it = s1.lower_bound(b);
+        int c = *next(it);
+        int t = *prev(it);
+
+        if (c != n + 1) {
+            int d = *s2.lower_bound(c);
+            sum -= 1LL * (b - t) * (d - c);
+        }
+
+        s1.erase(b);
+        s2.insert(b);
+    }
+
+    prt(sum);
 }
 
 int main() {

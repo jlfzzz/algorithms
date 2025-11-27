@@ -140,12 +140,43 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    ll n, k;
+    rd(n, k);
+
+    vl a(n);
+    rv(a);
+
+    vi idx;
+    F(i, 0, n - 1) idx.pb(i);
+
+    ll ans = 0;
+    while (!idx.empty()) {
+        ll sum = 0;
+        for (auto i: idx)
+            sum += a[i];
+        if (sum <= k) {
+            ll t = k / sum;
+            ans += t * SZ(idx);
+            k %= sum;
+        }
+
+        vi nxt;
+        for (auto i: idx) {
+            if (k >= a[i]) {
+                k -= a[i];
+                ans++;
+                nxt.pb(i);
+            }
+        }
+        idx = nxt;
+    }
+
+    prt(ans);
 }
 
 int main() {

@@ -20,8 +20,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD2 = int(1e9 + 7);
-constexpr int MOD = int(998244353);
+constexpr int MOD = int(1e9 + 7);
+constexpr int MOD2 = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -140,23 +140,30 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve() {
-    
-}
-
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
+const int maxn = 1e6 + 5;
+const double eps = 1e-6;
+int n, a[maxn], lst[maxn], t;
+signed main() {
+    cin >> t;
+    while (t--) {
+        int sum = 0;
+        cin >> n;
+        for (int i = 1; i <= 2 * n; i++) {
+            cin >> a[i];
+            lst[a[i]] = i;
+        }
+        a[2 * n + 1] = 0;
+        for (int i = 1; i < 2 * n; i++) {
+            if (lst[a[i + 1]] <= i + 2)
+                continue;
+            if (a[lst[a[i + 1]] - 1] == a[i] || a[lst[a[i + 1]] + 1] == a[i])
+                sum++;
+        }
+        cout << sum << endl;
     }
-    while (T--) {
-        solve();
-    }
+    return 0;
 }

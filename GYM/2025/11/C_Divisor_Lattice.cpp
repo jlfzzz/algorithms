@@ -140,12 +140,75 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    auto query = [&](int i, int j) {
+        cout << "? " << i << " " << j << endl;
+        int res;
+        rd(res);
+        return res;
+    };
+
+    vi p(n);
+    iota(all(p), 1);
+
+    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+    shuffle(all(p), rng);
+
+    int pos1 = p[0];
+    F(i, 1, n - 1) { pos1 = query(pos1, p[i]); }
+
+    vi primes;
+    vi b;
+    F(i, 1, n) {
+        if (i != pos1)
+            b.pb(i);
+    }
+
+    shuffle(all(b), rng);
+
+    for (int x: b) {
+        bool f = false;
+        vi nxt;
+
+        for (int p: primes) {
+            if (f) {
+                nxt.pb(p);
+                continue;
+            }
+
+            int g = query(x, p);
+
+            if (g == pos1) {
+                nxt.pb(p);
+            } else if (g == p) {
+                f = true;
+                nxt.pb(p);
+            } else {
+                f = true;
+                nxt.pb(g);
+            }
+        }
+
+        primes = nxt;
+        sort(all(primes));
+        primes.erase(unique(all(primes)), primes.end());
+        
+        if (!f) {
+            primes.pb(x);
+        }
+    }
+
+    cout << "! " << SZ(primes);
+    for (int x: primes)
+        cout << " " << x;
+    cout << endl;
 }
 
 int main() {
