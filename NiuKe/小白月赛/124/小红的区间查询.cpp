@@ -20,8 +20,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -130,7 +130,7 @@ namespace utils {
     }
 } // namespace utils
 
-#ifdef LOCAL
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
 #else
 #define dbg(...) ((void) 0)
@@ -140,25 +140,30 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vl a(n);
-    rv(a);
-    map<ll, ll> cnt;
-    vl ans(n);
-    ll pre = 0;
-    F(i, 0, n - 1) {
-        pre += cnt[a[i]];
-        ans[i] = pre;
-        cnt[a[i]]++;
+    ll a, b, l, r;
+    rd(a, b, l, r);
+    ll D = b - a;
+    ll L = l - b;
+    ll R = r - b;
+    ll ans = 0;
+    for (ll d = 1; d * d <= D; d++) {
+        if (D % d == 0) {
+            ll d1 = d;
+            ll d2 = D / d;
+            if (L <= d1 && d1 <= R) {
+                ans++;
+            }
+            if (d2 != d1 && L <= d2 && d2 <= R) {
+                ans++;
+            }
+        }
     }
-
-    prv(ans);
+    prt(ans);
 }
 
 int main() {

@@ -20,8 +20,7 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
+constexpr int MOD2 = int(1e9 + 7);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -130,7 +129,7 @@ namespace utils {
     }
 } // namespace utils
 
-#ifdef LOCAL
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
 #else
 #define dbg(...) ((void) 0)
@@ -147,19 +146,51 @@ void init() {}
 void solve() {
     int n;
     rd(n);
-    vl a(n);
-    rv(a);
-    map<ll, ll> cnt;
-    vl ans(n);
-    ll pre = 0;
-    F(i, 0, n - 1) {
-        pre += cnt[a[i]];
-        ans[i] = pre;
-        cnt[a[i]]++;
+
+    string ans;
+    rd(ans);
+
+    F(i, 2, n) {
+        string s2;
+        rd(s2);
+
+        int len1 = SZ(s2);
+        int len2 = SZ(ans);
+        int k = min(len1, len2);
+
+        string temp = s2 + "#" + ans.substr(len2 - k);
+        int len = SZ(temp);
+
+        vector<int> z(len);
+        int left = 0;
+        int right = 0;
+        for (int i = 1; i < len; i++) {
+            if (i <= right) {
+                z[i] = min(right - i + 1, z[i - left]);
+            }
+            while (i + z[i] < len && temp[i + z[i]] == temp[z[i]]) {
+                z[i] += 1;
+                if (i + z[i] - 1 > right) {
+                    left = i;
+                    right = i + z[i] - 1;
+                }
+            }
+        }
+
+        int mx = 0;
+        F(j, len1 + 1, len - 1) {
+            int L = len - j;
+            if (z[j] == L && L > mx) {
+                mx = L;
+            }
+        }
+
+        ans += s2.substr(mx);
     }
 
-    prv(ans);
+    prt(ans);
 }
+
 
 int main() {
     ios::sync_with_stdio(false);

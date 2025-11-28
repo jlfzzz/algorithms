@@ -20,8 +20,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -130,7 +130,7 @@ namespace utils {
     }
 } // namespace utils
 
-#ifdef LOCAL
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
 #else
 #define dbg(...) ((void) 0)
@@ -140,25 +140,62 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vl a(n);
-    rv(a);
-    map<ll, ll> cnt;
-    vl ans(n);
-    ll pre = 0;
-    F(i, 0, n - 1) {
-        pre += cnt[a[i]];
-        ans[i] = pre;
-        cnt[a[i]]++;
+    ll n, m;
+    rd(n, m);
+
+    vl a(n + 1);
+    rv(a, 1);
+
+    ll lo = 0;
+    ll hi = INF;
+    ll ans = 0;
+
+    sort(all2(a, 1));
+
+    vl suf(n + 5);
+    D(i, n, 1) { suf[i] = suf[i + 1] + a[i]; }
+
+    auto check = [&](ll mid) -> pii {
+        int p = 1;
+        ll cnt = 0;
+        ll sum = 0;
+        F(i, 1, n) {
+            while (p <= n && a[p] - a[i] < mid) {
+                p++;
+            }
+            int t = max(p, i + 1);
+
+            if (t <= n) {
+                ll t2 = n - t + 1;
+                cnt += t2;
+                sum += suf[t] - t2 * a[i];
+            }
+        }
+        return {cnt * 2, sum * 2};
+    };
+
+    while (lo < hi) {
+        ll mid = (lo + hi) / 2;
+
+        auto [cnt, sum] = check(mid);
+        if (cnt >= m) {
+            ans = mid;
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
     }
 
-    prv(ans);
+    auto [cnt, sum] = check(ans);
+
+    ll ans2 = sum - (cnt - m) * ans;
+
+    prt(ans2);
 }
 
 int main() {

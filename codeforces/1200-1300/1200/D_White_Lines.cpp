@@ -20,8 +20,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -130,7 +130,7 @@ namespace utils {
     }
 } // namespace utils
 
-#ifdef LOCAL
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
 #else
 #define dbg(...) ((void) 0)
@@ -144,22 +144,91 @@ int Multitest = 0;
 
 void init() {}
 
+ll pref[2005][2005];
+
 void solve() {
-    int n;
-    rd(n);
-    vl a(n);
-    rv(a);
-    map<ll, ll> cnt;
-    vl ans(n);
-    ll pre = 0;
-    F(i, 0, n - 1) {
-        pre += cnt[a[i]];
-        ans[i] = pre;
-        cnt[a[i]]++;
+    int n, k;
+    rd(n, k);
+
+    vvi grid(n + 1, vi(n + 1));
+    F(i, 1, n) {
+        string s;
+        rd(s);
+        F(j, 1, n) { grid[i][j] = s[j - 1] == 'W'; }
     }
 
-    prv(ans);
+    ll base = 0;
+    auto add = [&](int r1, int c1, int r2, int c2) {
+        pref[r1][c1]++;
+        pref[r1][c2 + 1]--;
+        pref[r2 + 1][c1]--;
+        pref[r2 + 1][c2 + 1]++;
+    };
+
+    F(i, 1, n) {
+        int L = -1;
+        int last = -1;
+        F(j, 1, n) {
+            if (!grid[i][j]) {
+                if (L == -1)
+                    L = j;
+                last = j;
+            }
+        }
+
+        if (L == -1) {
+            base++;
+        } else {
+            if (last - L + 1 <= k) {
+                int r1 = max(1, i - k + 1);
+                int r2 = min(n - k + 1, i);
+                int c1 = max(1, last - k + 1);
+                int c2 = min(n - k + 1, L);
+
+                add(r1, c1, r2, c2);
+            }
+        }
+    }
+
+    F(j, 1, n) {
+        int top = -1;
+        int bottom = -1;
+        F(i, 1, n) {
+            if (!grid[i][j]) {
+                if (top == -1)
+                    top = i;
+                bottom = i;
+            }
+        }
+
+        if (top == -1) {
+            base++;
+        } else {
+            if (bottom - top + 1 <= k) {
+                int r1 = max(1, bottom - k + 1);
+                int r2 = min(n - k + 1, top);
+
+                int c1 = max(1, j - k + 1);
+                int c2 = min(n - k + 1, j);
+
+                add(r1, c1, r2, c2);
+            }
+        }
+    }
+
+    ll mx = 0;
+    F(i, 1, n - k + 1) {
+        F(j, 1, n - k + 1) {
+            pref[i][j] += pref[i - 1][j] + pref[i][j - 1] - pref[i - 1][j - 1];
+            if (pref[i][j] > mx) {
+                mx = pref[i][j];
+            }
+        }
+    }
+
+    prt(base + mx);
 }
+
 
 int main() {
     ios::sync_with_stdio(false);

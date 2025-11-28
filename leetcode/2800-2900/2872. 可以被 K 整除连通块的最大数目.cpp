@@ -66,8 +66,59 @@ using ll = long long;
 
 class Solution {
 public:
-    int countEffective(vector<int> &nums) {
-        
+    int maxKDivisibleComponents(int n, vector<vector<int>> &edges, vector<int> &values, int k) {
+        vector<vector<int>> g(n);
+        for (auto &v: edges) {
+            int u = v[0];
+            int vv = v[1];
+            g[u].push_back(vv);
+            g[vv].push_back(u);
+        }
+
+        int ans = 0;
+        auto dfs = [&](this auto &&dfs, int u, int fa) -> ll {
+            int cnt = 0;
+            ll cur = 0;
+            for (int v: g[u]) {
+                if (v == fa) {
+                    continue;
+                }
+
+                ll sum = dfs(v, u);
+                if (sum == -1) {
+                    continue;
+                }
+
+                if (sum % k == 0) {
+                    ans++;
+                    continue;
+                }
+
+                cnt++;
+                cur += sum;
+            }
+
+            cur += values[u];
+            if (cnt <= 1) {
+                if (cur % k == 0) {
+                    ans++;
+                    return -1;
+                }
+                return cur % k;
+            }
+
+            return cur % k;
+        };
+        ll t = dfs(0, -1);
+        if (t == -1) {
+            return ans;
+        }
+
+        if (t % k) {
+            return 0;
+        }
+
+        return ans + 1;
     }
 };
 

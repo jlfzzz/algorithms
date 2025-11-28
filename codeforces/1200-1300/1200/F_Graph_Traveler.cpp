@@ -20,8 +20,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -130,7 +130,7 @@ namespace utils {
     }
 } // namespace utils
 
-#ifdef LOCAL
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
 #else
 #define dbg(...) ((void) 0)
@@ -147,18 +147,137 @@ void init() {}
 void solve() {
     int n;
     rd(n);
-    vl a(n);
-    rv(a);
-    map<ll, ll> cnt;
-    vl ans(n);
-    ll pre = 0;
-    F(i, 0, n - 1) {
-        pre += cnt[a[i]];
-        ans[i] = pre;
-        cnt[a[i]]++;
+
+    vl a(n + 1);
+    rv(a, 1);
+
+    vi m(n + 1);
+    vvi g(n + 1);
+
+    F(i, 1, n) {
+        int t;
+        rd(t);
+        m[i] = t;
+        F(j, 1, t) {
+            int v;
+            rd(v);
+            g[i].pb(v);
+        }
     }
 
-    prv(ans);
+    int q;
+    rd(q);
+
+    static const int M = 2520;
+
+    vi kmod(n + 1);
+    F(i, 1, n) {
+        long long x = a[i] % M;
+        if (x < 0)
+            x += M;
+        kmod[i] = (int) x;
+    }
+
+    vvl dp(n + 1, vl(M, 0));
+    vvi vis(n + 1, vi(M, 0));
+
+    vvi nextV(n + 1, vi(M));
+    vvi nextR(n + 1, vi(M));
+
+    F(v, 1, n) {
+        F(r, 0, M - 1) {
+            int r2 = r + kmod[v];
+            if (r2 >= M)
+                r2 -= M;
+
+            int x = r2 % m[v];
+            int u = g[v][x];
+
+            nextV[v][r] = u;
+            nextR[v][r] = r2;
+        }
+    }
+
+    vi lastSeen(n + 1, 0);
+    int curMark = 0;
+
+    F(v, 1, n) {
+        F(r, 0, M - 1) {
+            if (vis[v][r] != 0)
+                continue;
+
+            vector<pair<int, int>> path;
+            int cv = v, cr = r;
+
+            while (true) {
+                vis[cv][cr] = 1;
+                path.emplace_back(cv, cr);
+
+                int nv = nextV[cv][cr];
+                int nr = nextR[cv][cr];
+
+                if (vis[nv][nr] == 0) {
+                    cv = nv;
+                    cr = nr;
+                    continue;
+                }
+
+                if (vis[nv][nr] == 1) {
+                    int idx = 0;
+                    while (!(path[idx].first == nv && path[idx].second == nr)) {
+                        idx++;
+                    }
+
+                    curMark++;
+                    int cnt = 0;
+                    for (int i = idx; i < (int) path.size(); i++) {
+                        int vv = path[i].first;
+                        if (lastSeen[vv] != curMark) {
+                            lastSeen[vv] = curMark;
+                            cnt++;
+                        }
+                    }
+
+                    for (int i = idx; i < (int) path.size(); i++) {
+                        auto [vv, rr] = path[i];
+                        dp[vv][rr] = cnt;
+                    }
+
+                    for (int i = idx - 1; i >= 0; i--) {
+                        auto [vv, rr] = path[i];
+                        int tv = nextV[vv][rr];
+                        int tr = nextR[vv][rr];
+                        dp[vv][rr] = dp[tv][tr];
+                    }
+
+                } else {
+                    for (int i = (int) path.size() - 1; i >= 0; i--) {
+                        auto [vv, rr] = path[i];
+                        int tv = nextV[vv][rr];
+                        int tr = nextR[vv][rr];
+                        dp[vv][rr] = dp[tv][tr];
+                    }
+                }
+
+                for (auto [vv, rr]: path) {
+                    vis[vv][rr] = 2;
+                }
+
+                break;
+            }
+        }
+    }
+
+    while (q--) {
+        ll x, y;
+        rd(x, y);
+
+        ll r0 = y % M;
+        if (r0 < 0)
+            r0 += M;
+
+        cout << dp[(int) x][(int) r0] << '\n';
+    }
 }
 
 int main() {
