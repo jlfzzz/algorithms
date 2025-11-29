@@ -2,9 +2,6 @@
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 using namespace std;
-using namespace __gnu_pbds;
-using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
 
 constexpr int N = int(1e5 + 5);
 
@@ -56,6 +53,9 @@ using namespace DEBUG;
 
 int INIT = [] { return 0; }();
 
+using namespace __gnu_pbds;
+using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
 using pll = pair<long long, long long>;
 #define i128 __int128_t
 #define ull unsigned long long
@@ -64,62 +64,36 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
-pll dp[2][2][3][10][17];
-char vis[2][2][3][10][17];
-
 class Solution {
 public:
-    long long totalWaviness(long long num1, long long num2) {
-        auto calc = [&](ll x) {
-            string s = to_string(x);
-            int len = s.size();
-            memset(vis, 0, sizeof(vis));
-            auto dfs = [&](this auto &&dfs, int zero, int hi, int st, int pre, int i) -> pll {
-                if (i == len) {
-                    return {1, 0};
-                }
+    vector<int> lexSmallestNegatedPerm(int n, long long target) {
+        ll sum = 1ll * (n + 1) * n / 2;
+        ll d = sum - target;
+        if (d < 0) {
+            return {};
+        }
 
-                if (vis[zero][hi][st][pre][i]) {
-                    return dp[zero][hi][st][pre][i];
-                }
+        if (d & 1) {
+            return {};
+        }
 
-                pll res = {0, 0};
-                int r = hi ? s[i] - '0' : 9;
+        d /= 2;
+        vector<int> ans, vis(n + 1);
+        for (int i = n; i >= 1; i--) {
+            if (d >= i) {
+                d -= i;
+                ans.push_back(-i);
+                vis[i] = 1;
+            }
+        }
 
-                for (int l = 0; l <= r; l++) {
-                    int nzero = zero && (l == 0);
-                    int nhi = hi && (l == r);
-                    int nst = 2;
+        for (int i = 1; i <= n; i++) {
+            if (!vis[i]) {
+                ans.push_back(i);
+            }
+        }
 
-                    if (!zero) {
-                        if (l > pre) {
-                            nst = 1;
-                        } else if (l < pre) {
-                            nst = 0;
-                        } else {
-                            nst = 2;
-                        }
-                    }
-
-                    ll contrib = 0;
-                    if (!zero && st != 2 && nst != 2) {
-                        contrib = (nst ^ st);
-                    }
-
-                    pll sub = dfs(nzero, nhi, nst, l, i + 1);
-
-                    res.first += sub.first;
-                    res.second += sub.second + (contrib * sub.first);
-                }
-
-                vis[zero][hi][st][pre][i] = 1;
-                return dp[zero][hi][st][pre][i] = res;
-            };
-
-            return dfs(1, 1, 2, 0, 0).second;
-        };
-
-        return calc(num2) - calc(num1 - 1);
+        return (d == 0) ? ans : vector<int>();
     }
 };
 
