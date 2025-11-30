@@ -4,7 +4,7 @@ using ll = long long;
 
 
 struct Node {
-    int val = 0;
+    ll val = 0;
 };
 
 class PST {
@@ -34,7 +34,7 @@ private:
         return cur;
     }
 
-    int _update(int pre, int l, int r, int pos, int val) {
+    int _update(int pre, int l, int r, int pos, ll val) {
         int cur = ++ts;
         newnode(pre, cur);
         if (l == r) {
@@ -72,13 +72,11 @@ private:
     }
 
 public:
-    std::vector<int> root;
-
-    PST(int n) : n(n), ts(0), lc(40 * n + 5), rc(40 * n + 5), tree(40 * n + 5), root(40 * n + 5) {}
+    PST(int n) : n(n), ts(0), lc(40 * n + 5), rc(40 * n + 5), tree(40 * n + 5) {}
 
     int build(const std::vector<int> &arr) { return _build(arr, 1, n); }
 
-    int update(int pre_version, int pos, int val) { return _update(pre_version, 1, n, pos, val); }
+    int update(int pre_version, int pos, ll val) { return _update(pre_version, 1, n, pos, val); }
 
     int query(int cur_version, int pre_version, int l, int r) { return _query(cur_version, pre_version, 1, n, l, r); }
 

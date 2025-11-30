@@ -140,39 +140,121 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
-    rv(a, 1);
+    int n;
+    rd(n);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vvi grid(n + 1, vi(n + 1));
+    F(i, 1, n) { rv(grid[i], 1); }
+
+    int zx = -1, zy = -1;
+    F(i, 1, n) {
+        F(j, 1, n) {
+            if (grid[i][j] == 0) {
+                zx = i;
+                zy = j;
+            }
+        }
     }
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+    auto calc = [&](int prime) -> pair<ll, vvl> {
+        auto temp = grid;
+        F(i, 1, n) {
+            F(j, 1, n) {
+                ll t = temp[i][j];
+                if (t == 0) {
+                    temp[i][j] = inf;
+                    continue;
+                }
+                int cnt = 0;
+                while (t % prime == 0) {
+                    cnt++;
+                    t /= prime;
+                }
+                temp[i][j] = cnt;
             }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
         }
+
+        vvl dp(n + 1, vl(n + 1, INF));
+        vvl prev(n + 1, vl(n + 1, -1));
+
+        dp[1][1] = temp[1][1];
+
+        F(i, 2, n) {
+            dp[i][1] = dp[i - 1][1] + temp[i][1];
+            prev[i][1] = 1;
+        }
+        F(j, 2, n) {
+            dp[1][j] = dp[1][j - 1] + temp[1][j];
+            prev[1][j] = 0;
+        }
+        F(i, 2, n) {
+            F(j, 2, n) {
+                if (dp[i - 1][j] < dp[i][j - 1]) {
+                    dp[i][j] = dp[i - 1][j] + temp[i][j];
+                    prev[i][j] = 1;
+                } else {
+                    dp[i][j] = dp[i][j - 1] + temp[i][j];
+                    prev[i][j] = 0;
+                }
+            }
+        }
+
+        return {dp[n][n], prev};
     };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+
+    auto [c2, prev2] = calc(2);
+    auto [c5, prev5] = calc(5);
+
+    ll mn = min(c2, c5);
+    string ans;
+    ll best = 0;
+
+    if (zx != -1 && mn > 1) {
+        best = 1;
+        int x = 1, y = 1;
+        while (x < zx) {
+            ans += 'D';
+            x++;
+        }
+        while (y < zy) {
+            ans += 'R';
+            y++;
+        }
+        while (x < n) {
+            ans += 'D';
+            x++;
+        }
+        while (y < n) {
+            ans += 'R';
+            y++;
+        }
+    } else {
+        best = mn;
+        vvl &prev = (c2 <= c5) ? prev2 : prev5;
+
+        int i = n, j = n;
+        while (i != 1 || j != 1) {
+            int dir = prev[i][j];
+            if (dir == 1) {
+                ans += 'D';
+                i--;
+            } else {
+                ans += 'R';
+                j--;
+            }
+        }
+        ranges::reverse(ans);
+    }
+
+    prt(best);
+    prt(ans);
 }
+
 
 int main() {
     ios::sync_with_stdio(false);

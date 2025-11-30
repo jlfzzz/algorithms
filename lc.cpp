@@ -64,64 +64,6 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
-pll dp[2][2][3][10][17];
-char vis[2][2][3][10][17];
-
-class Solution {
-public:
-    long long totalWaviness(long long num1, long long num2) {
-        auto calc = [&](ll x) {
-            string s = to_string(x);
-            int len = s.size();
-            memset(vis, 0, sizeof(vis));
-            auto dfs = [&](this auto &&dfs, int zero, int hi, int st, int pre, int i) -> pll {
-                if (i == len) {
-                    return {1, 0};
-                }
-
-                if (vis[zero][hi][st][pre][i]) {
-                    return dp[zero][hi][st][pre][i];
-                }
-
-                pll res = {0, 0};
-                int r = hi ? s[i] - '0' : 9;
-
-                for (int l = 0; l <= r; l++) {
-                    int nzero = zero && (l == 0);
-                    int nhi = hi && (l == r);
-                    int nst = 2;
-
-                    if (!zero) {
-                        if (l > pre) {
-                            nst = 1;
-                        } else if (l < pre) {
-                            nst = 0;
-                        } else {
-                            nst = 2;
-                        }
-                    }
-
-                    ll contrib = 0;
-                    if (!zero && st != 2 && nst != 2) {
-                        contrib = (nst ^ st);
-                    }
-
-                    pll sub = dfs(nzero, nhi, nst, l, i + 1);
-
-                    res.first += sub.first;
-                    res.second += sub.second + (contrib * sub.first);
-                }
-
-                vis[zero][hi][st][pre][i] = 1;
-                return dp[zero][hi][st][pre][i] = res;
-            };
-
-            return dfs(1, 1, 2, 0, 0).second;
-        };
-
-        return calc(num2) - calc(num1 - 1);
-    }
-};
 
 int main() {
     ios::sync_with_stdio(false);
