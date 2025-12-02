@@ -140,38 +140,149 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+struct Sieve {
+    bool is_not_prime[N + 1]{};
+    std::vector<int> primes;
+    int min_prime_factor[N + 1]{};
+    int distinct_factors_count[N + 1]{}; // 不同质因子个数
+
+    int divisor_count[N + 1]{}; // 约数个数
+    int cnt_exp[N + 1]{}; // 最小质因子的指数
+
+    Sieve() { init(N); }
+
+    void init(int n) {
+        is_not_prime[0] = is_not_prime[1] = true;
+        min_prime_factor[0] = min_prime_factor[1] = 0;
+        distinct_factors_count[1] = 0;
+
+        divisor_count[1] = 1;
+        cnt_exp[1] = 0;
+
+        for (int i = 2; i <= n; ++i) {
+            if (!is_not_prime[i]) {
+                primes.push_back(i);
+                min_prime_factor[i] = i;
+                distinct_factors_count[i] = 1;
+
+                cnt_exp[i] = 1;
+                divisor_count[i] = 2;
+            }
+
+            for (int p: primes) {
+                long long x = 1LL * i * p;
+                if (x > n)
+                    break;
+                is_not_prime[i * p] = true;
+                min_prime_factor[i * p] = p;
+
+                if (i % p == 0) {
+                    distinct_factors_count[i * p] = distinct_factors_count[i];
+
+                    cnt_exp[i * p] = cnt_exp[i] + 1;
+                    divisor_count[i * p] = divisor_count[i] / (cnt_exp[i] + 1) * (cnt_exp[i * p] + 1);
+
+                    break;
+                } else {
+                    distinct_factors_count[i * p] = distinct_factors_count[i] + 1;
+
+                    cnt_exp[i * p] = 1;
+                    divisor_count[i * p] = divisor_count[i] * 2;
+                }
+            }
+        }
+    }
+
+    [[nodiscard]] bool is_prime(int x) const {
+        if (x <= 1 || x > N)
+            return false;
+        return !is_not_prime[x];
+    }
+} sieve;
+
+int Multitest = 0;
+
+struct Node {
+    ll sum, len, mx;
+};
+
+struct Seg {
+    vector<Node> tree;
+
+    Seg(int n) : tree(4 * n + 5) {}
+
+    Node merge(Node &l, Node &r) { return {l.sum + r.sum, l.len + r.len, max(l.mx, r.mx)}; }
+
+    void build(int o, int l, int r, vi &a) {
+        if (l == r) {
+            tree[o] = {a[l], 1, a[l]};
+            return;
+        }
+
+        int m = (l + r) / 2;
+        build(o * 2, l, m, a);
+        build(o * 2 + 1, m + 1, r, a);
+        tree[o] = merge(tree[o * 2], tree[o * 2 + 1]);
+    }
+
+    void upd(int o, int l, int r, int ql, int qr) {
+        if (l > qr || r < ql) {
+            return;
+        }
+
+        if (tree[o].mx <= 2) {
+            return;
+        }
+
+        if (l == r) {
+            int val = sieve.divisor_count[tree[o].sum];
+            tree[o] = {val, 1, val};
+            return;
+        }
+
+        int m = (l + r) / 2;
+        upd(o * 2, l, m, ql, qr);
+        upd(o * 2 + 1, m + 1, r, ql, qr);
+        tree[o] = merge(tree[o * 2], tree[o * 2 + 1]);
+    }
+
+    ll query(int o, int l, int r, int ql, int qr) {
+        if (l > qr || r < ql) {
+            return 0;
+        }
+
+        if (l >= ql && r <= qr) {
+            return tree[o].sum;
+        }
+
+        int m = (l + r) / 2;
+        return query(o * 2, l, m, ql, qr) + query(o * 2 + 1, m + 1, r, ql, qr);
+    }
+};
 
 void init() {}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
+    int n, m;
+    rd(n, m);
+
+    vi a(n + 1);
     rv(a, 1);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    Seg seg(n + 1);
+    seg.build(1, 1, n, a);
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
+    F(i, 1, m) {
+        int t, l, r;
+        rd(t, l, r);
+
+        if (t == 1) {
+            seg.upd(1, 1, n, l, r);
+        } else {
+            ll sum = seg.query(1, 1, n, l, r);
+            prt(sum);
         }
-    };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+    }
 }
 
 int main() {

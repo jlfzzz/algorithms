@@ -140,38 +140,67 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
-    rv(a, 1);
+    int n;
+    rd(n);
+    vl a(n);
+    rv(a);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vl pref(n + 1, 0);
+    F(i, 0, n - 1) pref[i + 1] = pref[i] + a[i];
+
+    ll total = pref[n];
+    ll lim = (total + 1) / 2;
+
+    vl pow2(n + 1);
+    pow2[0] = 1;
+    F(i, 1, n) pow2[i] = (pow2[i - 1] * 2) % MOD2;
+
+    vl ways(n + 1);
+    ways[0] = 1;
+    F(i, 1, n) ways[i] = pow2[i - 1];
+
+    vl L(n + 1);
+    L[0] = ways[0];
+    F(i, 1, n) L[i] = (L[i - 1] + ways[i]) % MOD2;
+
+    ll cnt = 0;
+    int l = 0;
+
+    F(r, 1, n) {
+        ll target = pref[r] - lim;
+        if (target < 0)
+            continue;
+
+        while (l + 1 < r && pref[l + 1] <= target) {
+            l++;
+        }
+
+        ll pre = L[l];
+        ll suf = ways[n - r];
+        ll t = (pre * suf) % MOD2;
+        cnt = (cnt + t) % MOD2;
     }
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+    ll all = pow2[n - 1];
+    ll ans = (all - cnt + MOD2) % MOD2;
+
+    if (total % 2 == 0) {
+        ll half = total / 2;
+        auto it = lower_bound(all(pref), half);
+        if (it != pref.end() && *it == half) {
+            int idx = distance(pref.begin(), it);
+            if (idx > 0 && idx < n) {
+                ans = (ans + 1) % MOD2;
             }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
         }
-    };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+    }
+
+    prt(ans);
 }
 
 int main() {

@@ -2,27 +2,69 @@
 using namespace std;
 using ll = long long;
 #define i128 __int128_t
-#define pb push_back
-#define pf push_front
-#define eb emplace_back
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
 #define all(x) (x).begin(), (x).end()
-using pii = pair<int, int>;
-using pll = pair<ll, ll>;
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
 #define ull unsigned long long
-#define For(i, n) for (int(i) = 0; (i) < (n); (i) += 1)
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
-constexpr long long inf = 0x3f3f3f3f3f3f3f3f / 2;
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
-    void debug() { cerr << "\n"; }
+    template<typename A, typename B>
+    ostream &operator<<(ostream &os, const pair<A, B> &p) {
+        return os << '(' << p.first << ", " << p.second << ')';
+    }
 
-    template<typename T, typename... Args>
-    void debug(const string &s, T x, Args... args) {
-        cerr << s << " = " << x;
-        if (sizeof...(args) > 0)
-            cerr << ", ";
-        debug(args...);
+    template<typename Tuple, size_t... Is>
+    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
+        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
+    }
+
+    template<typename... Args>
+    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
+        os << '(';
+        print_tuple(os, t, index_sequence_for<Args...>{});
+        return os << ')';
+    }
+
+    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
+    ostream &operator<<(ostream &os, const T &v) {
+        os << '{';
+        bool first = true;
+        for (auto &x: v) {
+            if (!first)
+                os << ", ";
+            first = false;
+            os << x;
+        }
+        return os << '}';
+    }
+
+    void debug_out() { cerr << endl; }
+
+    template<typename Head, typename... Tail>
+    void debug_out(Head H, Tail... T) {
+        cerr << H;
+        if (sizeof...(T))
+            cerr << " ";
+        debug_out(T...);
     }
 
     template<typename T>
@@ -38,7 +80,7 @@ namespace utils {
     }
 
     template<typename T>
-    void prt_vec(const vector<T> &v) {
+    void prv(const vector<T> &v) {
         for (size_t i = 0; i < v.size(); i++) {
             if (i)
                 cout << " ";
@@ -48,7 +90,7 @@ namespace utils {
     }
 
     template<typename T>
-    void prt_vec(const vector<T> &v, int start_index) {
+    void prv(const vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
             if (i > start_index)
                 cout << " ";
@@ -74,58 +116,29 @@ namespace utils {
     }
 
     template<typename T>
-    void rd_vec(vector<T> &v) {
+    void rv(vector<T> &v) {
         for (auto &x: v) {
             rd(x);
         }
     }
 
     template<typename T>
-    void rd_vec(vector<T> &v, int start_index) {
+    void rv(vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
             rd(v[i]);
         }
     }
-
-    struct range : ranges::view_base {
-        struct Iterator {
-            using iterator_category = random_access_iterator_tag;
-            using value_type = long long;
-            using difference_type = ptrdiff_t;
-            ll val, d;
-            Iterator() = default;
-            Iterator(ll val, ll d) : val(val), d(d) {};
-            value_type operator*() const { return val; }
-            Iterator &operator++() { return val += d, *this; }
-            Iterator operator++(int) {
-                Iterator tmp = *this;
-                ++(*this);
-                return tmp;
-            }
-            Iterator &operator--() { return val -= d, *this; }
-            Iterator operator--(int) {
-                Iterator tmp = *this;
-                --(*this);
-                return tmp;
-            }
-            difference_type operator-(const Iterator &other) const { return (val - other.val) / d; }
-            bool operator==(const Iterator &other) const { return val == other.val; }
-        };
-        Iterator Begin, End;
-        explicit range(ll n) : Begin(0, 1), End(max(n, ll{0}), 1) {};
-        range(ll a, ll b, ll d = ll(1)) : Begin(a, d), End(b, d) {
-            ll cnt = b == a or (b - a > 0) != (d > 0) ? 0 : (b - a) / d + bool((b - a) % d);
-            End.val = a + max(cnt, ll(0)) * d;
-        };
-        [[nodiscard]] Iterator begin() const { return Begin; }
-        [[nodiscard]] Iterator end() const { return End; };
-        [[nodiscard]] ptrdiff_t size() const { return End - Begin; }
-    };
 } // namespace utils
+
+#ifdef WOAIHUTAO
+#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
 
 using namespace utils;
 
-#define int ll
+constexpr int N = 1e6 + 5;
 
 int Multitest = 1;
 
@@ -135,36 +148,32 @@ void solve() {
     int n;
     rd(n);
 
-    vector<int> a(n);
-    rd_vec(a);
+    vp st;
+    F(i, 0, n - 1) {
+        ll x;
+        rd(x);
+        pii curr = {x, 1};
 
-    vector<pll> stk;
-
-    for (int i: range(n)) {
-        int sum = a[i];
-        int c = 1;
-        while (!stk.empty()) {
-            auto [val, cnt] = stk.back();
-            if (val < sum / c) {
+        while (!st.empty()) {
+            auto prev = st.back();
+            if ((i128) prev.first * curr.second >= (i128) curr.first * prev.second) {
+                st.pop_back();
+                curr.first += prev.first;
+                curr.second += prev.second;
+            } else {
                 break;
             }
-            sum += val * cnt;
-            c += cnt;
-            stk.pop_back();
         }
-
-        stk.eb(sum / c, c - sum % c);
-        if (sum % c) {
-            stk.eb(sum / c + 1, sum % c);
-        }
+        st.push_back(curr);
     }
 
-    int mx = stk.back().first;
-    int mn = stk.front().first;
+    ll mn = st.front().first / st.front().second;
+    ll mx = (st.back().first + st.back().second - 1) / st.back().second;
+
     prt(mx - mn);
 }
 
-signed main() {
+int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     init();
@@ -172,7 +181,7 @@ signed main() {
     if (Multitest) {
         rd(T);
     }
-    while (T--)
+    while (T--) {
         solve();
-    return 0;
+    }
 }

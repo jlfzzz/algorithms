@@ -138,40 +138,58 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 1e5 + 5;
+constexpr int B = 333;
 
-int Multitest = 1;
+int dp[B][N];
+char vis[B][N];
+
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
+    int n;
+    rd(n);
+
+    vi a(n + 1);
     rv(a, 1);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    int q;
+    rd(q);
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+    while (q--) {
+        int p, k;
+        rd(p, k);
+
+        if (k >= B) {
+            int ans = 0;
+            while (p <= n) {
+                ans++;
+                p += a[p] + k;
             }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
+
+            prt(ans);
+
+            continue;
         }
-    };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+
+        auto dfs = [&](this auto &&dfs, int p) -> int {
+            if (p > n) {
+                return 0;
+            }
+
+            int &memo = dp[k][p];
+            if (vis[k][p]) {
+                return memo;
+            }
+
+            vis[k][p] = 1;
+            return memo = 1 + dfs(p + a[p] + k);
+        };
+
+        prt(dfs(p));
+    }
 }
 
 int main() {

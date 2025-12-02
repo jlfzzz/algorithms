@@ -140,38 +140,41 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
-    rv(a, 1);
+    int n;
+    rd(n);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    string s;
+    rd(s);
+
+    vvi dp(n, vi(n, inf));
+    F(i, 0, n - 1) { dp[i][i] = 1; }
+
+    F(len, 2, n) {
+        F(l, 0, n - len) {
+            int r = l + len - 1;
+            dp[l][r] = 1 + dp[l + 1][r];
+            F(k, l + 1, r) {
+                if (s[l] == s[k]) {
+                    int cur = 0;
+                    if (k - 1 >= l + 1) {
+                        cur += dp[l + 1][k - 1];
+                    }
+                    cur += dp[k][r];
+                    if (cur < dp[l][r]) {
+                        dp[l][r] = cur;
+                    }
+                }
+            }
+            dbg(l, r, dp[l][r]);
+        }
     }
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
-        }
-    };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+    prt(dp[0][n - 1]);
 }
 
 int main() {

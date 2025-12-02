@@ -145,35 +145,70 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
-    rv(a, 1);
+    ll n, m, k;
+    rd(n, m, k);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    vp a(n);
+    F(i, 0, n - 1) { rd(a[i].fi, a[i].se); }
+    ranges::sort(a);
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
+    a.pb(inf, 0);
+    deque<pii> dq;
+    ll ans = 0;
+
+    F(i, 0, n - 1) {
+        auto [d1, cnt1] = a[i];
+        ll nd = a[i + 1].fi;
+        dq.pb(a[i]);
+        ll r = d1;
+        while (!dq.empty() && r < nd) {
+            if (dq.back().fi + k <= r) {
+                dq.clear();
+                break;
+            }
+
+            auto &back = dq.back();
+
+            if (back.se >= m) {
+                ll days = back.se / m;
+                ll limit = min(nd - r, back.fi + k - r);
+                ll step = min(days, limit);
+
+                ans += step;
+                r += step;
+                back.se -= step * m;
+                if (back.se == 0)
+                    dq.pop_back();
                 continue;
             }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
-        }
-    };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
-}
 
+            ll need = m;
+            while (need > 0 && !dq.empty()) {
+                auto &cur = dq.back();
+                if (cur.fi + k <= r) {
+                    dq.clear();
+                    break;
+                }
+
+                ll take = min(need, cur.se);
+                cur.se -= take;
+                need -= take;
+
+                if (cur.se == 0)
+                    dq.pop_back();
+            }
+
+            if (need == 0) {
+                ans++;
+                r++;
+            } else {
+                break;
+            }
+        }
+    }
+
+    prt(ans);
+}
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

@@ -45,7 +45,10 @@ struct Sieve {
     bool is_not_prime[N + 1]{};
     std::vector<int> primes;
     int min_prime_factor[N + 1]{};
-    int distinct_factors_count[N + 1]{};
+    int distinct_factors_count[N + 1]{}; // 不同质因子个数
+
+    int divisor_count[N + 1]{}; // 约数个数
+    int cnt_exp[N + 1]{}; // 最小质因子的指数
 
     Sieve() { init(N); }
 
@@ -54,24 +57,38 @@ struct Sieve {
         min_prime_factor[0] = min_prime_factor[1] = 0;
         distinct_factors_count[1] = 0;
 
+        divisor_count[1] = 1;
+        cnt_exp[1] = 0;
+
         for (int i = 2; i <= n; ++i) {
             if (!is_not_prime[i]) {
                 primes.push_back(i);
                 min_prime_factor[i] = i;
                 distinct_factors_count[i] = 1;
+
+                cnt_exp[i] = 1;
+                divisor_count[i] = 2;
             }
 
             for (int p: primes) {
-                if ((long long) i * p > n)
+                long long x = 1LL * i * p;
+                if (x > n)
                     break;
                 is_not_prime[i * p] = true;
                 min_prime_factor[i * p] = p;
 
                 if (i % p == 0) {
                     distinct_factors_count[i * p] = distinct_factors_count[i];
+
+                    cnt_exp[i * p] = cnt_exp[i] + 1;
+                    divisor_count[i * p] = divisor_count[i] / (cnt_exp[i] + 1) * (cnt_exp[i * p] + 1);
+
                     break;
                 } else {
                     distinct_factors_count[i * p] = distinct_factors_count[i] + 1;
+
+                    cnt_exp[i * p] = 1;
+                    divisor_count[i * p] = divisor_count[i] * 2;
                 }
             }
         }

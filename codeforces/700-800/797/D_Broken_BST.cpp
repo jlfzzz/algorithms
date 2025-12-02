@@ -140,38 +140,113 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
-    rv(a, 1);
+    int n;
+    rd(n);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vi a(n + 1);
+    vp g(n + 1);
+    vi deg(n + 1, 0);
+
+    F(i, 1, n) {
+        int x, y, z;
+        rd(x, y, z);
+
+        a[i] = x;
+        g[i].first = y;
+        g[i].second = z;
+
+        if (y != -1)
+            deg[y]++;
+        if (z != -1)
+            deg[z]++;
     }
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
+    int root = 1;
+    F(i, 1, n) {
+        if (deg[i] == 0)
+            root = i;
+    }
+
+    vi sz(n + 1);
+    auto dfs1 = [&](this auto &&self, int u) -> void {
+        sz[u] = 1;
+        auto [x, y] = g[u];
+        if (x != -1) {
+            self(x);
+            sz[u] += sz[x];
+        }
+        if (y != -1) {
+            self(y);
+            sz[u] += sz[y];
         }
     };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+    dfs1(root);
+
+    auto dfs2 = [&](this auto &&self, int u) -> multiset<pii> * {
+        if (g[u].first == -1 && g[u].second == -1) {
+            auto *st = new multiset<pii>;
+            st->insert({a[u], u});
+            return st;
+        }
+
+        int heavy = -1, light = -1;
+        int l = g[u].first, r = g[u].second;
+
+        if (l == -1)
+            heavy = r;
+        else if (r == -1)
+            heavy = l;
+        else
+            heavy = (sz[l] > sz[r] ? l : r);
+
+        light = (heavy == l ? r : l);
+
+        multiset<pii> *st = self(heavy);
+
+        if (heavy == l) {
+            auto it = st->lower_bound({a[u], -INF});
+            st->erase(it, st->end());
+        } else {
+            auto it = st->upper_bound({a[u], INF});
+            st->erase(st->begin(), it);
+        }
+
+        if (light != -1) {
+            multiset<pii> *small = self(light);
+
+            if (light == l) {
+                auto it = small->lower_bound({a[u], -INF});
+                small->erase(it, small->end());
+            } else {
+                auto it = small->upper_bound({a[u], INF});
+                small->erase(small->begin(), it);
+            }
+
+            for (auto &x: *small)
+                st->insert(x);
+            delete small;
+        }
+
+        st->insert({a[u], u});
+        return st;
+    };
+
+    multiset<pii> *st = dfs2(root);
+    int cnt = 0;
+    F(i, 1, n) {
+        auto it = st->lower_bound({a[i], -INF});
+        if (it != st->end() && it->first == a[i]) {
+            cnt++;
+        }
+    }
+
+    prt(n - cnt);
+    delete st;
 }
 
 int main() {

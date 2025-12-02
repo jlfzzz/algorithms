@@ -140,38 +140,65 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-void init() {}
+ll fac[10];
+
+void init() {
+    fac[0] = fac[1] = 1;
+    F(i, 2, 9) { fac[i] = fac[i - 1] * i; }
+}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
-    rv(a, 1);
+    ll w;
+    rd(w);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vl cnt(9);
+    rv(cnt, 1);
+
+    ll ans = 0;
+    ll BUFFER = 3000;
+
+    D(i, 8, 1) {
+        if (w - ans > BUFFER) {
+            ll left = w - ans - BUFFER;
+            ll can = left / i;
+
+            ll take = min(cnt[i], can);
+
+            take -= min(take, 800ll);
+
+            ans += take * i;
+            cnt[i] -= take;
+        }
     }
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
+    ll rem = w - ans;
+
+    bitset<5005> dp;
+    dp[0] = 1;
+
+    F(i, 1, 8) {
+        if (cnt[i] == 0)
+            continue;
+
+        ll count = min(cnt[i], 5000LL / i);
+
+        ll k = 1;
+        while (count > 0) {
+            ll take = min(k, count);
+            dp |= (dp << (take * i));
+            count -= take;
+            k <<= 1;
         }
-    };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+    }
+
+    D(j, min((ll) 5000, rem), 0) {
+        if (dp[j]) {
+            cout << ans + j << endl;
+            return;
+        }
+    }
 }
 
 int main() {

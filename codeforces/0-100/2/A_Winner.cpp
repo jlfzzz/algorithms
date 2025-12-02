@@ -140,38 +140,34 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
-    rv(a, 1);
+    int n;
+    rd(n);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vector<pair<string, ll>> a(n);
+    map<string, ll> cnt;
+    F(i, 0, n - 1) {
+        rd(a[i].first, a[i].second);
+        cnt[a[i].first] += a[i].second;
     }
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
+    ll mx = -INF;
+    for (auto &[s, t]: cnt) {
+        mx = max(mx, t);
+    }
+
+    map<string, ll> cnt2;
+    for (auto &[s, t]: a) {
+        cnt2[s] += t;
+        if (cnt2[s] >= mx && cnt[s] == mx) {
+            prt(s);
+            return;
         }
-    };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+    }
 }
 
 int main() {

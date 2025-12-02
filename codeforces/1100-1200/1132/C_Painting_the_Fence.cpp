@@ -140,38 +140,68 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
-    rv(a, 1);
+    int n, q;
+    rd(n, q);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vp segs(q);
+    rv(segs);
+
+    vi pref(n + 5);
+    for (auto [l, r]: segs) {
+        pref[l]++;
+        pref[r + 1]--;
     }
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
+    int pre = 0;
+    F(i, 1, n) {
+        pre += pref[i];
+        pref[i] = pre;
+    }
+
+    int total = 0;
+    F(i, 1, n) { total += pref[i] >= 1; }
+
+    vi ones(n + 2), twos(n + 2);
+    F(i, 1, n) {
+        if (pref[i] == 1) {
+            ones[i] = 1;
+        } else if (pref[i] == 2) {
+            twos[i] = 1;
         }
-    };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+    }
+
+    F(i, 1, n) {
+        ones[i] += ones[i - 1];
+        twos[i] += twos[i - 1];
+    }
+
+    int ans = inf;
+
+    F(i, 0, q - 1) {
+        auto [l1, r1] = segs[i];
+        F(j, i + 1, q - 1) {
+            auto [l2, r2] = segs[j];
+            int bad = 0;
+            bad += ones[r1] - ones[l1 - 1];
+            bad += ones[r2] - ones[l2 - 1];
+
+            int L = max(l1, l2);
+            int R = min(r1, r2);
+
+            if (L <= R) {
+                bad += twos[R] - twos[L - 1];
+            }
+
+            ans = min(ans, bad);
+        }
+    }
+
+    prt(total - ans);
 }
 
 int main() {

@@ -140,38 +140,34 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
+vi primes{2, 3, 5, 7};
+constexpr int U = 1 << 4;
+
 int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
-    rv(a, 1);
+    ll l, r;
+    rd(l, r);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    ll bad = 0;
+    F(i, 1, U - 1) {
+        ll mul = 1;
+        F(j, 0, 3) {
+            if (i >> j & 1) {
+                mul *= primes[j];
+            }
+        }
+
+        ll tot = r / mul - (l - 1) / mul;
+        if (popcount((unsigned) i) & 1) {
+            bad += tot;
+        } else
+            bad -= tot;
     }
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
-        }
-    };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+    prt(r - l + 1 - bad);
 }
 
 int main() {

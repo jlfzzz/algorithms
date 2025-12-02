@@ -144,35 +144,52 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
-    rv(a, 1);
+constexpr int DIR[4][4] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+void solve() {
+    int n, m;
+    rd(n, m);
+
+    vvi grid(n, vi(m));
+    F(i, 0, n - 1) { rv(grid[i]); }
+
+    vector<tuple<int, int, int>> cells;
+    ll cnt = 0;
+
+    F(i, 0, n - 1) {
+        F(j, 0, m - 1) {
+            cells.emplace_back(grid[i][j], i, j);
+            cnt += grid[i][j];
+        }
     }
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+    sort(all(cells));
+    vvi g(n, vi(m, -1));
+
+    for (auto &[v, r, c]: cells) {
+        int mx = -1;
+        for (auto &d: DIR) {
+            int nr = r + d[0];
+            int nc = c + d[1];
+
+            if (nr >= 0 && nr < n && nc >= 0 && nc < m) {
+                if (g[nr][nc] != -1) {
+                    mx = max(mx, g[nr][nc]);
+                }
             }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
         }
-    };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+
+        g[r][c] = mx + 1;
+        cnt -= g[r][c];
+    }
+
+    if (cnt % 2 != 0)
+        prt("Yes");
+    else
+        prt("No");
 }
+
+
 
 int main() {
     ios::sync_with_stdio(false);

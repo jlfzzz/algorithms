@@ -145,33 +145,46 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    ll n, c;
-    rd(n, c);
-    vl a(n + 1);
-    rv(a, 1);
+    int n;
+    rd(n);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vl a(n);
+    rv(a);
+
+    ll ans = INF;
+    for (ll c1 = 0; c1 <= 2; c1++) {
+        for (ll c2 = 0; c2 <= 2; c2++) {
+
+            ll c3 = 0;
+            bool f = true;
+
+            for (ll x: a) {
+                ll mn = INF;
+                bool found = false;
+                for (ll i = 0; i <= c1; i++) {
+                    for (ll j = 0; j <= c2; j++) {
+                        ll val = i * 1 + j * 2;
+                        if (x >= val && (x - val) % 3 == 0) {
+                            mn = min(mn, (x - val) / 3);
+                            found = true;
+                        }
+                    }
+                }
+
+                if (!found) {
+                    f = false;
+                    break;
+                }
+                c3 = max(c3, mn);
+            }
+
+            if (f) {
+                ans = min(ans, c1 + c2 + c3);
+            }
+        }
     }
 
-    vvl dp(n + 1, vl(2));
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp[u][1] = max(a[u], 0ll);
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-            dfs(v, u);
-            dp[u][1] += max({dp[v][1] - 2 * c, dp[v][0], 0ll});
-            dp[u][0] += max({dp[v][1], dp[v][0], 0ll});
-        }
-    };
-    dfs(1, 0);
-    prt(max(dp[1][0], dp[1][1]));
+    prt(ans);
 }
 
 int main() {
