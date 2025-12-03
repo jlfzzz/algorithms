@@ -140,30 +140,69 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
+struct Sieve {
+    bool is_not_prime[N + 1]{};
+    std::vector<int> primes;
+    int min_prime_factor[N + 1]{};
+    int distinct_factors_count[N + 1]{}; // 不同质因子个数
+
+    int divisor_count[N + 1]{}; // 约数个数
+    int cnt_exp[N + 1]{}; // 最小质因子的指数
+
+    Sieve() { init(N); }
+
+    void init(int n) {
+        is_not_prime[0] = is_not_prime[1] = true;
+        min_prime_factor[0] = min_prime_factor[1] = 0;
+        distinct_factors_count[1] = 0;
+
+        divisor_count[1] = 1;
+        cnt_exp[1] = 0;
+
+        for (int i = 2; i <= n; ++i) {
+            if (!is_not_prime[i]) {
+                primes.push_back(i);
+                min_prime_factor[i] = i;
+                distinct_factors_count[i] = 1;
+
+                cnt_exp[i] = 1;
+                divisor_count[i] = 2;
+            }
+
+            for (int p: primes) {
+                long long x = 1LL * i * p;
+                if (x > n)
+                    break;
+                is_not_prime[i * p] = true;
+                min_prime_factor[i * p] = p;
+
+                if (i % p == 0) {
+                    distinct_factors_count[i * p] = distinct_factors_count[i];
+
+                    cnt_exp[i * p] = cnt_exp[i] + 1;
+                    divisor_count[i * p] = divisor_count[i] / (cnt_exp[i] + 1) * (cnt_exp[i * p] + 1);
+
+                    break;
+                } else {
+                    distinct_factors_count[i * p] = distinct_factors_count[i] + 1;
+
+                    cnt_exp[i * p] = 1;
+                    divisor_count[i * p] = divisor_count[i] * 2;
+                }
+            }
+        }
+    }
+
+    [[nodiscard]] bool is_prime(int x) const {
+        if (x <= 1 || x > N)
+            return false;
+        return !is_not_prime[x];
+    }
+} sieve;
+
 int Multitest = 0;
 
 void init() {}
-
-struct BIT {
-    vector<int> tree;
-    int n;
-    BIT(int n) : tree(n + 1), n(n) {}
-
-    void add(int i, int val) {
-        for (; i <= n; i += i & -i) {
-            tree[i] += val;
-        }
-    }
-
-    int pre(int i) {
-        int res = 0;
-        while (i) {
-            res += tree[i];
-            i -= i & -i;
-        }
-        return res;
-    }
-};
 
 void solve() {
     int n;
@@ -172,28 +211,40 @@ void solve() {
     vi a(n + 1);
     rv(a, 1);
 
-    ll ans = 0;
-    vvi lazy(n + 10);
-    BIT bit(n + 10);
+    vi pos(n + 1);
+    F(i, 1, n) { pos[a[i]] = i; }
 
+    vp ans;
     F(i, 1, n) {
-        for (int idx: lazy[i]) {
-            bit.add(idx, -1);
+        if (pos[i] == i) {
+            continue;
         }
 
-        int cur = a[i];
-        int t = bit.pre(min(cur, i - 1));
-        dbg(i, t);
-        ans += t;
-        if (cur > i) {
-            bit.add(i, 1);
-            if (cur + 1 <= n) {
-                lazy[cur + 1].pb(i);
-            }
+        int p = pos[i];
+        int d = p - i;
+
+        while (d > 0) {
+            auto it = ranges::upper_bound(sieve.primes, d + 1);
+            it--;
+            int x = *it;
+            int l = p - x + 1;
+
+            ans.pb(l, p);
+            pos[a[l]] = p;
+            pos[a[p]] = l;
+
+            swap(a[p], a[l]);
+
+            p = l;
+
+            d -= (x - 1);
         }
     }
 
-    prt(ans);
+    prt(SZ(ans));
+    for (auto [x, y]: ans) {
+        prt(x, y);
+    }
 }
 
 int main() {

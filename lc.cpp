@@ -64,45 +64,10 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
-class Solution {
-public:
-    long long maxRunTime(int n, vector<int> &batteries) {
-        ll lo = 0;
-        ll hi = LONG_LONG_MAX;
-        ll ans = 0;
-
-        while (lo < hi) {
-            ll mid = lo + (hi - lo) / 2;
-            auto check = [&]() {
-                int cnt = 0;
-                ll sum = 0;
-                for (ll x: batteries) {
-                    if (x >= mid) {
-                        cnt++;
-                    } else {
-                        sum += x;
-                    }
-                }
-
-                return sum / mid + cnt >= n;
-            };
-
-            if (check()) {
-                ans = mid;
-                lo = mid + 1;
-            } else {
-                hi = mid;
-            }
-        }
-
-        return ans;
-    }
-};
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     Solution sol1;
     ll n = 11;
-    vector<int> nums1{}, nums{};
 }
