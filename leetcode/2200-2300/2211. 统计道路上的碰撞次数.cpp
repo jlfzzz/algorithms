@@ -66,22 +66,38 @@ using ll = long long;
 
 class Solution {
 public:
-    int minSteps(int n) {
-        vector<int> dp(n + 1);
-        dp[1] = 0;
-
-        for (int i = 2; i <= n; i++) {
-            dp[i] = i;
-
-            for (int j = i / 2; j >= 1; j--) {
-                if (i % j == 0) {
-                    dp[i] = dp[j] + (i / j);
-                    break;
+    int countCollisions(string directions) {
+        int n = directions.size();
+        stack<char> stk;
+        int ans = 0;
+        for (char c: directions) {
+            if (c == 'S') {
+                while (!stk.empty() && stk.top() == 'R') {
+                    stk.pop();
+                    ans++;
                 }
+                stk.push('S');
+            } else if (c == 'L') {
+                if (stk.empty() || stk.top() == 'L') {
+                    continue;
+                }
+                if (stk.top() == 'R') {
+                    stk.pop();
+                    ans += 2;
+                    while (!stk.empty() && stk.top() == 'R') {
+                        ans++;
+                        stk.pop();
+                    }
+                    stk.push('S');
+                } else {
+                    ans++;
+                }
+            } else {
+                stk.push('R');
             }
         }
 
-        return dp[n];
+        return ans;
     }
 };
 

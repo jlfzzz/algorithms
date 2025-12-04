@@ -49,9 +49,8 @@ namespace utils {
         os << '{';
         bool first = true;
         for (auto &x: v) {
-            if (!first) {
+            if (!first)
                 os << ", ";
-            }
             first = false;
             os << x;
         }
@@ -63,9 +62,8 @@ namespace utils {
     template<typename Head, typename... Tail>
     void debug_out(Head H, Tail... T) {
         cerr << H;
-        if (sizeof...(T)) {
+        if (sizeof...(T))
             cerr << " ";
-        }
         debug_out(T...);
     }
 
@@ -84,9 +82,8 @@ namespace utils {
     template<typename T>
     void prv(const vector<T> &v) {
         for (size_t i = 0; i < v.size(); i++) {
-            if (i) {
+            if (i)
                 cout << " ";
-            }
             cout << v[i];
         }
         cout << "\n";
@@ -95,9 +92,8 @@ namespace utils {
     template<typename T>
     void prv(const vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
-            if (i > start_index) {
+            if (i > start_index)
                 cout << " ";
-            }
             cout << v[i];
         }
         cout << "\n";
@@ -144,100 +140,64 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
+    vl a(n + 1);
+    rv(a, 1);
 
-    vector<pii> edges(m);
-    F(i, 0, m - 1) {
-        int a, b;
-        rd(a, b);
-        if (a > b) {
-            swap(a, b);
+    vl pref(n + 2), pref2(n + 2);
+    F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
+
+    vi L(n + 2), R(n + 2), stk;
+    F(i, 0, n) {
+        while (!stk.empty() && pref[stk.back()] < pref[i]) {
+            stk.pop_back();
         }
-        edges[i] = {a, b};
+        L[i] = stk.empty() ? -1 : stk.back();
+        stk.pb(i);
     }
 
-    auto check = [&](int i, int j) -> bool {
-        auto [a, b] = edges[i];
-        auto [c, d] = edges[j];
-        return (a < c && c < b && b < d) || (c < a && a < d && d < b);
-    };
-
-    vvi g(2 * m);
-    F(i, 0, m - 1) {
-        F(j, i + 1, m - 1) {
-            if (check(i, j)) {
-                g[2 * i].pb(2 * j + 1);
-                g[2 * i + 1].pb(2 * j);
-                g[2 * j].pb(2 * i + 1);
-                g[2 * j + 1].pb(2 * i);
-            }
+    stk.clear();
+    D(i, n, 0) {
+        while (!stk.empty() && pref[stk.back()] <= pref[i]) {
+            stk.pop_back();
         }
+        R[i] = stk.empty() ? (n + 1) : stk.back();
+        stk.pb(i);
     }
 
-    int timestamp = 0;
-    vector<int> dfn(2 * m), low(2 * m), in_stack(2 * m), comp(2 * m);
-    vector<vector<int>> comps;
-    stack<int> stk;
+    pref2[0] = pref[0];
+    F(i, 1, n) { pref2[i] = pref2[i - 1] + pref[i]; }
 
-    auto tarjan = [&](this auto &&tarjan, int u) -> void {
-        dfn[u] = low[u] = ++timestamp;
-        stk.push(u);
-        in_stack[u] = true;
+    ll ans = 0;
+    F(p, 1, n) {
+        int l = L[p];
+        int r = R[p];
 
-        for (int v: g[u]) {
-            if (!dfn[v]) {
-                tarjan(v);
-                low[u] = min(low[u], low[v]);
-            } else if (in_stack[v]) {
-                low[u] = min(low[u], dfn[v]);
-            }
-        }
+        ll cntL = 1LL * p - 1 - l;
 
-        if (low[u] == dfn[u]) {
-            vector<int> scc;
-            while (true) {
-                int x = stk.top();
-                stk.pop();
-                in_stack[x] = false;
-                comp[x] = comps.size();
-                scc.push_back(x);
-                if (x == u) {
-                    break;
-                }
-            }
-            comps.emplace_back(scc);
-        }
-    };
+        ll cntR = 1LL * r - p;
 
-    F(i, 0, 2 * m - 1) {
-        if (!dfn[i]) {
-            tarjan(i);
-        }
-    }
-
-    F(i, 0, m - 1) {
-        if (comp[2 * i] == comp[2 * i + 1]) {
-            prt("Impossible");
-            return;
-        }
-    }
-
-    string ans(m, ' ');
-    F(i, 0, m - 1) {
-        if (comp[2 * i] > comp[2 * i + 1]) {
-            ans[i] = 'i';
+        ll sumLeft;
+        if (l == -1) {
+            sumLeft = pref2[p - 1];
         } else {
-            ans[i] = 'o';
+            sumLeft = pref2[p - 1] - pref2[l];
         }
+
+        ll t = cntL * pref[p] - sumLeft;
+        ans += cntR * t;
     }
+
     prt(ans);
 }
+
+
 
 int main() {
     ios::sync_with_stdio(false);

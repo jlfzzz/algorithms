@@ -66,19 +66,18 @@ using ll = long long;
 
 class Solution {
 public:
-    int minSteps(int n) {
-        vector<int> dp(n + 1);
-        dp[1] = 0;
-
-        for (int i = 2; i <= n; i++) {
-            dp[i] = i;
-
-            for (int j = i / 2; j >= 1; j--) {
-                if (i % j == 0) {
-                    dp[i] = dp[j] + (i / j);
-                    break;
+    int climbStairs(int n, vector<int> &costs) {
+        vector<int> dp(n + 10, 2e9);
+        dp[0] = 0;
+        for (int i = 1; i <= n; i++) {
+            int c = costs[i - 1];
+            int mn = 2e9;
+            for (int d = 1; d <= 3; d++) {
+                if (i - d >= 0) {
+                    mn = min(mn, dp[i - d] + c + d * d);
                 }
             }
+            dp[i] = mn;
         }
 
         return dp[n];

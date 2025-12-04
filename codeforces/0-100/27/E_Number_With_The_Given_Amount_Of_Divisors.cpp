@@ -49,9 +49,8 @@ namespace utils {
         os << '{';
         bool first = true;
         for (auto &x: v) {
-            if (!first) {
+            if (!first)
                 os << ", ";
-            }
             first = false;
             os << x;
         }
@@ -63,9 +62,8 @@ namespace utils {
     template<typename Head, typename... Tail>
     void debug_out(Head H, Tail... T) {
         cerr << H;
-        if (sizeof...(T)) {
+        if (sizeof...(T))
             cerr << " ";
-        }
         debug_out(T...);
     }
 
@@ -84,9 +82,8 @@ namespace utils {
     template<typename T>
     void prv(const vector<T> &v) {
         for (size_t i = 0; i < v.size(); i++) {
-            if (i) {
+            if (i)
                 cout << " ";
-            }
             cout << v[i];
         }
         cout << "\n";
@@ -95,9 +92,8 @@ namespace utils {
     template<typename T>
     void prv(const vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
-            if (i > start_index) {
+            if (i > start_index)
                 cout << " ";
-            }
             cout << v[i];
         }
         cout << "\n";
@@ -149,94 +145,35 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-    vector<pii> edges(m);
-    F(i, 0, m - 1) {
-        int a, b;
-        rd(a, b);
-        if (a > b) {
-            swap(a, b);
-        }
-        edges[i] = {a, b};
-    }
+    vector<i128> ps{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71};
 
-    auto check = [&](int i, int j) -> bool {
-        auto [a, b] = edges[i];
-        auto [c, d] = edges[j];
-        return (a < c && c < b && b < d) || (c < a && a < d && d < b);
-    };
-
-    vvi g(2 * m);
-    F(i, 0, m - 1) {
-        F(j, i + 1, m - 1) {
-            if (check(i, j)) {
-                g[2 * i].pb(2 * j + 1);
-                g[2 * i + 1].pb(2 * j);
-                g[2 * j].pb(2 * i + 1);
-                g[2 * j + 1].pb(2 * i);
-            }
-        }
-    }
-
-    int timestamp = 0;
-    vector<int> dfn(2 * m), low(2 * m), in_stack(2 * m), comp(2 * m);
-    vector<vector<int>> comps;
-    stack<int> stk;
-
-    auto tarjan = [&](this auto &&tarjan, int u) -> void {
-        dfn[u] = low[u] = ++timestamp;
-        stk.push(u);
-        in_stack[u] = true;
-
-        for (int v: g[u]) {
-            if (!dfn[v]) {
-                tarjan(v);
-                low[u] = min(low[u], low[v]);
-            } else if (in_stack[v]) {
-                low[u] = min(low[u], dfn[v]);
-            }
-        }
-
-        if (low[u] == dfn[u]) {
-            vector<int> scc;
-            while (true) {
-                int x = stk.top();
-                stk.pop();
-                in_stack[x] = false;
-                comp[x] = comps.size();
-                scc.push_back(x);
-                if (x == u) {
-                    break;
-                }
-            }
-            comps.emplace_back(scc);
-        }
-    };
-
-    F(i, 0, 2 * m - 1) {
-        if (!dfn[i]) {
-            tarjan(i);
-        }
-    }
-
-    F(i, 0, m - 1) {
-        if (comp[2 * i] == comp[2 * i + 1]) {
-            prt("Impossible");
+    i128 ans = i128(INF) * INF;
+    auto dfs = [&](this auto &&dfs, int cur, int idx, int pre, i128 prod) -> void {
+        if (cur == 1) {
+            ans = min(ans, prod);
             return;
         }
-    }
 
-    string ans(m, ' ');
-    F(i, 0, m - 1) {
-        if (comp[2 * i] > comp[2 * i + 1]) {
-            ans[i] = 'i';
-        } else {
-            ans[i] = 'o';
+        for (int d = pre; d >= 2; d--) {
+            if (cur % d == 0) {
+                i128 temp = prod;
+                F(j, 1, d - 1) {
+                    temp *= ps[idx];
+                    if (temp > ans) {
+                        break;
+                    }
+                }
+                if (temp <= ans) {
+                    dfs(cur / d, idx + 1, d, temp);
+                }
+            }
         }
-    }
-    prt(ans);
+    };
+    dfs(n, 0, n, 1);
+    prt((ll) ans);
 }
 
 int main() {

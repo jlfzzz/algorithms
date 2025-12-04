@@ -24,7 +24,7 @@ constexpr int MOD2 = int(1e9 + 7);
 constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define L(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
     template<typename A, typename B>
@@ -49,9 +49,8 @@ namespace utils {
         os << '{';
         bool first = true;
         for (auto &x: v) {
-            if (!first) {
+            if (!first)
                 os << ", ";
-            }
             first = false;
             os << x;
         }
@@ -63,9 +62,8 @@ namespace utils {
     template<typename Head, typename... Tail>
     void debug_out(Head H, Tail... T) {
         cerr << H;
-        if (sizeof...(T)) {
+        if (sizeof...(T))
             cerr << " ";
-        }
         debug_out(T...);
     }
 
@@ -84,9 +82,8 @@ namespace utils {
     template<typename T>
     void prv(const vector<T> &v) {
         for (size_t i = 0; i < v.size(); i++) {
-            if (i) {
+            if (i)
                 cout << " ";
-            }
             cout << v[i];
         }
         cout << "\n";
@@ -95,9 +92,8 @@ namespace utils {
     template<typename T>
     void prv(const vector<T> &v, int start_index) {
         for (int i = start_index; i < (int) v.size(); i++) {
-            if (i > start_index) {
+            if (i > start_index)
                 cout << " ";
-            }
             cout << v[i];
         }
         cout << "\n";
@@ -142,102 +138,143 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 1e5 + 5;
+
+struct Node {
+    ll val = INF;
+};
+
+class PST {
+private:
+    int n, ts;
+    std::vector<int> lc, rc;
+    std::vector<Node> tree;
+
+    void newnode(int pre, int cur) {
+        lc[cur] = lc[pre];
+        rc[cur] = rc[pre];
+        tree[cur] = tree[pre];
+    }
+
+    Node merge(const Node &left, const Node &right) { return Node{min(left.val, right.val)}; }
+
+    int _build(int l, int r) {
+        int cur = ++ts;
+        tree[cur] = Node{INF};
+        if (l == r) {
+            return cur;
+        }
+        int m = (l + r) / 2;
+        lc[cur] = _build(l, m);
+        rc[cur] = _build(m + 1, r);
+        tree[cur] = merge(tree[lc[cur]], tree[rc[cur]]);
+        return cur;
+    }
+
+    int _update(int pre, int l, int r, int pos, ll val) {
+        int cur = ++ts;
+        newnode(pre, cur);
+        if (l == r) {
+            tree[cur].val = val;
+            return cur;
+        }
+        int m = (l + r) / 2;
+        if (pos <= m)
+            lc[cur] = _update(lc[pre], l, m, pos, val);
+        else
+            rc[cur] = _update(rc[pre], m + 1, r, pos, val);
+
+        tree[cur] = merge(tree[lc[cur]], tree[rc[cur]]);
+        return cur;
+    }
+
+    ll _query(int cur, int l, int r, int ql, int qr) {
+        if (ql > r || qr < l)
+            return INF;
+        if (ql <= l && r <= qr)
+            return tree[cur].val;
+        int m = (l + r) / 2;
+        return min(_query(lc[cur], l, m, ql, qr), _query(rc[cur], m + 1, r, ql, qr));
+    }
+
+public:
+    PST(int n) : n(n), ts(0), lc(40 * n + 5), rc(40 * n + 5), tree(40 * n + 5) {}
+
+    int build() { return _build(1, n); }
+
+    int update(int pre_version, int pos, ll val) { return _update(pre_version, 1, n, pos, val); }
+
+    ll query(int cur_version, int l, int r) { return _query(cur_version, 1, n, l, r); }
+};
 
 int Multitest = 0;
+vi g[N];
+int tin[N], tout[N], dep[N];
+int ts;
+ll a[N];
+vi depth[N];
+int roots[N];
+
+void dfs(int u, int p, int d) {
+    tin[u] = ++ts;
+    dep[u] = d;
+    depth[d].push_back(u);
+    for (int v: g[u]) {
+        if (v != p) {
+            dfs(v, u, d + 1);
+        }
+    }
+    tout[u] = ts;
+}
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n, r;
+    rd(n, r);
+    L(i, 1, n) rd(a[i]);
 
-    vector<pii> edges(m);
-    F(i, 0, m - 1) {
-        int a, b;
-        rd(a, b);
-        if (a > b) {
-            swap(a, b);
-        }
-        edges[i] = {a, b};
+    ts = 0;
+    L(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
 
-    auto check = [&](int i, int j) -> bool {
-        auto [a, b] = edges[i];
-        auto [c, d] = edges[j];
-        return (a < c && c < b && b < d) || (c < a && a < d && d < b);
-    };
+    dfs(r, 0, 1);
+    int mxD = 0;
+    L(i, 1, n) mxD = max(mxD, dep[i]);
 
-    vvi g(2 * m);
-    F(i, 0, m - 1) {
-        F(j, i + 1, m - 1) {
-            if (check(i, j)) {
-                g[2 * i].pb(2 * j + 1);
-                g[2 * i + 1].pb(2 * j);
-                g[2 * j].pb(2 * i + 1);
-                g[2 * j + 1].pb(2 * i);
-            }
+    PST pst(n);
+    roots[0] = pst.build();
+
+    L(d, 1, mxD) {
+        int t = roots[d - 1];
+        for (int u: depth[d]) {
+            t = pst.update(t, tin[u], a[u]);
         }
+        roots[d] = t;
     }
 
-    int timestamp = 0;
-    vector<int> dfn(2 * m), low(2 * m), in_stack(2 * m), comp(2 * m);
-    vector<vector<int>> comps;
-    stack<int> stk;
+    int m;
+    rd(m);
+    int last = 0;
+    while (m--) {
+        int p, q;
+        rd(p, q);
+        int x = (p + last) % n + 1;
+        int k = (q + last) % n;
 
-    auto tarjan = [&](this auto &&tarjan, int u) -> void {
-        dfn[u] = low[u] = ++timestamp;
-        stk.push(u);
-        in_stack[u] = true;
+        int mx = min(mxD, dep[x] + k);
 
-        for (int v: g[u]) {
-            if (!dfn[v]) {
-                tarjan(v);
-                low[u] = min(low[u], low[v]);
-            } else if (in_stack[v]) {
-                low[u] = min(low[u], dfn[v]);
-            }
-        }
+        ll ans = pst.query(roots[mx], tin[x], tout[x]);
 
-        if (low[u] == dfn[u]) {
-            vector<int> scc;
-            while (true) {
-                int x = stk.top();
-                stk.pop();
-                in_stack[x] = false;
-                comp[x] = comps.size();
-                scc.push_back(x);
-                if (x == u) {
-                    break;
-                }
-            }
-            comps.emplace_back(scc);
-        }
-    };
-
-    F(i, 0, 2 * m - 1) {
-        if (!dfn[i]) {
-            tarjan(i);
-        }
+        prt(ans);
+        last = ans % n;
     }
-
-    F(i, 0, m - 1) {
-        if (comp[2 * i] == comp[2 * i + 1]) {
-            prt("Impossible");
-            return;
-        }
-    }
-
-    string ans(m, ' ');
-    F(i, 0, m - 1) {
-        if (comp[2 * i] > comp[2 * i + 1]) {
-            ans[i] = 'i';
-        } else {
-            ans[i] = 'o';
-        }
-    }
-    prt(ans);
 }
+
 
 int main() {
     ios::sync_with_stdio(false);
