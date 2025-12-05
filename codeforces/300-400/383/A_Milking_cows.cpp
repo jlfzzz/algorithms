@@ -5,9 +5,6 @@ using ll = long long;
 #define db long double
 #define pb emplace_back
 #define pf emplace_front
-#define pob pop_back
-#define ep emplace
-#define ins insert
 #define all(x) (x).begin(), (x).end()
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
@@ -143,12 +140,28 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    ll cnt = 0;
+    ll ans = 0;
+    F(i, 1, n) {
+        int t;
+        rd(t);
+
+        if (t == 1) {
+            cnt++;
+        } else {
+            ans += cnt;
+        }
+    }
+
+    prt(ans);
 }
 
 int main() {

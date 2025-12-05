@@ -5,9 +5,6 @@ using ll = long long;
 #define db long double
 #define pb emplace_back
 #define pf emplace_front
-#define pob pop_back
-#define ep emplace
-#define ins insert
 #define all(x) (x).begin(), (x).end()
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
@@ -143,12 +140,60 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    vvi g(n + 1);
+    vi a(n + 1);
+    int root = -1;
+    int sum = 0;
+
+    F(i, 1, n) {
+        int fa, t;
+        rd(fa, t);
+
+        if (fa == 0) {
+            root = i;
+        }
+        g[fa].pb(i);
+        sum += t;
+        a[i] = t;
+    }
+
+    if (sum % 3) {
+        prt(-1);
+        return;
+    }
+
+    vi ans;
+    dbg(sum);
+
+    auto dfs = [&](this auto &&dfs, int u) -> int {
+        int s = a[u];
+        for (int v: g[u]) {
+            s += dfs(v);
+        }
+        dbg(u, s);
+        if (s == sum / 3 && ans.size() < 3) {
+            ans.pb(u);
+            return 0;
+        }
+        return s;
+    };
+    int t = dfs(root);
+
+    dbg(t);
+
+    if (t == 0 && SZ(ans) == 3) {
+        prt(ans[0], ans[1]);
+    } else {
+        prt(-1);
+    }
 }
 
 int main() {

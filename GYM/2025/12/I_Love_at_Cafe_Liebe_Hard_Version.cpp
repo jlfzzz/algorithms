@@ -5,9 +5,6 @@ using ll = long long;
 #define db long double
 #define pb emplace_back
 #define pf emplace_front
-#define pob pop_back
-#define ep emplace
-#define ins insert
 #define all(x) (x).begin(), (x).end()
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
@@ -148,7 +145,91 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    ll n, m, v;
+    rd(n, m, v);
+
+    string s;
+    rd(s);
+    s = '#' + s;
+
+    struct Trade {
+        db a;
+        int x;
+        db b;
+        int y;
+        db c;
+        int z;
+    };
+
+    vector<Trade> trades;
+    vvi adj(n + 1);
+
+    F(i, 1, m) {
+        db a, b, c;
+        int x, y, z;
+        rd(a, x, b, y, c, z);
+        trades.push_back({a, x, b, y, c, z});
+        adj[x].pb(i - 1);
+        adj[y].pb(i - 1);
+    }
+
+    vector<db> dis(n + 1, 1e300);
+    vector<bool> vis(n + 1, false);
+    vector<int> cnt(n + 1, 0);
+    queue<int> q;
+
+    F(i, 1, n) {
+        if (s[i] == '1') {
+            dis[i] = 1.0;
+            if (!vis[i]) {
+                vis[i] = true;
+                q.push(i);
+                cnt[i] = 1;
+            }
+        }
+    }
+
+    auto spfa = [&]() -> bool {
+        int limit = 2000000;
+        while (!q.empty()) {
+            if (limit-- == 0)
+                break;
+
+            int u = q.front();
+            q.pop();
+            vis[u] = false;
+
+            if (dis[1] < 1e-15)
+                return false;
+
+            for (int idx: adj[u]) {
+                auto &t = trades[idx];
+                if (dis[t.x] < 1e299 && dis[t.y] < 1e299) {
+                    db new_cost = (t.a * dis[t.x] + t.b * dis[t.y]) / t.c;
+                    if (new_cost < dis[t.z] - 1e-15) {
+                        dis[t.z] = new_cost;
+                        if (!vis[t.z]) {
+                            q.push(t.z);
+                            vis[t.z] = true;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    };
+
+    if (!spfa() || dis[1] < 1e-15) {
+        cout << -1 << endl;
+        return;
+    }
+
+    cout << fixed << setprecision(15);
+    if (dis[1] > 1e299) {
+        cout << 0.0 << endl;
+    } else {
+        cout << (db) v / dis[1] << endl;
+    }
 }
 
 int main() {

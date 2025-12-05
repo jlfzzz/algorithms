@@ -147,8 +147,52 @@ int Multitest = 1;
 
 void init() {}
 
+ll isqrt128(__int128 x) {
+    if (x < 0)
+        return -1;
+    auto dx = (long double) x;
+    ll r = (ll) floor(sqrtl(dx));
+    while ((__int128) (r + 1) * (r + 1) <= x)
+        ++r;
+    while ((__int128) r * r > x)
+        --r;
+    return r;
+}
+
 void solve() {
-    
+    ll c_in, d_in;
+    rd(c_in, d_in);
+
+    i128 c = c_in;
+    i128 d = c_in + d_in;
+
+    string d_str = to_string((ll) d);
+    int n = SZ(d_str);
+    i128 pow10 = 1;
+
+    ll ans = 0;
+    F(i, 1, n) {
+        c *= 10;
+
+        i128 lower_bound = c_in + 1;
+        if (lower_bound < pow10)
+            lower_bound = pow10;
+        i128 L = c + lower_bound;
+
+        i128 t = pow10 * 10 - 1;
+        if (t > d)
+            t = d;
+
+        i128 R = c + t;
+
+        if (L <= R) {
+            ans += isqrt128(R) - isqrt128(L - 1);
+        }
+
+        pow10 *= 10;
+    }
+
+    prt(ans);
 }
 
 int main() {

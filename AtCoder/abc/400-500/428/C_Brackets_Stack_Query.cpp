@@ -143,12 +143,48 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int q;
+    rd(q);
+
+    deque<pii> dq;
+    int bad = 0;
+    int sum = 0;
+
+    while (q--) {
+        int op;
+        rd(op);
+
+        if (op == 1) {
+            char c;
+            rd(c);
+
+            if (c == ')') {
+                sum--;
+                int t = 0;
+                if (sum < 0) {
+                    t = 1;
+                    bad++;
+                }
+                dq.pb(-1, t);
+            } else {
+                sum++;
+                dq.pb(1, 0);
+            }
+        } else {
+            auto [t1, t2] = dq.back();
+            dq.pob();
+            sum -= t1;
+
+            bad -= t2;
+        }
+
+        prt((sum == 0 && bad == 0) ? "Yes" : "No");
+    }
 }
 
 int main() {

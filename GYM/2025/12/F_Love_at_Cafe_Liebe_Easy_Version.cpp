@@ -5,9 +5,6 @@ using ll = long long;
 #define db long double
 #define pb emplace_back
 #define pf emplace_front
-#define pob pop_back
-#define ep emplace
-#define ins insert
 #define all(x) (x).begin(), (x).end()
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
@@ -148,7 +145,64 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    ll n, m, v;
+    rd(n, m, v);
+
+    string s;
+    rd(s);
+    s = '#' + s;
+
+    struct Trade {
+        int a, x, b, y, z;
+    };
+
+    vector<Trade> trades;
+    vvi adj(n + 1);
+
+    F(i, 1, m) {
+        int a, x, b, y, c, z;
+        rd(a, x, b, y, c, z);
+        trades.push_back({a, x, b, y, z});
+        adj[x].pb(i - 1);
+        adj[y].pb(i - 1);
+    }
+
+    priority_queue<pair<db, int>, vector<pair<db, int>>, greater<>> pq;
+    vector<db> ans(n + 1, 1e300);
+
+    F(i, 1, n) {
+        if (s[i] == '1') {
+            ans[i] = 1.0;
+            pq.emplace(1.0, i);
+        }
+    }
+
+    while (!pq.empty()) {
+        auto [cost, u] = pq.top();
+        pq.pop();
+
+        if (cost > ans[u]) {
+            continue;
+        }
+
+        for (int idx: adj[u]) {
+            const auto &t = trades[idx];
+            if (ans[t.x] < 1e299 && ans[t.y] < 1e299) {
+                db ncost = (db) t.a * ans[t.x] + (db) t.b * ans[t.y];
+                if (ncost < ans[t.z]) {
+                    ans[t.z] = ncost;
+                    pq.emplace(ncost, t.z);
+                }
+            }
+        }
+    }
+
+    cout << fixed << setprecision(15);
+    if (ans[1] > 1e299) {
+        cout << 0.0 << endl;
+    } else {
+        cout << (db) v / ans[1] << endl;
+    }
 }
 
 int main() {

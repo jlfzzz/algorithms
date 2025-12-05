@@ -147,8 +147,18 @@ int Multitest = 1;
 
 void init() {}
 
+
+const pii arr[4] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
+const int U = 1 << 4;
+
 void solve() {
-    
+    int n;
+    rd(n);
+
+    vp a(n);
+    rv(a);
+
+    popcount((ull) 10);
 }
 
 int main() {

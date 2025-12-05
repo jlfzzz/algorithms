@@ -5,9 +5,6 @@ using ll = long long;
 #define db long double
 #define pb emplace_back
 #define pf emplace_front
-#define pob pop_back
-#define ep emplace
-#define ins insert
 #define all(x) (x).begin(), (x).end()
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
@@ -140,12 +137,6 @@ namespace utils {
 #endif
 
 using namespace utils;
-
-constexpr int N = 1e6 + 5;
-
-int Multitest = 1;
-
-void init() {}
 
 namespace atcoder {
     namespace internal {
@@ -400,106 +391,90 @@ namespace atcoder {
 } // namespace atcoder
 
 struct S {
-    ll sum, len;
+    int on, off, len;
 };
 
 struct F {
-    ll lazy;
+    int lazy;
 };
 
-S op(S a, S b) { return {a.sum + b.sum, a.len + b.len}; }
+S op(S a, S b) { return {a.on + b.on, a.off + b.off, a.len + b.len}; }
 
-S e() { return {0, 0}; }
+S e() { return {0, 0, 0}; }
 
 S mapping(F f, S x) {
     if (f.lazy) {
-        x.sum = x.len * f.lazy;
+        swap(x.on, x.off);
     }
     return x;
 }
 
 F composition(F f, F g) {
-    if (f.lazy)
-        return f;
+    g.lazy ^= f.lazy;
     return g;
 }
 
 F id() { return {0}; }
 
+constexpr int N = 1e6 + 5;
+
+int Multitest = 0;
+
+void init() {}
 
 void solve() {
-    int n, k, q;
-    rd(n, k, q);
+    int n;
+    rd(n);
 
-    vi a(n + 1);
-    rv(a, 1);
+    vvi g(n + 1);
 
-    vi vals(n + 1);
-    map<int, int> count;
-    multiset<pii> window;
-    L(i, 1, n) { a[i] -= i; }
+    L(i, 2, n) {
+        int fa;
+        rd(fa);
+        g[fa].pb(i);
+    }
+
+    vi tin(n + 1), tout(n + 1);
+    int ts = 0;
+    auto dfs = [&](this auto &&dfs, int u) -> void {
+        tin[u] = ++ts;
+        for (int v: g[u]) {
+            dfs(v);
+        }
+
+        tout[u] = ts;
+    };
+    dfs(1);
+
+    vector<S> tree_arr(n + 100);
     L(i, 1, n) {
-        int x = a[i];
+        int t;
+        rd(t);
 
-        int old = count[x];
-        if (old) {
-            window.erase({old, x});
-        }
-        count[x]++;
-        window.insert({count[x], x});
-        if (i - k + 1 >= 1) {
-            auto [c, v] = *window.rbegin();
-            dbg(i, c, v);
-            vals[i - k + 1] = c;
-            int y = a[i - k + 1];
-            old = count[y];
-            window.erase({old, y});
-            count[y]--;
-            if (count[y]) {
-                window.insert({count[y], y});
-            }
+        if (t) {
+            tree_arr[tin[i]] = {1, 0, 1};
+        } else {
+            tree_arr[tin[i]] = {0, 1, 1};
         }
     }
-
-    vvp qs(n + 2);
-    vl ans(q + 1);
-
-    L(i, 1, q) {
-        int l, r;
-        rd(l, r);
-        qs[l].pb(r, i);
-    }
-
-    vi stk;
-    vector<S> tree_arr(n + 2, {0, 1});
     atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(tree_arr);
 
-    D(i, n - k + 1, 1) {
-        while (!stk.empty() && vals[i] >= vals[stk.back()]) {
-            stk.pob();
-        }
+    int q;
+    rd(q);
 
-        int nxt = (stk.empty()) ? (n - k + 2) : stk.back();
-        int seg_l = i + k - 1;
-        int seg_r = nxt + k - 1;
+    while (q--) {
+        string s;
+        rd(s);
+        int r;
+        rd(r);
 
-        seg.apply(seg_l, min(seg_r, n + 2), {vals[i]});
-
-        stk.pb(i);
-
-        for (auto [r, id]: qs[i]) {
-            int j = i + k - 1;
-
-            ll count = r - j + 1;
-            ll t = count * k;
-
-            ll sum = seg.prod(j, r + 1).sum;
-
-            ans[id] = t - sum;
+        if (s == "get") {
+            auto [on, off, len] = seg.prod(tin[r], tout[r] + 1);
+            prt(on);
+        } else {
+            seg.apply(tin[r], tout[r] + 1, {1});
         }
     }
-
-    L(i, 1, q) { prt(ans[i]); }
 }
 
 int main() {
