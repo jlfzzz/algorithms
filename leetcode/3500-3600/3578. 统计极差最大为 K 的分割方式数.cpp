@@ -56,6 +56,14 @@ using namespace DEBUG;
 
 int INIT = [] { return 0; }();
 
+using pll = pair<long long, long long>;
+#define i128 __int128_t
+#define ull unsigned long long
+constexpr int inf = 0x3f3f3f3f / 2;
+using pii = pair<int, int>;
+constexpr int MOD = int(1e9 + 7);
+using ll = long long;
+
 namespace atcoder {
 
     namespace internal {
@@ -593,7 +601,7 @@ namespace atcoder {
         return os << x.val();
     }
 } // namespace atcoder
-constexpr int MOD = int(1e9 + 7);
+
 using Z = atcoder::static_modint<MOD>;
 
 Z q_pow(Z base, long long exp) {
@@ -607,46 +615,46 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
-using pll = pair<long long, long long>;
-#define i128 __int128_t
-#define ull unsigned long long
-constexpr int inf = 0x3f3f3f3f / 2;
-using pii = pair<int, int>;
-
-using ll = long long;
-
 class Solution {
 public:
     int countPartitions(vector<int> &nums, int k) {
         int n = nums.size();
 
-        vector<Z> dp(k + 1);
-        ll sum = 0;
+        vector<Z> dp(n + 1, 0);
+        vector<Z> pre(n + 2, 0);
+
         dp[0] = 1;
-        for (int x: nums) {
-            for (int i = k; i >= x; i--) {
-                dp[i] += dp[i - x];
+        pre[1] = 1;
+
+        deque<int> mn, mx;
+        int left = 0;
+
+        for (int i = 1; i <= n; i++) {
+            int cur = nums[i - 1];
+
+            while (!mn.empty() && nums[mn.back()] >= cur) {
+                mn.pop_back();
             }
-            sum += x;
+            mn.push_back(i - 1);
+            while (!mx.empty() && nums[mx.back()] <= cur) {
+                mx.pop_back();
+            }
+            mx.push_back(i - 1);
+
+            while (!mn.empty() && !mx.empty() && nums[mx.front()] - nums[mn.front()] > k) {
+                left++;
+                if (mn.front() < left)
+                    mn.pop_front();
+                if (mx.front() < left)
+                    mx.pop_front();
+            }
+
+            Z sum = pre[i] - pre[left];
+            dp[i] = sum;
+
+            pre[i + 1] = pre[i] + dp[i];
         }
 
-        Z ans = q_pow(2, n);
-        for (int i = 0; i < k; i++) {
-            ans -= dp[i] * 2;
-        }
-        for (int i = 0; i < k; i++) {
-            if (sum - i < k) {
-                ans += dp[i];
-            }
-        }
-
-        return ans.val();
+        return dp[n].val();
     }
 };
-
-// int main() {
-//     ios::sync_with_stdio(false);
-//     cin.tie(nullptr);
-//     Solution sol1;
-//     ll n = 11;
-// }

@@ -145,11 +145,32 @@ constexpr int N = 1e6 + 5;
 
 int Multitest = 1;
 
+const long double PI_LD = acosl(-1.0L);
+
+ll exgcd_pos(ll a, ll b, ll &x, ll &y) {
+    if (b == 0) {
+        x = 1;
+        y = 0;
+        return a;
+    }
+    ll x1, y1;
+    ll g = exgcd_pos(b, a % b, x1, y1);
+    x = y1;
+    y = x1 - y1 * (a / b);
+    return g;
+}
+
+pii primitive(pii p) {
+    ll x = p.fi, y = p.se;
+    if (x == 0 && y == 0)
+        return {0, 0};
+    ll g = std::gcd(std::llabs(x), std::llabs(y));
+    x /= g;
+    y /= g;
+    return {x, y};
+}
+
 void init() {}
-
-
-const pii arr[4] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
-const int U = 1 << 4;
 
 void solve() {
     int n;
@@ -158,7 +179,127 @@ void solve() {
     vp a(n);
     rv(a);
 
-    popcount((ull) 10);
+    vector<pair<long double, int>> ang_idx;
+    ang_idx.reserve(n);
+    F(i, 0, n - 1) {
+        if (a[i].fi == 0 && a[i].se == 0)
+            continue;
+        long double ang = atan2((long double) a[i].se, (long double) a[i].fi);
+        ang_idx.pb(ang, i);
+    }
+
+    int idx0 = ang_idx[0].se;
+    ll bx = a[idx0].fi;
+    ll by = a[idx0].se;
+
+    bool onLine = true;
+    bool pos = false, neg = false;
+
+    for (auto &p: a) {
+        ll x = p.fi, y = p.se;
+        if (x == 0 && y == 0)
+            continue;
+        ll cross = bx * y - by * x;
+        if (cross != 0)
+            onLine = false;
+        ll dot = bx * x + by * y;
+        if (dot > 0)
+            pos = true;
+        else if (dot < 0)
+            neg = true;
+    }
+
+    if (onLine && !neg) {
+        pii u = primitive({bx, by});
+        prt(1);
+        prt(u.fi, u.se);
+        return;
+    }
+
+    if (onLine) {
+        pii posP{0, 0}, negP{0, 0};
+        bool hasPos = false, hasNeg = false;
+        for (auto &p: a) {
+            ll x = p.fi, y = p.se;
+            if (x == 0 && y == 0)
+                continue;
+            ll dot = bx * x + by * y;
+            if (dot > 0 && !hasPos) {
+                posP = p;
+                hasPos = true;
+            } else if (dot < 0 && !hasNeg) {
+                negP = p;
+                hasNeg = true;
+            }
+        }
+        pii u = primitive(posP);
+        pii v = primitive(negP);
+        prt(2);
+        prt(u.fi, u.se);
+        prt(v.fi, v.se);
+        return;
+    }
+
+    sort(all(ang_idx));
+    int m = (int) ang_idx.size();
+    vector<long double> ang(2 * m);
+    for (int i = 0; i < m; i++) {
+        ang[i] = ang_idx[i].fi;
+        ang[i + m] = ang_idx[i].fi + 2 * PI_LD;
+    }
+
+    const long double EPS = 1e-12L;
+    bool inHalf = false;
+    int startId = -1;
+    int j = 0;
+
+    for (int i = 0; i < m; i++) {
+        if (j < i)
+            j = i;
+        while (j < i + m && ang[j] - ang[i] < PI_LD - EPS) {
+            j++;
+        }
+        if (j - i >= m) {
+            inHalf = true;
+            startId = i;
+            break;
+        }
+    }
+
+    if (inHalf) {
+        int idx = ang_idx[startId % m].se;
+        pii u = primitive(a[idx]);
+        ll a1 = u.fi, b1 = u.se;
+
+        ll aa = std::llabs(a1);
+        ll bb = std::llabs(b1);
+
+        if (aa == 0)
+            aa = 1;
+        ll s, t;
+        exgcd_pos(aa, bb, s, t);
+
+        ll signA = (a1 >= 0 ? 1 : -1);
+        ll signB = (b1 >= 0 ? 1 : -1);
+
+        ll d = s * signA;
+        ll tprime = t * signB;
+        ll c = -tprime;
+
+        const ll K = 1000000000LL;
+        ll c2 = c - K * a1;
+        ll d2 = d - K * b1;
+
+        prt(2);
+        prt(a1, b1);
+        prt(c2, d2);
+        return;
+    }
+
+    prt(3);
+    prt(0, 1);
+    prt(1, 0);
+    prt(-1, -1);
 }
 
 int main() {

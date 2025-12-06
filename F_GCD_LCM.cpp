@@ -1,14 +1,35 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
 using namespace std;
-using namespace __gnu_pbds;
-using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
-constexpr int N = int(1e5 + 5);
-
-namespace DEBUG {
+namespace utils {
     template<typename A, typename B>
     ostream &operator<<(ostream &os, const pair<A, B> &p) {
         return os << '(' << p.first << ", " << p.second << ')';
@@ -48,13 +69,79 @@ namespace DEBUG {
             cerr << " ";
         debug_out(T...);
     }
-} // namespace DEBUG
 
-using namespace DEBUG;
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
 
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
 
-int INIT = [] { return 0; }();
+using namespace utils;
+
+constexpr int N = 1e6 + 5;
 
 namespace atcoder {
 
@@ -593,8 +680,8 @@ namespace atcoder {
         return os << x.val();
     }
 } // namespace atcoder
-constexpr int MOD = int(1e9 + 7);
-using Z = atcoder::static_modint<MOD>;
+
+using Z = atcoder::static_modint<MOD2>;
 
 Z q_pow(Z base, long long exp) {
     Z result(1);
@@ -607,46 +694,21 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
-using pll = pair<long long, long long>;
-#define i128 __int128_t
-#define ull unsigned long long
-constexpr int inf = 0x3f3f3f3f / 2;
-using pii = pair<int, int>;
+int Multitest = 1;
 
-using ll = long long;
+void init() {}
 
-class Solution {
-public:
-    int countPartitions(vector<int> &nums, int k) {
-        int n = nums.size();
+void solve() {}
 
-        vector<Z> dp(k + 1);
-        ll sum = 0;
-        dp[0] = 1;
-        for (int x: nums) {
-            for (int i = k; i >= x; i--) {
-                dp[i] += dp[i - x];
-            }
-            sum += x;
-        }
-
-        Z ans = q_pow(2, n);
-        for (int i = 0; i < k; i++) {
-            ans -= dp[i] * 2;
-        }
-        for (int i = 0; i < k; i++) {
-            if (sum - i < k) {
-                ans += dp[i];
-            }
-        }
-
-        return ans.val();
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-};
-
-// int main() {
-//     ios::sync_with_stdio(false);
-//     cin.tie(nullptr);
-//     Solution sol1;
-//     ll n = 11;
-// }
+    while (T--) {
+        solve();
+    }
+}
