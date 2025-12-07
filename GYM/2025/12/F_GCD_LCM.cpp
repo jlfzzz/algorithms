@@ -694,11 +694,154 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
+struct Comb {
+    int n;
+    std::vector<Z> _fac;
+    std::vector<Z> _invfac;
+    std::vector<Z> _inv;
+
+    Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
+    explicit Comb(int n) : Comb() { init(n); }
+
+    void init(int m) {
+        if (m <= n) {
+            return;
+        }
+        _fac.resize(m + 1);
+        _invfac.resize(m + 1);
+        _inv.resize(m + 1);
+
+        for (int i = n + 1; i <= m; i++) {
+            _fac[i] = _fac[i - 1] * i;
+        }
+        _invfac[m] = _fac[m].inv();
+        for (int i = m; i > n; i--) {
+            _invfac[i - 1] = _invfac[i] * i;
+            _inv[i] = _invfac[i] * _fac[i - 1];
+        }
+        n = m;
+    }
+
+    Z fac(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _fac[m];
+    }
+    Z invfac(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _invfac[m];
+    }
+    Z inv(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _inv[m];
+    }
+    Z C(int n, int m) {
+        if (n < m || m < 0) {
+            return 0;
+        }
+        return fac(n) * invfac(m) * invfac(n - m);
+    }
+    Z A(int n, int m) {
+        if (n < m || m < 0) {
+            return 0;
+        }
+        return fac(n) * invfac(n - m);
+    }
+} comb(N);
 int Multitest = 1;
 
 void init() {}
 
-void solve() {}
+void solve() {
+    int n;
+    rd(n);
+
+    vi a(n + 1);
+    rv(a, 1);
+
+    int mx = ranges::max(a);
+
+    vector<Z> g(mx + 1), l(mx + 1);
+    vi cnt(mx + 1);
+
+    F(i, 1, n) { cnt[a[i]]++; }
+
+    vi mult_cnt(mx + 1), div_cnt(mx + 1);
+
+    F(i, 1, mx) {
+        for (int j = i; j <= mx; j += i) {
+            mult_cnt[i] += cnt[j];
+            if (cnt[i])
+                div_cnt[j] += cnt[i];
+        }
+    }
+
+    F(i, 1, mx) {
+        ll c = div_cnt[i];
+        Z total = Z(c) * (c - 1) / 2;
+        l[i] = total;
+    }
+    F(i, 1, mx) {
+        for (int j = i + i; j <= mx; j += i) {
+            l[j] -= l[i];
+        }
+    }
+
+    D(i, mx, 1) {
+        ll c = mult_cnt[i];
+        Z total = Z(c) * (c - 1) / 2;
+        for (int j = i + i; j <= mx; j += i) {
+            total -= g[j];
+        }
+        g[i] = total;
+    }
+
+    Z ans = 0;
+
+    F(i, 1, mx) {
+        int c = cnt[i];
+
+        int M = mult_cnt[i] - c;
+        int D = div_cnt[i] - c;
+
+        Z g1 = g[i] - Z(c) * M - Z(c) * (c - 1) / 2;
+        Z l1 = l[i] - Z(c) * D - Z(c) * (c - 1) / 2;
+
+        F(x, 0, 2) {
+            F(y, 0, 2) {
+                if (x + y > c)
+                    continue;
+
+                Z t = comb.C(c, x) * comb.C(c - x, y);
+
+                Z g2 = 0;
+                if (x == 0)
+                    g2 = g1 * 2;
+                else if (x == 1)
+                    g2 = Z(M) * 2;
+                else if (x == 2)
+                    g2 = 2;
+
+                Z l2 = 0;
+                if (y == 0)
+                    l2 = l1 * 2;
+                else if (y == 1)
+                    l2 = Z(D) * 2;
+                else if (y == 2)
+                    l2 = 2;
+
+                ans += t * g2 * l2;
+            }
+        }
+    }
+
+    prt(ans.val());
+}
 
 int main() {
     ios::sync_with_stdio(false);
