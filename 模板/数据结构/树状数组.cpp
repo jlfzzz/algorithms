@@ -7,11 +7,11 @@ using ll = long long;
 constexpr int MOD = 1'000'000'007;
 
 template<typename T>
-class FenwickTree {
+class BIT {
     vector<T> tree;
 
 public:
-    FenwickTree(int n) : tree(n + 1) {}
+    BIT(int n) : tree(n + 1) {}
 
     void update(int i, T val) {
         for (; i < (int) tree.size(); i += i & -i) {

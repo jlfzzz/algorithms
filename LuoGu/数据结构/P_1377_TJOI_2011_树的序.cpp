@@ -143,7 +143,7 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
@@ -153,38 +153,38 @@ void solve() {
     vi a(n);
     rv(a);
 
-    vi cnt(2);
-    for (int x: a) {
-        cnt[x & 1]++;
+    vi L(n + 1, 0), R(n + 1, 0);
+    set<int> st;
+
+    st.ins(a[0]);
+
+    F(i, 1, n - 1) {
+        int val = a[i];
+        auto it = st.upper_bound(val);
+
+        if (it != st.end() && L[*it] == 0) {
+            L[*it] = val;
+        } else {
+            it--;
+            R[*it] = val;
+        }
+        st.ins(val);
     }
 
-    if (cnt[0] && cnt[1]) {
-        prt(-1);
-        return;
-    }
+    prq<int, vi, greater<>> pq;
+    pq.push(a[0]);
 
     vi ans;
-    F(i, 0, 39) {
-        bool f = true;
-
-        for (int x: a) {
-            if (x) {
-                f = false;
-            }
-        }
-
-        if (f) {
-            break;
-        }
-
-        auto [mn, mx] = pii{ranges::min(a), ranges::max(a)};
-        ans.pb((mx + mn) / 2);
-        for (int &x: a) {
-            x = abs(x - (mx + mn) / 2);
-        }
+    while (!pq.empty()) {
+        int u = pq.top();
+        pq.pop();
+        ans.pb(u);
+        if (L[u])
+            pq.push(L[u]);
+        if (R[u])
+            pq.push(R[u]);
     }
 
-    prt(SZ(ans));
     prv(ans);
 }
 

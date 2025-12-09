@@ -143,49 +143,65 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vi a(n);
-    rv(a);
+    ll n, m, k;
+    rd(n, m, k);
 
-    vi cnt(2);
-    for (int x: a) {
-        cnt[x & 1]++;
+    vvp g(n + 1 + k);
+
+    F(i, 1, m) {
+        ll u, v, w;
+        rd(u, v, w);
+        g[u].pb(v, w);
+        g[v].pb(u, w);
     }
 
-    if (cnt[0] && cnt[1]) {
-        prt(-1);
-        return;
-    }
+    F(i, 1, n) {
+        int t;
+        rd(t);
 
-    vi ans;
-    F(i, 0, 39) {
-        bool f = true;
-
-        for (int x: a) {
-            if (x) {
-                f = false;
-            }
+        F(j, 1, t) {
+            ll u, c;
+            rd(u, c);
+            g[i].pb(u + n, c);
+            g[u + n].pb(i, 0);
         }
+    }
 
-        if (f) {
+    prq<pii, vp, greater<>> pq;
+    pq.emplace(0, 1);
+    vl dis(n + k + 1, INF);
+    dis[1] = 0;
+
+    while (!pq.empty()) {
+        auto [d, u] = pq.top();
+        pq.pop();
+
+        if (u == n) {
             break;
         }
 
-        auto [mn, mx] = pii{ranges::min(a), ranges::max(a)};
-        ans.pb((mx + mn) / 2);
-        for (int &x: a) {
-            x = abs(x - (mx + mn) / 2);
+        if (d > dis[u]) {
+            continue;
+        }
+
+        for (auto [v, w]: g[u]) {
+            if (d + w < dis[v]) {
+                dis[v] = d + w;
+                pq.emplace(d + w, v);
+            }
         }
     }
 
-    prt(SZ(ans));
-    prv(ans);
+    if (dis[n] == INF) {
+        dis[n] = -1;
+    }
+    
+    prt(dis[n]);
 }
 
 int main() {

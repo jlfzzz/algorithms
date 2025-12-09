@@ -141,51 +141,45 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 500;
 
-int Multitest = 1;
+int Multitest = 0;
+ll adj[505][505];
+ll dis[505][505];
 
 void init() {}
 
 void solve() {
     int n;
     rd(n);
-    vi a(n);
-    rv(a);
 
-    vi cnt(2);
-    for (int x: a) {
-        cnt[x & 1]++;
-    }
-
-    if (cnt[0] && cnt[1]) {
-        prt(-1);
-        return;
-    }
-
-    vi ans;
-    F(i, 0, 39) {
-        bool f = true;
-
-        for (int x: a) {
-            if (x) {
-                f = false;
-            }
-        }
-
-        if (f) {
-            break;
-        }
-
-        auto [mn, mx] = pii{ranges::min(a), ranges::max(a)};
-        ans.pb((mx + mn) / 2);
-        for (int &x: a) {
-            x = abs(x - (mx + mn) / 2);
+    F(i, 1, n) {
+        F(j, 1, n) {
+            rd(adj[i][j]);
+            dis[i][j] = adj[i][j];
         }
     }
 
-    prt(SZ(ans));
-    prv(ans);
+    vl a(n + 1);
+    rv(a, 1);
+
+    vl ans(n + 1);
+
+    D(i, n, 1) {
+        int k = a[i];
+
+        F(u, 1, n) {
+            F(v, 1, n) { dis[u][v] = min(dis[u][v], dis[u][k] + dis[k][v]); }
+        }
+
+        ll sum = 0;
+        F(u, i, n) {
+            F(v, i, n) { sum += dis[a[u]][a[v]]; }
+        }
+        ans[i] = sum;
+    }
+
+    prv(ans, 1);
 }
 
 int main() {

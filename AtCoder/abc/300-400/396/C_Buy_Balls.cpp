@@ -143,49 +143,53 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vi a(n);
-    rv(a);
+    int n, m;
+    rd(n, m);
 
-    vi cnt(2);
-    for (int x: a) {
-        cnt[x & 1]++;
+    vl a(n + 1), b(m + 1);
+    rv(a, 1), rv(b, 1);
+
+    ranges::sort(all2(a, 1));
+    ranges::sort(all2(b, 1));
+
+    ll ans = 0;
+
+    vl pref(n + 1);
+    F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
+
+    ll sum = 0;
+
+    {
+        int j = ranges::upper_bound(a, 0) - a.begin();
+
+        ll sum1 = pref[n] - pref[j - 1];
+        ans = sum1;
     }
 
-    if (cnt[0] && cnt[1]) {
-        prt(-1);
-        return;
-    }
+    D(i, m, 1) {
+        sum += b[i];
 
-    vi ans;
-    F(i, 0, 39) {
-        bool f = true;
+        int j = ranges::upper_bound(a, 0) - a.begin();
 
-        for (int x: a) {
-            if (x) {
-                f = false;
-            }
-        }
+        ll sum1 = pref[n] - pref[j - 1];
 
-        if (f) {
+        if (m - i + 1 > n) {
             break;
         }
 
-        auto [mn, mx] = pii{ranges::min(a), ranges::max(a)};
-        ans.pb((mx + mn) / 2);
-        for (int &x: a) {
-            x = abs(x - (mx + mn) / 2);
+        if (n - j + 1 < m - i + 1) {
+            sum1 += pref[j - 1] - pref[j - 1 - (m - i - n + j)];
         }
+
+        ans = max(ans, sum + sum1);
     }
 
-    prt(SZ(ans));
-    prv(ans);
+    prt(ans);
 }
 
 int main() {

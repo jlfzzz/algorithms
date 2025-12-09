@@ -143,49 +143,111 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
+
+using Mat = vvi;
+Mat mat0(10, vi(10));
+int n, k;
+int M;
 
 void init() {}
 
+Mat matMul(Mat &mat1, Mat &mat2) {
+    int n = mat1.size();
+    int m = mat1[0].size();
+    int p = mat2[0].size();
+
+    Mat res(n, vi(p));
+
+    F(i, 0, n - 1) {
+        F(j, 0, p - 1) {
+            F(k, 0, m - 1) { res[i][j] ^= (mat1[i][k] & mat2[k][j]); }
+        }
+    }
+
+    return res;
+}
+
+Mat matPow(Mat &mat, int k) {
+    int n = mat.size();
+    Mat res(n, vi(n));
+    F(i, 0, n - 1) { res[i][i] = 1; }
+
+    while (k) {
+        if (k & 1) {
+            res = matMul(res, mat);
+        }
+        mat = matMul(mat, mat);
+        k /= 2;
+    }
+
+    return res;
+}
+
 void solve() {
-    int n;
-    rd(n);
-    vi a(n);
-    rv(a);
+    rd(n, k);
 
-    vi cnt(2);
-    for (int x: a) {
-        cnt[x & 1]++;
-    }
+    M = n * n;
 
-    if (cnt[0] && cnt[1]) {
-        prt(-1);
-        return;
-    }
-
-    vi ans;
-    F(i, 0, 39) {
-        bool f = true;
-
-        for (int x: a) {
-            if (x) {
-                f = false;
+    F(i, 0, n - 1) {
+        string s;
+        rd(s);
+        F(j, 0, n - 1) {
+            if (s[j] == '#') {
+                mat0[i][j] = -1;
+            } else {
+                mat0[i][j] = s[j] - '0';
             }
         }
+    }
 
-        if (f) {
-            break;
-        }
-
-        auto [mn, mx] = pii{ranges::min(a), ranges::max(a)};
-        ans.pb((mx + mn) / 2);
-        for (int &x: a) {
-            x = abs(x - (mx + mn) / 2);
+    Mat col(1, vi(M));
+    F(i, 0, n - 1) {
+        F(j, 0, n - 1) {
+            if (mat0[i][j] == 1) {
+                col[0][i * n + j] = 1;
+            }
         }
     }
 
-    prt(SZ(ans));
-    prv(ans);
+    Mat mat(M, vi(M));
+    int dx[] = {-1, -1, -1, 0, 0, 1, 1, 1};
+    int dy[] = {-1, 0, 1, -1, 1, -1, 0, 1};
+
+    F(r, 0, n - 1) {
+        F(c, 0, n - 1) {
+            int u = r * n + c;
+
+            if (mat0[r][c] == -1)
+                continue;
+
+            mat[u][u] = 1;
+
+            F(d, 0, 7) {
+                int nr = r + dx[d];
+                int nc = c + dy[d];
+                if (nr >= 0 && nr < n && nc >= 0 && nc < n && mat0[nr][nc] != -1) {
+                    int v = nr * n + nc;
+                    mat[v][u] = 1;
+                }
+            }
+        }
+    }
+
+    Mat mat1 = matPow(mat, k);
+
+    Mat ans = matMul(col, mat1);
+
+    F(i, 0, n - 1) {
+        F(j, 0, n - 1) {
+            if (mat0[i][j] == -1) {
+                cout << '#';
+            } else {
+                cout << ans[0][i * n + j];
+            }
+        }
+        cout << '\n';
+    }
 }
 
 int main() {

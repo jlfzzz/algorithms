@@ -143,49 +143,81 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vi a(n);
-    rv(a);
-
-    vi cnt(2);
-    for (int x: a) {
-        cnt[x & 1]++;
+    int n, m;
+    rd(n, m);
+    vvp adj(n + 1);
+    F(i, 1, m) {
+        int u, v, w;
+        rd(u, v, w);
+        adj[u].pb(v, w);
+        adj[v].pb(u, w);
     }
 
-    if (cnt[0] && cnt[1]) {
-        prt(-1);
-        return;
-    }
+    vi d(n + 1, 0);
+    vi vis(n + 1, 0);
+    vl ans(n + 1);
 
-    vi ans;
-    F(i, 0, 39) {
-        bool f = true;
+    F(i, 1, n) {
+        if (vis[i])
+            continue;
 
-        for (int x: a) {
-            if (x) {
-                f = false;
+        vector<int> comp;
+        queue<int> q;
+
+        q.push(i);
+        vis[i] = 1;
+        d[i] = 0;
+        comp.pb(i);
+
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+            for (auto &edge: adj[u]) {
+                int v = edge.fi;
+                int w = edge.se;
+
+                if (vis[v]) {
+                    if ((d[u] ^ d[v]) != w) {
+                        prt(-1);
+                        return;
+                    }
+                } else {
+                    vis[v] = 1;
+                    d[v] = d[u] ^ w;
+                    comp.pb(v);
+                    q.push(v);
+                }
             }
         }
 
-        if (f) {
-            break;
+        int root_val = 0;
+        F(k, 0, 29) {
+            int cnt0 = 0;
+            int cnt1 = 0;
+
+            for (int u: comp) {
+                if ((d[u] >> k) & 1)
+                    cnt1++;
+                else
+                    cnt0++;
+            }
+
+            if (cnt0 < cnt1) {
+                root_val |= (1 << k);
+            }
         }
 
-        auto [mn, mx] = pii{ranges::min(a), ranges::max(a)};
-        ans.pb((mx + mn) / 2);
-        for (int &x: a) {
-            x = abs(x - (mx + mn) / 2);
+        for (int u: comp) {
+            ans[u] = d[u] ^ root_val;
         }
     }
 
-    prt(SZ(ans));
-    prv(ans);
+    prv(ans, 1);
 }
 
 int main() {

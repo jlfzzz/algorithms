@@ -20,19 +20,7 @@ MOD = int(1e9 + 7)
 
 
 def main():
-    n = 5
-    m = 10
-
-    t = (1 << n) + (1 << m)
-    k = 10
-
-    tt = t
-
-    for i in range(k):
-        print(bin(tt))
-        tt = tt * t
-
-    print(bin(tt))
+    print(pow(2 / 3, 40))
 
 
 if __name__ == "__main__":

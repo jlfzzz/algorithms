@@ -143,49 +143,62 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
     int n;
     rd(n);
-    vi a(n);
-    rv(a);
 
-    vi cnt(2);
-    for (int x: a) {
-        cnt[x & 1]++;
+    vi a(n + 1), b(n + 1);
+    int sa = 0, sb = 0;
+    F(i, 1, n) {
+        rd(a[i], b[i]);
+        sa += a[i];
+        sb += b[i];
     }
 
-    if (cnt[0] && cnt[1]) {
-        prt(-1);
-        return;
+    if (sa < sb) {
+        swap(sa, sb);
+        swap(a, b);
     }
 
-    vi ans;
-    F(i, 0, 39) {
-        bool f = true;
+    int diff = sa - sb;
 
-        for (int x: a) {
-            if (x) {
-                f = false;
+    vi dp(20005, inf);
+    dp[0] = 0;
+
+    F(i, 1, n) {
+        int val = 2 * (a[i] - b[i]);
+        vi ndp = dp;
+
+        for (int j = 20000; j >= 0; j--) {
+            if (j - val >= 0 && j - val <= 20000 && dp[j - val] != inf) {
+                ndp[j] = min(ndp[j], dp[j - val] + 1);
             }
         }
 
-        if (f) {
-            break;
-        }
+        dp.swap(ndp);
+    }
 
-        auto [mn, mx] = pii{ranges::min(a), ranges::max(a)};
-        ans.pb((mx + mn) / 2);
-        for (int &x: a) {
-            x = abs(x - (mx + mn) / 2);
+    int mnD = inf;
+    int mn = 0;
+
+    F(j, 0, 20000) {
+        if (dp[j] != inf) {
+            int t = abs(diff - j);
+
+            if (t < mnD) {
+                mnD = t;
+                mn = dp[j];
+            } else if (t == mnD) {
+                mn = min(mn, dp[j]);
+            }
         }
     }
 
-    prt(SZ(ans));
-    prv(ans);
+    prt(mn);
 }
 
 int main() {

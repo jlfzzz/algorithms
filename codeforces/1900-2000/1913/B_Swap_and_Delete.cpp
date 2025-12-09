@@ -148,44 +148,31 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vi a(n);
-    rv(a);
+    string s;
+    rd(s);
 
-    vi cnt(2);
-    for (int x: a) {
-        cnt[x & 1]++;
-    }
+    int n = SZ(s);
 
-    if (cnt[0] && cnt[1]) {
-        prt(-1);
-        return;
-    }
+    int c0 = count(all(s), '0');
+    int c1 = count(all(s), '1');
 
-    vi ans;
-    F(i, 0, 39) {
-        bool f = true;
-
-        for (int x: a) {
-            if (x) {
-                f = false;
+    F(i, 0, n - 1) {
+        if (s[i] == '0') {
+            if (!c1) {
+                prt(n - i);
+                return;
             }
-        }
-
-        if (f) {
-            break;
-        }
-
-        auto [mn, mx] = pii{ranges::min(a), ranges::max(a)};
-        ans.pb((mx + mn) / 2);
-        for (int &x: a) {
-            x = abs(x - (mx + mn) / 2);
+            c1--;
+        } else {
+            if (!c0) {
+                prt(n - i);
+                return;
+            }
+            c0--;
         }
     }
 
-    prt(SZ(ans));
-    prv(ans);
+    prt(0);
 }
 
 int main() {

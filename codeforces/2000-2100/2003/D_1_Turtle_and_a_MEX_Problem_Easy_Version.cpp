@@ -148,44 +148,46 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vi a(n);
-    rv(a);
+    int n, m;
+    rd(n, m);
 
-    vi cnt(2);
-    for (int x: a) {
-        cnt[x & 1]++;
-    }
+    vector<set<int>> a(n + 1);
+    F(i, 1, n) {
+        int l;
+        rd(l);
 
-    if (cnt[0] && cnt[1]) {
-        prt(-1);
-        return;
-    }
-
-    vi ans;
-    F(i, 0, 39) {
-        bool f = true;
-
-        for (int x: a) {
-            if (x) {
-                f = false;
-            }
-        }
-
-        if (f) {
-            break;
-        }
-
-        auto [mn, mx] = pii{ranges::min(a), ranges::max(a)};
-        ans.pb((mx + mn) / 2);
-        for (int &x: a) {
-            x = abs(x - (mx + mn) / 2);
+        F(j, 1, l) {
+            int t;
+            rd(t);
+            a[i].ins(t);
         }
     }
 
-    prt(SZ(ans));
-    prv(ans);
+    vi mex1(n + 1), mex2(n + 1);
+    int mx = 0;
+
+    F(i, 1, n) {
+        int t = 0;
+        while (a[i].contains(t)) {
+            t++;
+        }
+        mex1[i] = t;
+        t++;
+        while (a[i].contains(t)) {
+            t++;
+        }
+        mex2[i] = t;
+
+        mx = max(mx, t);
+    }
+
+    ll ans = 0;
+    if (m > mx) {
+        ans = 1ll * (mx + 1 + m) * (m - mx) / 2;
+    }
+    F(i, 0, min(m, mx)) { ans += max(i, mx); }
+
+    prt(ans);
 }
 
 int main() {
