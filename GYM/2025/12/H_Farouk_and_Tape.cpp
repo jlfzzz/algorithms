@@ -143,40 +143,63 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
+std::mt19937_64 gen(std::random_device{}());
+
+
 void solve() {
-    int n, q;
-    rd(n, q);
+    auto query = [&](long long x) -> bool {
+        cout << "? " << x << endl;
+        char c;
+        cin >> c;
+        return c == 'W';
+    };
 
-    vi nest(n + 1);
-    vi id(n + 1);
+    auto answer = [&](long long x) { cout << "! " << x << endl; };
 
-    F(i, 1, n) { nest[i] = id[i] = i; }
+    bool orig = query(0);
 
-    F(i, 1, q) {
-        int op;
-        rd(op);
+    long long lbound, rbound;
 
-        if (op == 1) {
-            int a, b;
-            rd(a, b);
-
-            swap(id[a], id[b]);
-        } else if (op == 2) {
-            int a, b;
-            rd(a, b);
-
-            swap(nest[id[a]], nest[id[b]]);
-        } else {
-            int a;
-            rd(a);
-
-            prt(nest[id[a]]);
+    {
+        long long length = 1;
+        while (query(2 * length - 1) == orig) {
+            length <<= 1;
         }
+        long long l = length - 1, r = 2 * length - 2;
+        while (l <= r) {
+            long long mid = (l + r) / 2;
+            if (query(mid) == orig) {
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+        rbound = r;
     }
+
+    {
+        long long length = 1;
+        while (query(-2 * length + 1) == orig) {
+            length <<= 1;
+        }
+        long long l = -2 * length + 2, r = -length + 1;
+        while (l <= r) {
+            long long mid = (l + r) / 2;
+            if (query(mid) == orig) {
+                r = mid - 1;
+            } else {
+                l = mid + 1;
+            }
+        }
+        lbound = l;
+    }
+
+    long long L = rbound - lbound + 1;
+    answer(L);
 }
 
 int main() {

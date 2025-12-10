@@ -27,7 +27,7 @@ constexpr int MOD2 = int(1e9 + 7);
 constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
-#define L(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
     template<typename A, typename B>
@@ -143,79 +143,60 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n, q;
-    rd(n, q);
+    int a, b, f, k;
+    rd(a, b, f, k);
 
-    vvi g(n + 1);
-    vi pa(n + 1, 0);
-    L(i, 2, n) {
-        int fa;
-        rd(fa);
-        g[fa].pb(i);
-        pa[i] = fa;
+    if (f > b || ((a - f) * 2 > b && k > 1) || (2 * f > b && k > 2) || (a - f) > b) {
+        prt(-1);
+        return;
     }
 
-    vi a(n + 1);
-    rv(a, 1);
-
-    vi tin(n + 1), sz(n + 1);
-    int ts = 0;
-    auto dfs = [&](this auto &&dfs, int u) -> void {
-        tin[u] = ++ts;
-        sz[u] = 1;
-        for (int v: g[u]) {
-            dfs(v);
-            sz[u] += sz[v];
-        }
-    };
-    dfs(1);
-
-    auto calc = [&](int i) -> int {
-        if (i <= 1 || i > n) {
-            return 0;
-        }
-        int u = a[i - 1], v = a[i];
-        int f = pa[v];
-        if (tin[u] >= tin[f] && tin[u] <= tin[f] + sz[f] - 1) {
-            return 1;
-        }
-        return 0;
-    };
-
-    int res = 0;
-    L(i, 2, n) { res += calc(i); }
-
-    L(_, 1, q) {
-        int x, y;
-        rd(x, y);
-
-        set<int> st;
-        st.insert(x);
-        st.insert(x + 1);
-        st.insert(y);
-        st.insert(y + 1);
-
-        for (int i: st) {
-            res -= calc(i);
-        }
-
-        swap(a[x], a[y]);
-
-        for (int i: st) {
-            res += calc(i);
-        }
-
-        if (res == n - 1) {
-            cout << "YES\n";
+    int dir = 1;
+    int ans = 0;
+    int cur = b;
+    F(i, 1, k) {
+        if (cur < a) {
+            if (dir) {
+                if (cur < f) {
+                    ans++;
+                    cur = b - 2 * f;
+                    if (cur < a - f) {
+                        cur = b - (a - f);
+                        ans++;
+                    } else {
+                        cur -= (a - f);
+                    }
+                } else {
+                    ans++;
+                    cur = b - (a - f);
+                }
+            } else {
+                if (cur < a - f) {
+                    ans++;
+                    cur = b - 2 * (a - f);
+                    if (cur < f) {
+                        cur = b - f;
+                        ans++;
+                    } else {
+                        cur -= f;
+                    }
+                } else {
+                    ans++;
+                    cur = b - f;
+                }
+            }
         } else {
-            cout << "NO\n";
+            cur -= a;
         }
+        dir ^= 1;
     }
+
+    prt(ans);
 }
 
 int main() {

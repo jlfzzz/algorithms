@@ -615,15 +615,32 @@ constexpr int inf = 0x3f3f3f3f / 2;
 using pii = pair<int, int>;
 using ll = long long;
 
+constexpr int N1 = int(1e5 + 5);
+Z fac[N1];
+int INIT1 = [] {
+    fac[0] = 1;
+    for (int i = 1; i < N1; i++) {
+        fac[i] = fac[i - 1] * i;
+    }
+    return 0;
+}();
+
 class Solution {
 public:
-    long long totalScore(int hp, vector<int> &damage, vector<int> &requirement) {}
+    int countPermutations(vector<int> &complexity) {
+        int n = complexity.size();
+        for (int i = 1; i < n; i++) {
+            if (complexity[i] <= complexity[0]) {
+                return 0;
+            }
+        }
+
+        return fac[n - 1].val();
+    }
 };
 
-
-
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    Solution sol;
-}
+// int main() {
+//     ios::sync_with_stdio(false);
+//     cin.tie(nullptr);
+//     Solution sol;
+// }

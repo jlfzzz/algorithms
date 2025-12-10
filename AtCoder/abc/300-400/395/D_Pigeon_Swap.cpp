@@ -27,7 +27,7 @@ constexpr int MOD2 = int(1e9 + 7);
 constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
-#define L(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
     template<typename A, typename B>
@@ -143,7 +143,7 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
@@ -151,69 +151,41 @@ void solve() {
     int n, q;
     rd(n, q);
 
-    vvi g(n + 1);
-    vi pa(n + 1, 0);
-    L(i, 2, n) {
-        int fa;
-        rd(fa);
-        g[fa].pb(i);
-        pa[i] = fa;
-    }
+    vi nest(n + 1);
+    vi id(n + 1);
+    vi id2(n + 1);
 
-    vi a(n + 1);
-    rv(a, 1);
+    F(i, 1, n) { nest[i] = id[i] = id2[i] = i; }
 
-    vi tin(n + 1), sz(n + 1);
-    int ts = 0;
-    auto dfs = [&](this auto &&dfs, int u) -> void {
-        tin[u] = ++ts;
-        sz[u] = 1;
-        for (int v: g[u]) {
-            dfs(v);
-            sz[u] += sz[v];
-        }
-    };
-    dfs(1);
+    F(i, 1, q) {
+        int op;
+        rd(op);
 
-    auto calc = [&](int i) -> int {
-        if (i <= 1 || i > n) {
-            return 0;
-        }
-        int u = a[i - 1], v = a[i];
-        int f = pa[v];
-        if (tin[u] >= tin[f] && tin[u] <= tin[f] + sz[f] - 1) {
-            return 1;
-        }
-        return 0;
-    };
+        if (op == 1) {
+            int a, b;
+            rd(a, b);
+            // 修正：鸽子 a 移动到 巢穴 b 所在的盒子
+            id[a] = id2[b];
+        } else if (op == 2) {
+            int a, b;
+            rd(a, b);
 
-    int res = 0;
-    L(i, 2, n) { res += calc(i); }
+            // 修正：我们要操作的是“巢穴 a”和“巢穴 b”，跟“鸽子 a/b”在哪里没关系
+            // 1. 获取两个巢穴当前的物理位置（盒子编号）
+            int box_of_nest_a = id2[a];
+            int box_of_nest_b = id2[b];
 
-    L(_, 1, q) {
-        int x, y;
-        rd(x, y);
+            // 2. 交换这两个标签指向的物理位置
+            swap(id2[a], id2[b]);
 
-        set<int> st;
-        st.insert(x);
-        st.insert(x + 1);
-        st.insert(y);
-        st.insert(y + 1);
+            // 3. 交换这两个物理位置上贴的标签
+            swap(nest[box_of_nest_a], nest[box_of_nest_b]);
 
-        for (int i: st) {
-            res -= calc(i);
-        }
-
-        swap(a[x], a[y]);
-
-        for (int i: st) {
-            res += calc(i);
-        }
-
-        if (res == n - 1) {
-            cout << "YES\n";
         } else {
-            cout << "NO\n";
+            int a;
+            rd(a);
+            // 这里是对的：鸽子 -> 盒子 -> 标签
+            prt(nest[id[a]]);
         }
     }
 }

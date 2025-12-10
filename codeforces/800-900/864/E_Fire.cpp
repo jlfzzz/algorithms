@@ -27,7 +27,7 @@ constexpr int MOD2 = int(1e9 + 7);
 constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
-#define L(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
     template<typename A, typename B>
@@ -143,79 +143,62 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n, q;
-    rd(n, q);
+    int n;
+    rd(n);
 
-    vvi g(n + 1);
-    vi pa(n + 1, 0);
-    L(i, 2, n) {
-        int fa;
-        rd(fa);
-        g[fa].pb(i);
-        pa[i] = fa;
-    }
-
-    vi a(n + 1);
-    rv(a, 1);
-
-    vi tin(n + 1), sz(n + 1);
-    int ts = 0;
-    auto dfs = [&](this auto &&dfs, int u) -> void {
-        tin[u] = ++ts;
-        sz[u] = 1;
-        for (int v: g[u]) {
-            dfs(v);
-            sz[u] += sz[v];
-        }
-    };
-    dfs(1);
-
-    auto calc = [&](int i) -> int {
-        if (i <= 1 || i > n) {
-            return 0;
-        }
-        int u = a[i - 1], v = a[i];
-        int f = pa[v];
-        if (tin[u] >= tin[f] && tin[u] <= tin[f] + sz[f] - 1) {
-            return 1;
-        }
-        return 0;
+    struct I {
+        int t, d, p, id;
     };
 
-    int res = 0;
-    L(i, 2, n) { res += calc(i); }
+    vector<I> a(n + 1);
+    F(i, 1, n) {
+        rd(a[i].t, a[i].d, a[i].p);
+        a[i].id = i;
+    }
 
-    L(_, 1, q) {
-        int x, y;
-        rd(x, y);
+    sort(all2(a, 1), [&](I &a, I &b) { return a.d < b.d; });
 
-        set<int> st;
-        st.insert(x);
-        st.insert(x + 1);
-        st.insert(y);
-        st.insert(y + 1);
+    vi dp(4005, 0);
 
-        for (int i: st) {
-            res -= calc(i);
-        }
+    vector<vector<bool>> used(n + 1, vector<bool>(4005, false));
 
-        swap(a[x], a[y]);
-
-        for (int i: st) {
-            res += calc(i);
-        }
-
-        if (res == n - 1) {
-            cout << "YES\n";
-        } else {
-            cout << "NO\n";
+    F(i, 1, n) {
+        auto [t, d, p, id] = a[i];
+        D(j, d - t - 1, 0) {
+            if (dp[j] + p > dp[j + t]) {
+                dp[j + t] = dp[j] + p;
+                used[i][j + t] = true;
+            }
         }
     }
+
+    prt(ranges::max(dp));
+
+    int mx = 0;
+    F(i, 1, 4000) {
+        if (dp[i] > dp[mx]) {
+            mx = i;
+        }
+    }
+
+    vi ans;
+    int cur = mx;
+
+    D(i, n, 1) {
+        if (used[i][cur]) {
+            ans.pb(a[i].id);
+            cur -= a[i].t;
+        }
+    }
+
+    prt(SZ(ans));
+    ranges::reverse(ans);
+    prv(ans);
 }
 
 int main() {

@@ -27,7 +27,7 @@ constexpr int MOD2 = int(1e9 + 7);
 constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
-#define L(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
     template<typename A, typename B>
@@ -148,74 +148,37 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, q;
-    rd(n, q);
+    int n, k, a, b;
+    rd(n, k, a, b);
 
-    vvi g(n + 1);
-    vi pa(n + 1, 0);
-    L(i, 2, n) {
-        int fa;
-        rd(fa);
-        g[fa].pb(i);
-        pa[i] = fa;
+    vp pts(n + 1);
+    rv(pts, 1);
+
+    if (a <= k && b <= k) {
+        prt(0);
+        return;
     }
 
-    vi a(n + 1);
-    rv(a, 1);
+    auto calc = [&](pii a, pii b) { return abs(a.fi - b.fi) + abs(a.se - b.se); };
 
-    vi tin(n + 1), sz(n + 1);
-    int ts = 0;
-    auto dfs = [&](this auto &&dfs, int u) -> void {
-        tin[u] = ++ts;
-        sz[u] = 1;
-        for (int v: g[u]) {
-            dfs(v);
-            sz[u] += sz[v];
-        }
-    };
-    dfs(1);
+    ll ans = calc(pts[a], pts[b]);
+    if (a > k && b > k) {
+        ll d1 = INF, d2 = INF;
+        F(i, 1, k) { d1 = min(d1, calc(pts[i], pts[a])); }
+        F(i, 1, k) { d2 = min(d2, calc(pts[i], pts[b])); }
 
-    auto calc = [&](int i) -> int {
-        if (i <= 1 || i > n) {
-            return 0;
-        }
-        int u = a[i - 1], v = a[i];
-        int f = pa[v];
-        if (tin[u] >= tin[f] && tin[u] <= tin[f] + sz[f] - 1) {
-            return 1;
-        }
-        return 0;
-    };
-
-    int res = 0;
-    L(i, 2, n) { res += calc(i); }
-
-    L(_, 1, q) {
-        int x, y;
-        rd(x, y);
-
-        set<int> st;
-        st.insert(x);
-        st.insert(x + 1);
-        st.insert(y);
-        st.insert(y + 1);
-
-        for (int i: st) {
-            res -= calc(i);
-        }
-
-        swap(a[x], a[y]);
-
-        for (int i: st) {
-            res += calc(i);
-        }
-
-        if (res == n - 1) {
-            cout << "YES\n";
-        } else {
-            cout << "NO\n";
-        }
+        ans = min(ans, d1 + d2);
+        prt(ans);
+        return;
     }
+
+    if (b <= k) {
+        F(i, 1, k) { ans = min(ans, calc(pts[i], pts[a])); }
+    } else {
+        F(i, 1, k) { ans = min(ans, calc(pts[i], pts[b])); }
+    }
+
+    prt(ans);
 }
 
 int main() {
