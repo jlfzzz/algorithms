@@ -148,7 +148,32 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    ll a, b, r;
+    rd(a, b, r);
+
+    if (a < b) {
+        swap(a, b);
+    }
+
+    ll ans = 0;
+    bool first = true;
+
+    D(i, 60, 0) {
+        if ((a >> i & 1) != (b >> i & 1)) {
+            if (first) {
+                first = false;
+            } else {
+                if ((a >> i & 1) && !(b >> i & 1)) {
+                    ll t = ans | (1ll << i);
+                    if (t <= r) {
+                        ans |= 1ll << i;
+                    }
+                }
+            }
+        }
+    }
+
+    prt(abs((a ^ ans) - (b ^ ans)));
 }
 
 int main() {

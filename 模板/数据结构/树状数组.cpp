@@ -6,7 +6,7 @@ using namespace std;
 using ll = long long;
 constexpr int MOD = 1'000'000'007;
 
-template<typename T>
+template<typename T = long long>
 class BIT {
     vector<T> tree;
 
