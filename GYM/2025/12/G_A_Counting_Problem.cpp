@@ -673,7 +673,10 @@ namespace atcoder {
         using is_dynamic_modint_t = std::enable_if_t<is_dynamic_modint<T>::value>;
 
     } // namespace internal
-
+    template<int m>
+    ostream &operator<<(ostream &os, const static_modint<m> &x) {
+        return os << x.val();
+    }
 } // namespace atcoder
 
 using Z = atcoder::static_modint<MOD>;
@@ -689,83 +692,30 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
-constexpr int N = 500'005;
+constexpr int N = 1e6 + 5;
 
-struct Comb {
-    int n;
-    std::vector<Z> _fac;
-    std::vector<Z> _invfac;
-    std::vector<Z> _inv;
-
-    Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
-    explicit Comb(int n) : Comb() { init(n); }
-
-    void init(int m) {
-        if (m <= n) {
-            return;
-        }
-        _fac.resize(m + 1);
-        _invfac.resize(m + 1);
-        _inv.resize(m + 1);
-
-        for (int i = n + 1; i <= m; i++) {
-            _fac[i] = _fac[i - 1] * i;
-        }
-        _invfac[m] = _fac[m].inv();
-        for (int i = m; i > n; i--) {
-            _invfac[i - 1] = _invfac[i] * i;
-            _inv[i] = _invfac[i] * _fac[i - 1];
-        }
-        n = m;
-    }
-
-    Z fac(int m) {
-        if (m > n) {
-            init(2 * m);
-        }
-        return _fac[m];
-    }
-    Z invfac(int m) {
-        if (m > n) {
-            init(2 * m);
-        }
-        return _invfac[m];
-    }
-    Z inv(int m) {
-        if (m > n) {
-            init(2 * m);
-        }
-        return _inv[m];
-    }
-    Z C(int n, int m) {
-        if (n < m || m < 0) {
-            return 0;
-        }
-        return fac(n) * invfac(m) * invfac(n - m);
-    }
-    Z A(int n, int m) {
-        if (n < m || m < 0) {
-            return 0;
-        }
-        return fac(n) * invfac(n - m);
-    }
-} comb(N);
-
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, k;
+    ll n, k;
     rd(n, k);
 
     Z ans = 0;
-    F(j, 0, n + k - 1) { ans += comb.C(2 * n - 2, j); }
+    Z first = q_pow(k, n - 1);
 
-    Z sub = 0;
-    F(i, 0, n - k - 3) { sub += comb.C(2 * n - 2, i); }
+    F(x, 1, k) {
+        Z q = k - x + 1;
 
-    ans -= sub;
+        if (q == k) {
+            ans += first * n;
+        } else {
+            Z p = q / k;
+            ans += first * (1 - q_pow(p, n)) / (1 - p);
+        }
+    }
+
     prt(ans.val());
 }
 

@@ -148,7 +148,31 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int m, k, a1, ak;
+    rd(m, k, a1, ak);
+
+    int t = m / k;
+    if (t > ak)
+        t = ak;
+    m -= t * k;
+
+    if (m <= a1) {
+        prt(0);
+        return;
+    }
+
+    int ans = (m - a1 + k - 1) / k;
+
+    if (ans * k > m)
+        ans = m / k;
+
+    int rem = m - ans * k;
+
+    int ans_1 = 0;
+    if (rem > a1)
+        ans_1 = rem - a1;
+
+    prt(ans + ans_1);
 }
 
 int main() {

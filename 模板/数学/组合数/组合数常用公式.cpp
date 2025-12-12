@@ -5,6 +5,7 @@
 //   2. 帕斯卡公式（Pascal identity）
 //   3. 范德蒙德公式（Vandermonde's identity）
 //   4. Hockey-stick 恒等式（∑C(m, t) = C(n+1, t+1)）
+//   5. 反射原理（卡特兰数那个）
 
 #include <bits/stdc++.h>
 using namespace std;
