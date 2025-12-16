@@ -17,3 +17,5 @@
 /.idea/
 /.vscode/
 /.cph/
+*.db
+*.sql
