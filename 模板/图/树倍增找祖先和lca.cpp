@@ -7,6 +7,8 @@ using ll = long long;
 constexpr int MOD = 1'000'000'007;
 constexpr int DIR[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
+// 1 index !!!
+
 class LcaBinaryLifting {
 public:
     vector<int> depth;

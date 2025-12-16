@@ -1,17 +1,35 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
 using namespace std;
-using namespace __gnu_pbds;
-using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_multiset =
-    tree<pair<long long, long long>, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
-constexpr int N = int(5e5 + 5);
-int INIT = [] { return 0; }();
-
-namespace DEBUG {
+namespace utils {
     template<typename A, typename B>
     ostream &operator<<(ostream &os, const pair<A, B> &p) {
         return os << '(' << p.first << ", " << p.second << ')';
@@ -51,11 +69,77 @@ namespace DEBUG {
             cerr << " ";
         debug_out(T...);
     }
-} // namespace DEBUG
 
-using namespace DEBUG;
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
 
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
+
+using namespace utils;
 
 namespace atcoder {
 
@@ -589,12 +673,9 @@ namespace atcoder {
         using is_dynamic_modint_t = std::enable_if_t<is_dynamic_modint<T>::value>;
 
     } // namespace internal
-    template<int m>
-    ostream &operator<<(ostream &os, const static_modint<m> &x) {
-        return os << x.val();
-    }
+
 } // namespace atcoder
-constexpr int MOD = int(1e9 + 7);
+
 using Z = atcoder::static_modint<MOD>;
 
 Z q_pow(Z base, long long exp) {
@@ -608,40 +689,127 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
-#include <bits/stdc++.h>
-using namespace std;
-using pll = pair<long long, long long>;
-#define i128 __int128_t
-#define ull unsigned long long
-constexpr int inf = 0x3f3f3f3f / 2;
-using pii = pair<int, int>;
-using ll = long long;
+constexpr int N = 200'005;
+constexpr int B = 450;
 
-class Solution {
-public:
-    int numberOfWays(string s) {
-        vector<int> pos;
-        for (int i = 0; i < s.size(); i++) {
-            if (s[i] == 'S')
-                pos.push_back(i);
+struct Comb {
+    int n;
+    std::vector<Z> _fac;
+    std::vector<Z> _invfac;
+    std::vector<Z> _inv;
+
+    Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
+    explicit Comb(int n) : Comb() { init(n); }
+
+    void init(int m) {
+        if (m <= n) {
+            return;
         }
+        _fac.resize(m + 1);
+        _invfac.resize(m + 1);
+        _inv.resize(m + 1);
 
-        if (pos.empty() || pos.size() % 2 != 0) {
+        for (int i = n + 1; i <= m; i++) {
+            _fac[i] = _fac[i - 1] * i;
+        }
+        _invfac[m] = _fac[m].inv();
+        for (int i = m; i > n; i--) {
+            _invfac[i - 1] = _invfac[i] * i;
+            _inv[i] = _invfac[i] * _fac[i - 1];
+        }
+        n = m;
+    }
+
+    Z fac(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _fac[m];
+    }
+    Z invfac(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _invfac[m];
+    }
+    Z inv(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _inv[m];
+    }
+    Z C(int n, int m) {
+        if (n < m || m < 0) {
             return 0;
         }
+        return fac(n) * invfac(m) * invfac(n - m);
+    }
+    Z A(int n, int m) {
+        if (n < m || m < 0) {
+            return 0;
+        }
+        return fac(n) * invfac(n - m);
+    }
+} comb(N);
 
-        Z ans = 1;
+int Multitest = 0;
 
-        for (int i = 1; i < pos.size() - 1; i += 2) {
-            ans *= (pos[i + 1] - pos[i]);
+Z dp[B + 1][N + 1];
+
+void init() {
+    F(k, 1, B - 1) {
+        vector<Z> ways(N + 1);
+        ways[0] = 1;
+        dp[k][0] = 1;
+
+        F(j, 1, N) {
+            ways[j] = ways[j - 1];
+            if (j >= k) {
+                ways[j] += ways[j - k];
+            }
+            dp[k][j] = dp[k][j - 1] + ways[j];
+        }
+    }
+}
+
+void solve() {
+    int n, q;
+    rd(n, q);
+
+    F(i, 1, q) {
+        int l, r, k;
+        rd(l, r, k);
+
+        Z ans = 0;
+        if (k < B) {
+            ans = dp[k][r] - dp[k][l - 1];
+        } else {
+            for (int c = 0;; c++) {
+                ll cost = 1LL * c * k;
+                if (cost > r)
+                    break;
+
+                ans += comb.C(r - c * k + c + 1, c + 1);
+
+                if (l - cost >= 0) {
+                    ans -= comb.C(l - c * k + c, c + 1);
+                }
+            }
         }
 
-        return ans.val();
+        prt(ans.val());
     }
-};
+}
 
-// int main() {
-//     ios::sync_with_stdio(false);
-//     cin.tie(nullptr);
-//     Solution sol;
-// }
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
+}

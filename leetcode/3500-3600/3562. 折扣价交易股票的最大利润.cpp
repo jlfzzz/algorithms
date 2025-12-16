@@ -1,65 +1,76 @@
+
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
-using pii = pair<int, int>;
-using pll = pair<ll, ll>;
-constexpr int MOD = int(1e9 + 7);
+using pll = pair<long long, long long>;
 #define i128 __int128_t
 #define ull unsigned long long
 constexpr int inf = 0x3f3f3f3f / 2;
-constexpr int NEG = -1000000000;
-
+using pii = pair<int, int>;
+using ll = long long;
 
 class Solution {
 public:
     int maxProfit(int n, vector<int> &present, vector<int> &future, vector<vector<int>> &hierarchy, int budget) {
-        vector<vector<int>> g(n + 1, vector<int>());
+        vector<vector<int>> g(n + 1);
         for (auto &v: hierarchy) {
-            int a = v[0], b = v[1];
-            g[a].push_back(b);
+            g[v[0]].push_back(v[1]);
         }
 
-        // 0 当前不选
-        vector<vector<int>> dp0(n + 1, vector<int>(budget + 1, NEG));
-        vector<vector<int>> dp1(n + 1, vector<int>(budget + 1, NEG));
-
+        vector<vector<int>> dp0(n + 1, vector<int>(budget + 1, -1e9)), dp1(n + 1, vector<int>(budget + 1, -1e9));
         auto dfs = [&](this auto &&dfs, int u) -> void {
-            for (int i = 0; i <= budget; i++)
-                dp0[u][i] = dp1[u][i] = NEG;
+            int c1 = present[u - 1];
+            int val1 = future[u - 1];
+            int contrib1 = val1 - c1;
+            int contrib0 = val1 - c1 / 2;
 
-            // 先合并子树收益 subF[j][0]/subF[j][1]
-            vector<int> sub0(budget + 1, 0), sub1(budget + 1, 0);
+            vector<int> f0(budget + 1, -1e9), f1(budget + 1, -1e9), f2(budget + 1, -1e9);
+
+            if (c1 <= budget) {
+                f0[c1] = contrib1;
+            }
+            if (c1 / 2 <= budget) {
+                f1[c1 / 2] = contrib0;
+            }
+            f2[0] = 0;
+
             for (int v: g[u]) {
                 dfs(v);
-                vector<int> nsub0 = sub0, nsub1 = sub1;
-                for (int j = budget; j >= 0; j--) {
-                    for (int jy = 0; jy <= j; jy++) {
-                        if (dp0[v][jy] != NEG)
-                            nsub0[j] = max(nsub0[j], sub0[j - jy] + dp0[v][jy]);
-                        if (dp1[v][jy] != NEG)
-                            nsub1[j] = max(nsub1[j], sub1[j - jy] + dp1[v][jy]);
+
+                vector<int> g0(budget + 1, -1e9), g1(budget + 1, -1e9), g2(budget + 1, -1e9);
+
+                for (int cur = 0; cur <= budget; cur++) {
+                    for (int son = 0; cur + son <= budget; son++) {
+                        if (f2[cur] > -1e9 && dp0[v][son] > -1e9) {
+                            g2[cur + son] = max(g2[cur + son], f2[cur] + dp0[v][son]);
+                        }
+
+                        if (f0[cur] > -1e9 && dp1[v][son] > -1e9) {
+                            g0[cur + son] = max(g0[cur + son], f0[cur] + dp1[v][son]);
+                        }
+
+                        if (f1[cur] > -1e9 && dp1[v][son] > -1e9) {
+                            g1[cur + son] = max(g1[cur + son], f1[cur] + dp1[v][son]);
+                        }
                     }
                 }
-                sub0.swap(nsub0);
-                sub1.swap(nsub1);
+
+                f0.swap(g0);
+                f1.swap(g1);
+                f2.swap(g2);
             }
 
-            // 再根据是否可以半价计算当前节点 u 的 f[j][k]
-            int c0 = present[u - 1];
-            int c1 = present[u - 1] / 2;
-            int g0 = future[u - 1] - c0;
-            int g1 = future[u - 1] - c1;
-            for (int j = 0; j <= budget; j++) {
-                dp0[u][j] = sub0[j];
-                dp1[u][j] = sub0[j];
-                if (j >= c0 && sub1[j - c0] != NEG)
-                    dp0[u][j] = max(dp0[u][j], sub1[j - c0] + g0);
-                if (j >= c1 && sub1[j - c1] != NEG)
-                    dp1[u][j] = max(dp1[u][j], sub1[j - c1] + g1);
+            for (int i = 0; i <= budget; i++) {
+                dp0[u][i] = max(f0[i], f2[i]);
+                dp1[u][i] = max(f1[i], f2[i]);
             }
         };
 
         dfs(1);
-        return dp0[1][budget];
+
+        int ans = 0;
+        for (int i = 0; i <= budget; i++) {
+            ans = max(ans, dp0[1][i]);
+        }
+        return ans;
     }
 };
