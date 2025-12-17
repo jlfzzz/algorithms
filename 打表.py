@@ -19,7 +19,7 @@ MOD = int(1e9 + 7)
 
 
 def main():
-    print(3 ** 13)
+    m = 18
 
 
 if __name__ == "__main__":
