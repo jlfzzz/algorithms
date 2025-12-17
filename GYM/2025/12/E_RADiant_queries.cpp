@@ -1,17 +1,35 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
 using namespace std;
-using namespace __gnu_pbds;
-using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_multiset =
-    tree<pair<long long, long long>, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
-constexpr int N = int(5e5 + 5);
-int INIT = [] { return 0; }();
-
-namespace DEBUG {
+namespace utils {
     template<typename A, typename B>
     ostream &operator<<(ostream &os, const pair<A, B> &p) {
         return os << '(' << p.first << ", " << p.second << ')';
@@ -51,11 +69,77 @@ namespace DEBUG {
             cerr << " ";
         debug_out(T...);
     }
-} // namespace DEBUG
 
-using namespace DEBUG;
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
 
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
+
+using namespace utils;
 
 namespace atcoder {
 
@@ -594,8 +678,8 @@ namespace atcoder {
         return os << x.val();
     }
 } // namespace atcoder
-constexpr int MOD = int(1e9 + 7);
-using Z = atcoder::static_modint<MOD>;
+
+using Z = atcoder::static_modint<MOD2>;
 
 Z q_pow(Z base, long long exp) {
     Z result(1);
@@ -608,40 +692,189 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
-#include <bits/stdc++.h>
-using namespace std;
-using pll = pair<long long, long long>;
-#define i128 __int128_t
-#define ull unsigned long long
-constexpr int inf = 0x3f3f3f3f / 2;
-using pii = pair<int, int>;
-using ll = long long;
+constexpr int N = 1e6 + 5;
 
-class Solution {
-public:
-    int numberOfWays(string s) {
-        vector<int> pos;
-        for (int i = 0; i < s.size(); i++) {
-            if (s[i] == 'S')
-                pos.push_back(i);
+int Multitest = 0;
+
+void init() {}
+
+void solve2() {
+    int n, q;
+    rd(n, q);
+
+    vi a(n + 1);
+    rv(a, 1);
+
+    vvi divs(n + 1);
+    F(i, 1, n) {
+        int x = a[i];
+        for (int j = 2; j * j <= x; j++) {
+            if (x % j == 0) {
+                divs[i].pb(j);
+                while (x % j == 0) {
+                    x /= j;
+                }
+            }
         }
 
-        if (pos.empty() || pos.size() % 2 != 0) {
-            return 0;
+        if (x > 1) {
+            divs[i].pb(x);
         }
-
-        Z ans = 1;
-
-        for (int i = 1; i < pos.size() - 1; i += 2) {
-            ans *= (pos[i + 1] - pos[i]);
-        }
-
-        return ans.val();
     }
+
+    const int B = int(n / sqrt(q * 2 / 3 + 1)) + 1;
+
+    struct Q {
+        int l, r, id;
+    };
+
+    vector<Q> queries(q);
+    for (int i = 0; i < q; i++) {
+        cin >> queries[i].l >> queries[i].r;
+        queries[i].id = i;
+    }
+
+    sort(queries.begin(), queries.end(), [&](Q &a, Q &b) {
+        int l1 = a.l / B;
+        int l2 = b.l / B;
+        if (l1 != l2)
+            return a.l < b.l;
+        return (l1 & 1) ? (a.r < b.r) : (a.r > b.r);
+    });
+
+    Z mul = 1;
+    unordered_map<int, int> cnt;
+    auto add = [&](int pos) {
+        for (int d: divs[pos]) {
+            if (!cnt.contains(d)) {
+                mul *= d;
+                cnt[d] = 1;
+            } else {
+                cnt[d]++;
+            }
+        }
+    };
+
+    auto del = [&](int pos) {
+        for (int d: divs[pos]) {
+            cnt[d]--;
+            if (cnt[d] == 0) {
+                cnt.erase(d);
+                mul /= d;
+            }
+        }
+    };
+
+    int L = 1, R = 0;
+    vector<Z> ans(q);
+    for (auto &[l, r, id]: queries) {
+        while (L > l)
+            add(--L);
+        while (R < r)
+            add(++R);
+        while (L < l)
+            del(L++);
+        while (R > r)
+            del(R--);
+
+        ans[id] = mul;
+    }
+
+    F(i, 0, q - 1) { prt(ans[i].val()); }
+}
+
+template<typename T>
+struct MulBIT {
+    int n;
+    vector<T> tree;
+
+    MulBIT(int n) : n(n), tree(n + 1, 1) {}
+
+    void update(int i, T val) {
+        for (; i <= n; i += i & -i) {
+            tree[i] *= val;
+        }
+    }
+
+    T pre(int i) {
+        T res = 1;
+        for (; i > 0; i &= i - 1) {
+            res *= tree[i];
+        }
+        return res;
+    }
+
+    T rangeProduct(int l, int r) { return pre(r) / pre(l - 1); }
 };
 
-// int main() {
-//     ios::sync_with_stdio(false);
-//     cin.tie(nullptr);
-//     Solution sol;
-// }
+void solve() {
+    int n, q;
+    rd(n, q);
+
+    vi a(n + 1);
+    rv(a, 1);
+
+    vvi divs(n + 1);
+    F(i, 1, n) {
+        int x = a[i];
+        for (int j = 2; j * j <= x; j++) {
+            if (x % j == 0) {
+                divs[i].pb(j);
+                while (x % j == 0) {
+                    x /= j;
+                }
+            }
+        }
+        if (x > 1) {
+            divs[i].pb(x);
+        }
+    }
+
+    vvp ev(n + 1);
+    F(i, 1, q) {
+        int l, r;
+        rd(l, r);
+        ev[r].pb(l, i);
+    }
+
+    int mx = 0;
+    F(i, 1, n) mx = max(mx, a[i]);
+    vi last(mx + 1, 0);
+
+    MulBIT<Z> bit(n);
+    vector<Z> ans(q + 1);
+
+    F(i, 1, n) {
+        auto &div = divs[i];
+        for (int d: div) {
+            if (last[d] != 0) {
+                bit.update(last[d], Z(1) / d);
+            }
+
+            bit.update(i, d);
+
+            last[d] = i;
+        }
+
+        for (auto &p: ev[i]) {
+            int l = p.fi;
+            int id = p.se;
+            ans[id] = bit.rangeProduct(l, i);
+        }
+    }
+
+    F(i, 1, q) { prt(ans[i]); }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
+}

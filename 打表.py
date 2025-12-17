@@ -19,23 +19,7 @@ MOD = int(1e9 + 7)
 
 
 def main():
-    d = 911
-    r = 420
-    degree = 69
-
-    rad = radians(degree)
-
-    t1 = d * d
-
-    t2 = 4 * r * r * sin(rad / 2) * sin(rad / 2)
-
-    if t1 < t2:
-        print("Error: Negative value inside sqrt")
-        return
-
-    ans = sqrt(t1 - t2)
-
-    print(f"Answer: {ans}")
+    print(3 ** 13)
 
 
 if __name__ == "__main__":
