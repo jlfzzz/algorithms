@@ -150,39 +150,54 @@ void init() {}
 void solve() {
     int n;
     rd(n);
+
     vi a(n + 1);
     rv(a, 1);
 
-    vi pos(n + 2, 0);
-
-    vi l_bound(n + 1);
+    int m = n + 5;
+    vi stk1, stk2;
+    vi lmn(m), lmx(m), rmn(m), rmx(m);
 
     F(i, 1, n) {
         int x = a[i];
-        int pre_x = pos[x];
-        int pre_y = (x > 1 ? pos[x - 1] : 0);
+        while (!stk1.empty() && x >= a[stk1.back()]) {
+            stk1.pob();
+        }
+        while (!stk2.empty() && x <= a[stk2.back()]) {
+            stk2.pob();
+        }
 
-        l_bound[i] = max(pre_x, pre_y);
-        pos[x] = i;
+        lmx[i] = stk1.empty() ? 0 : stk1.back();
+        lmn[i] = stk2.empty() ? 0 : stk2.back();
+        stk1.pb(i);
+        stk2.pb(i);
     }
 
-
-    fill(all(pos), n + 1);
-    vi r_bound(n + 1);
+    stk1.clear(), stk2.clear();
 
     D(i, n, 1) {
         int x = a[i];
-        int nxt_y = (x > 1 ? pos[x - 1] : n + 1);
-        r_bound[i] = nxt_y;
-        pos[x] = i;
+        while (!stk1.empty() && x > a[stk1.back()]) {
+            stk1.pob();
+        }
+        while (!stk2.empty() && x < a[stk2.back()]) {
+            stk2.pob();
+        }
+
+        rmx[i] = stk1.empty() ? n + 1 : stk1.back();
+        rmn[i] = stk2.empty() ? n + 1 : stk2.back();
+        stk1.pb(i);
+        stk2.pb(i);
     }
 
     ll ans = 0;
     F(i, 1, n) {
-        ll left_cnt = i - l_bound[i];
-        ll right_cnt = r_bound[i] - i;
+        int l1 = lmn[i], r1 = rmn[i];
+        ll x = a[i];
+        ans -= 1ll * (i - l1) * (r1 - i) * x;
 
-        ans += left_cnt * right_cnt;
+        int l2 = lmx[i], r2 = rmx[i];
+        ans += 1ll * (i - l2) * (r2 - i) * x;
     }
 
     prt(ans);
