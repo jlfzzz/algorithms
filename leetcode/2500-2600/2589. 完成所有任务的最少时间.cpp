@@ -68,8 +68,52 @@ using pii = pair<int, int>;
 constexpr int MOD = int(1e9 + 7);
 using ll = long long;
 
-
 class Solution {
+public:
+    int findMinimumTime(vector<vector<int>> &tasks) {
+        sort(tasks.begin(), tasks.end(), [](const vector<int> &a, const vector<int> &b) { return a[1] < b[1]; });
+
+        vector<vector<int>> st;
+        st.push_back({-2, -2, 0});
+
+        for (const auto &task: tasks) {
+            int start = task[0];
+            int end = task[1];
+            int time = task[2];
+
+            auto it = lower_bound(st.begin(), st.end(), start,
+                                  [](const vector<int> &interval, int val) { return interval[1] < val; });
+
+            int run = st.back()[2] - (*prev(it))[2];
+
+            if (it != st.end() && (*it)[0] < start) {
+                run -= (start - (*it)[0]);
+            }
+
+            int needed = time - run;
+
+            if (needed > 0) {
+                int cur = end;
+                int t = needed;
+
+                while (st.back()[1] >= cur - t + 1) {
+                    auto top = st.back();
+                    st.pop_back();
+                    t += (top[1] - top[0] + 1);
+                }
+
+                int x = cur - t + 1;
+                int y = st.back()[2] + t;
+
+                st.push_back({x, cur, y});
+            }
+        }
+
+        return st.back()[2];
+    }
+};
+
+class Solution2 {
 public:
     int findMinimumTime(vector<vector<int>> &tasks) {
         sort(tasks.begin(), tasks.end(), [](const vector<int> &a, const vector<int> &b) {
@@ -108,11 +152,6 @@ public:
         return S.size();
     }
 };
-
-
-
-
-
 
 int main() {
     ios::sync_with_stdio(false);
