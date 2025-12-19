@@ -10,8 +10,10 @@ struct Node {
 struct Trie {
     static constexpr int MAXN = 100000 + 5;
     static constexpr int MAXNODE = MAXN * 32;
-    Node d[MAXNODE];
-    int tot;
+    Node d[MAXNODE]{};
+    int tot{};
+
+    Trie() { clear(); }
 
     void clear() {
         tot = 1;

@@ -147,42 +147,33 @@ int Multitest = 0;
 
 void init() {}
 
+
 void solve() {
-    int n;
-    rd(n);
-    vi a(n + 1);
-    rv(a, 1);
-
-    vi pos(n + 2, 0);
-
-    vi l_bound(n + 1);
-
-    F(i, 1, n) {
-        int x = a[i];
-        int pre_x = pos[x];
-        int pre_y = (x > 1 ? pos[x - 1] : 0);
-
-        l_bound[i] = max(pre_x, pre_y);
-        pos[x] = i;
-    }
-
-
-    fill(all(pos), n + 1);
-    vi r_bound(n + 1);
-
-    D(i, n, 1) {
-        int x = a[i];
-        int nxt_y = (x > 1 ? pos[x - 1] : n + 1);
-        r_bound[i] = nxt_y;
-        pos[x] = i;
-    }
+    ll R;
+    rd(R);
 
     ll ans = 0;
-    F(i, 1, n) {
-        ll left_cnt = i - l_bound[i];
-        ll right_cnt = r_bound[i] - i;
+    ll y = R;
 
-        ans += left_cnt * right_cnt;
+    for (ll x = 0;; ++x) {
+
+        while (y >= 0) {
+            i128 dist = (i128) (2 * x + 1) * (2 * x + 1) + (i128) (2 * y + 1) * (2 * y + 1);
+            if (dist <= (i128) 4 * R * R) {
+                break;
+            }
+            y--;
+        }
+
+        if (y < 0)
+            break;
+        ll col_cnt = 2 * y + 1;
+
+        if (x == 0) {
+            ans += col_cnt;
+        } else {
+            ans += 2 * col_cnt; 
+        }
     }
 
     prt(ans);

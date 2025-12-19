@@ -148,44 +148,51 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vi a(n + 1);
-    rv(a, 1);
+    int q;
+    rd(q);
 
-    vi pos(n + 2, 0);
+    int idx = 0; // 记录当前分配到的最新蛇的ID
+    int cnt = 0; // 记录已经离开队列的蛇的数量
+    set<pii> st; // 存储 {ID, 该蛇加入时的绝对头坐标}
+    ll lazy = 0; // 全局偏移量（所有离开的蛇的长度之和）
+    ll cur_head = 0; // 下一条新蛇加入时的绝对头坐标
 
-    vi l_bound(n + 1);
+    // 额外记录每条蛇的长度，用于Type 2删除时更新lazy
+    // 因为ID是从1开始连续的，用vector下标访问最快
+    vector<ll> lens;
+    lens.pb(0); // 占位，让下标从1开始对应ID
 
-    F(i, 1, n) {
-        int x = a[i];
-        int pre_x = pos[x];
-        int pre_y = (x > 1 ? pos[x - 1] : 0);
+    F(i, 1, q) {
+        int type;
+        rd(type);
 
-        l_bound[i] = max(pre_x, pre_y);
-        pos[x] = i;
+        if (type == 1) {
+            ll l;
+            rd(l);
+            // 存入 {ID, 当前绝对头坐标}
+            st.insert({++idx, cur_head});
+            // 记录长度
+            lens.pb(l);
+            // 更新下一条蛇的起始位置
+            cur_head += l;
+        } else if (type == 2) {
+            auto it = st.begin();
+            // 获取当前队头蛇的ID
+            int id = it->fi;
+            // 偏移量增加这条蛇的长度
+            lazy += lens[id];
+            st.erase(it);
+            cnt++;
+        } else {
+            int k;
+            rd(k);
+            // 现在的第k个，其实是原始ID中的第 (cnt + k) 个
+            k += cnt;
+            auto it = st.lower_bound({k, -INF}); // -INF 可以用你定义的 -1 或其他足够小的数
+            // 答案 = 初始绝对坐标 - 累积的偏移量
+            prt(it->se - lazy);
+        }
     }
-
-
-    fill(all(pos), n + 1);
-    vi r_bound(n + 1);
-
-    D(i, n, 1) {
-        int x = a[i];
-        int nxt_y = (x > 1 ? pos[x - 1] : n + 1);
-        r_bound[i] = nxt_y;
-        pos[x] = i;
-    }
-
-    ll ans = 0;
-    F(i, 1, n) {
-        ll left_cnt = i - l_bound[i];
-        ll right_cnt = r_bound[i] - i;
-
-        ans += left_cnt * right_cnt;
-    }
-
-    prt(ans);
 }
 
 int main() {

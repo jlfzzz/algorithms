@@ -148,41 +148,23 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vi a(n + 1);
-    rv(a, 1);
+    ll n, s;
+    rd(n, s);
 
-    vi pos(n + 2, 0);
+    ll lim = min(n, s + 100'0000);
 
-    vi l_bound(n + 1);
+    ll ans = n - lim;
+    for (ll i = s; i <= lim; i++) {
+        ll t = i;
+        ll sum = 0;
+        while (t) {
+            sum += t % 10;
+            t /= 10;
+        }
 
-    F(i, 1, n) {
-        int x = a[i];
-        int pre_x = pos[x];
-        int pre_y = (x > 1 ? pos[x - 1] : 0);
-
-        l_bound[i] = max(pre_x, pre_y);
-        pos[x] = i;
-    }
-
-
-    fill(all(pos), n + 1);
-    vi r_bound(n + 1);
-
-    D(i, n, 1) {
-        int x = a[i];
-        int nxt_y = (x > 1 ? pos[x - 1] : n + 1);
-        r_bound[i] = nxt_y;
-        pos[x] = i;
-    }
-
-    ll ans = 0;
-    F(i, 1, n) {
-        ll left_cnt = i - l_bound[i];
-        ll right_cnt = r_bound[i] - i;
-
-        ans += left_cnt * right_cnt;
+        if (i - sum >= s) {
+            ans++;
+        }
     }
 
     prt(ans);

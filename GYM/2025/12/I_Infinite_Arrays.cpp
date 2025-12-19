@@ -147,45 +147,110 @@ int Multitest = 0;
 
 void init() {}
 
+int L[N];
+int R[N];
+bool st[N];
+
 void solve() {
     int n;
     rd(n);
-    vi a(n + 1);
-    rv(a, 1);
 
-    vi pos(n + 2, 0);
+    vi p(n);
+    rv(p);
 
-    vi l_bound(n + 1);
+    for (int x: p)
+        st[x] = true;
 
-    F(i, 1, n) {
-        int x = a[i];
-        int pre_x = pos[x];
-        int pre_y = (x > 1 ? pos[x - 1] : 0);
-
-        l_bound[i] = max(pre_x, pre_y);
-        pos[x] = i;
+    if (n == 1) {
+        L[p[0]] = p[0];
+        R[p[0]] = p[0];
+    } else {
+        for (int i = 0; i < n; i++) {
+            int u = p[i];
+            int v = p[(i + 1) % n];
+            R[u] = v;
+            L[v] = u;
+        }
     }
 
+    int q;
+    rd(q);
 
-    fill(all(pos), n + 1);
-    vi r_bound(n + 1);
+    while (q--) {
+        char type;
+        rd(type);
 
-    D(i, n, 1) {
-        int x = a[i];
-        int nxt_y = (x > 1 ? pos[x - 1] : n + 1);
-        r_bound[i] = nxt_y;
-        pos[x] = i;
+        if (type == '-') {
+            int x;
+            rd(x);
+            int l = L[x];
+            int r = R[x];
+
+            R[l] = r;
+            L[r] = l;
+
+            st[x] = false;
+        } else if (type == '+') {
+            int y, z;
+            rd(y, z);
+
+            int l = L[z];
+
+            R[l] = y;
+            L[y] = l;
+
+            R[y] = z;
+            L[z] = y;
+
+            st[y] = true;
+        } else {
+            int k;
+            rd(k);
+            vi a(k);
+            rv(a);
+
+            bool flag = true;
+            for (int i = 0; i < k; i++) {
+                int u = a[i];
+                int v = a[(i + 1) % k];
+
+                if (!st[u] || !st[v] || R[u] != v) {
+                    flag = false;
+                    break;
+                }
+            }
+
+            if (flag) {
+                prt("*");
+            } else {
+                ll mx = 0;
+                ll cur = 0;
+
+                for (int i = 0; i < 2 * k; i++) {
+                    int val = a[i % k];
+
+                    if (!st[val]) {
+                        cur = 0;
+                    } else {
+                        if (cur == 0) {
+                            cur = 1;
+                        } else {
+                            int pre = a[(i - 1) % k];
+
+                            if (R[pre] == val) {
+                                cur++;
+                            } else {
+                                cur = 1;
+                            }
+                        }
+                    }
+                    if (cur > mx)
+                        mx = cur;
+                }
+                prt(mx);
+            }
+        }
     }
-
-    ll ans = 0;
-    F(i, 1, n) {
-        ll left_cnt = i - l_bound[i];
-        ll right_cnt = r_bound[i] - i;
-
-        ans += left_cnt * right_cnt;
-    }
-
-    prt(ans);
 }
 
 int main() {

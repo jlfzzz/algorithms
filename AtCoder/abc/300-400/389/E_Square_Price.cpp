@@ -148,44 +148,74 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vi a(n + 1);
-    rv(a, 1);
+    ll N;
+    long long M;
+    rd(N, M);
+    vl P(N);
+    rv(P);
 
-    vi pos(n + 2, 0);
+    auto check = [&](i128 X) -> pair<i128, i128> {
+        i128 total_cost = 0;
+        i128 total_count = 0;
 
-    vi l_bound(n + 1);
+        for (i128 p: P) {
+            if (X < p)
+                continue;
 
-    F(i, 1, n) {
-        int x = a[i];
-        int pre_x = pos[x];
-        int pre_y = (x > 1 ? pos[x - 1] : 0);
+            // 计算该商品买多少个
+            i128 k = (X / p + 1) / 2;
 
-        l_bound[i] = max(pre_x, pre_y);
-        pos[x] = i;
+            if (k > 0) {
+                // 【核心修复 1】：预判 k 是否大到离谱
+                // M 最大 10^18。如果 k > 2*10^9，则 k*k > 4*10^18，肯定买不起。
+                // 这样避免了 k*k 之后甚至可能连 i128 都会溢出的极端情况（当 N 很大时）。
+                if (k > 2000000000LL) {
+                    return {(i128) M + 7, 0}; // 返回一个大于 M 的值即可
+                }
+
+                // 计算这一项的花费
+                i128 term = k * k * p;
+
+                // 【核心修复 2】：累加前检查，或者累加后立即检查
+                // 为了防止 total_cost 累加到爆 i128，我们一旦发现它超过 M 就停。
+                if (term > M || total_cost + term > M) {
+                    return {(i128) M + 7, 0}; // 已经买不起了，返回 > M
+                }
+
+                total_cost += term;
+                total_count += k;
+            }
+        }
+        return {total_cost, total_count};
+    };
+
+    i128 L = 0, R = 2000000000000000000LL;
+    i128 best_X = 0;
+
+    while (L <= R) {
+        i128 mid = L + (R - L) / 2;
+        pair<i128, i128> res = check(mid);
+
+        if (res.first <= M) {
+            best_X = mid;
+            L = mid + 1;
+        } else {
+            R = mid - 1;
+        }
     }
 
+    // 重新计算 best_X 的确切花费和数量
+    // 因为 best_X 是合法的，所以 check(best_X) 肯定不会触发上面的 > M 返回逻辑
+    pair<i128, i128> res = check(best_X);
+    i128 final_count = res.second;
+    i128 money_used = res.first;
+    i128 rem_money = M - money_used;
 
-    fill(all(pos), n + 1);
-    vi r_bound(n + 1);
-
-    D(i, n, 1) {
-        int x = a[i];
-        int nxt_y = (x > 1 ? pos[x - 1] : n + 1);
-        r_bound[i] = nxt_y;
-        pos[x] = i;
+    if (rem_money > 0) {
+        final_count += rem_money / (best_X + 1);
     }
 
-    ll ans = 0;
-    F(i, 1, n) {
-        ll left_cnt = i - l_bound[i];
-        ll right_cnt = r_bound[i] - i;
-
-        ans += left_cnt * right_cnt;
-    }
-
-    prt(ans);
+    prt((long long) final_count);
 }
 
 int main() {
