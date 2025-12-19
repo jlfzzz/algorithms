@@ -1,86 +1,117 @@
-//
-// Created by 123 on 25-6-22.
-//
-#include "bits/stdc++.h"
+#include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
-constexpr int MOD = 1'000'000'007;
-constexpr int DIR[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD = int(1e9 + 7);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 class Solution {
 public:
-	double minTime(int n, int k, int m, vector<int> &time, vector<double> &mul) {
-		int u = 1 << n;
-		// 计算每个 time 子集的最大值
-		vector<int> max_time(u);
-		for (int i = 0; i < n; i++) {
-			int t = time[i];
-			int high_bit = 1 << i;
-			for (int mask = 0; mask < high_bit; mask++) {
-				max_time[high_bit | mask] = max({ max_time[high_bit | mask], max_time[mask], t });
-			}
-		}
-		// 这两个等价
-		// for (int mask = 1; mask < u; ++mask) {
-		// 	int mx = 0;
-		// 	for (int i = 0; i < n; ++i) {
-		// 		if (mask & (1 << i)) {
-		// 			mx = max(mx, time[i]);
-		// 		}
-		// 	}
-		// 	max_time[mask] = mx;
-		// }
-		
-		// 把 max_time 中的大小大于 k 的集合改为 inf
-		for (uint32_t i = 0; i < u; i++) {
-			if (popcount(i) > k) {
-				max_time[i] = INT_MAX;
-			}
-		}
+    double minTime(int n, int k, int m, vector<int> &time, vector<double> &mul) {
+        struct I {
+            double t;
+            int mask, time, person;
 
-		vector dis(m, vector<double>(u, numeric_limits<double>::max()));
-		using T = tuple<double, int, int>;
-		priority_queue<T, vector<T>, greater<>> pq;
+            bool operator<(const I &other) const { return t > other.t; }
+        };
 
-		auto push = [&](double d, int stage, int mask) {
-			if (d < dis[stage][mask]) {
-				dis[stage][mask] = d;
-				pq.emplace(d, stage, mask);
-			}
-			};
+        if (k == 1 && n != 1) {
+            return -1;
+        }
 
-		push(0, 0, u - 1); // 起点
+        vector dis(n + 1, vector(m, vector<double>(1 << n, 1e300)));
 
-		while (!pq.empty()) {
-			auto [d, stage, left] = pq.top();
-			pq.pop();
-			if (left == 0) { // 所有人都过河了
-				return d;
-			}
-			if (d > dis[stage][left]) {
-				continue;
-			}
-			// 枚举 sub 这群人坐一艘船
-			for (int sub = left; sub > 0; sub = (sub - 1) & left) {
-				if (max_time[sub] == INT_MAX) {
-					continue;
-				}
-				// sub 过河
-				double cost = max_time[sub] * mul[stage];
-				int cur_stage = (stage + int(cost)) % m; // 过河后的阶段
-				// 所有人都过河了
-				if (sub == left) {
-					push(d + cost, cur_stage, 0);
-					continue;
-				}
-				// 枚举回来的人（可以是之前过河的人）
-				for (int s = (u - 1) ^ left ^ sub, lb; s > 0; s ^= lb) {
-					lb = s & -s;
-					double return_time = max_time[lb] * mul[cur_stage];
-					push(d + cost + return_time, (cur_stage + int(return_time)) % m, left ^ sub ^ lb);
-				}
-			}
-		}
-		return -1;
-	}
+        dis[n][0][0] = 0;
+        priority_queue<I> pq;
+        pq.emplace(0, 0, 0, -1);
+
+        while (!pq.empty()) {
+            auto [t, mask, ts, person] = pq.top();
+            pq.pop();
+
+            if (mask == ((1 << n) - 1)) {
+                return t;
+            }
+
+            int ttt = (person == -1) ? n : 0;
+            if (t > dis[ttt][ts][mask]) {
+                continue;
+            }
+
+            if (person == n) {
+                for (int i = 0; i < n; i++) {
+                    if (mask >> i & 1) {
+                        double cost = (double) time[i] * mul[ts];
+                        int nts = (ts + (int) floor(cost)) % m;
+                        int nmask = mask ^ (1 << i);
+                        int np = -1;
+
+                        if (t + cost < dis[n][nts][nmask]) {
+                            dis[n][nts][nmask] = t + cost;
+                            pq.push({t + cost, nmask, nts, np});
+                        }
+                    }
+                }
+            } else {
+                vi a;
+                for (int i = 0; i < n; i++) {
+                    if (!(mask >> i & 1)) {
+                        a.pb(i);
+                    }
+                }
+
+                int sz = a.size();
+                for (int nmask = 1; nmask < (1 << sz); nmask++) {
+                    if (popcount((unsigned) nmask) > k) {
+                        continue;
+                    }
+
+                    int mx = 0;
+                    int mask2 = 0;
+
+                    for (int i = 0; i < sz; i++) {
+                        if (nmask >> i & 1) {
+                            int original_idx = a[i];
+                            mx = max(mx, time[original_idx]);
+                            mask2 |= (1 << original_idx);
+                        }
+                    }
+
+                    double cost = (double) mx * mul[ts];
+                    int nts = (ts + (int) floor(cost)) % m;
+                    int nnmask = mask | mask2;
+                    int np = n;
+
+                    if (t + cost < dis[0][nts][nnmask]) {
+                        dis[0][nts][nnmask] = t + cost;
+                        pq.push({t + cost, nnmask, nts, np});
+                    }
+                }
+            }
+        }
+        return -1;
+    }
 };

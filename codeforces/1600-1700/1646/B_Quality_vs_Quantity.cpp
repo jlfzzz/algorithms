@@ -23,8 +23,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -148,81 +148,34 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-    vi good(n);
-    int k;
-    rd(k);
-    F(i, 1, k) {
-        int t;
-        rd(t);
-        t--;
-        good[t] = 1;
-    }
+    vl a(n + 1);
+    rv(a, 1);
 
-    if (m == 1) {
-        prt(1);
-        return;
-    }
+    sort(all2(a, 1));
 
-    vi f(2), g(2);
-    f[0] = 0;
-    g[0] = 0;
-    f[1] = 1;
-    g[1] = 1;
+    vl pref(n + 1);
+    F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
 
-    F(len, 2, n) {
-        vi nf(1 << len), ng(1 << len);
-        F(mask, 0, (1 << len) - 1) {
-            int u = 0;
-            int v = 1;
+    ll sum = 0;
+    D(i, n, 1) {
+        sum += a[i];
+        int t = n - i + 1;
 
-            F(i, 0, len - 1) {
-                if (good[i]) {
-                    int mask2 = (mask & ((1 << i) - 1)) | ((mask >> (i + 1)) << i);
-                    u |= g[mask2];
-                    v &= f[mask2];
-                }
-            }
-            nf[mask] = u;
-            ng[mask] = v;
+        if (t + 1 >= i) {
+            break;
         }
 
-        f.swap(nf);
-        g.swap(ng);
-    }
-
-    vector<int> cnt(n + 1, 0);
-    F(mask, 0, (1 << n) - 1) {
-        if (f[mask]) {
-            cnt[__builtin_popcount(mask)]++;
+        ll sum2 = pref[t + 1];
+        if (sum > sum2) {
+            prt("YES");
+            return;
         }
     }
 
-    ll total_ans = 0;
-
-    F(v, 1, m) {
-        ll ways_high = m - v + 1;
-        ll ways_low = v - 1;
-
-        ll ph = 1;
-        vl pow_low(n + 1);
-        pow_low[0] = 1;
-        F(j, 1, n) pow_low[j] = (pow_low[j - 1] * ways_low) % MOD;
-
-        ll current_v_sum = 0;
-        F(k, 0, n) {
-            if (cnt[k] > 0) {
-                ll ways = (ph * pow_low[n - k]) % MOD;
-                current_v_sum = (current_v_sum + cnt[k] * ways) % MOD;
-            }
-            ph = (ph * ways_high) % MOD;
-        }
-        total_ans = (total_ans + current_v_sum) % MOD;
-    }
-
-    prt(total_ans);
+    prt("NO");
 }
 
 int main() {

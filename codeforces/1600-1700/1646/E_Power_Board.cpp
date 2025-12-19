@@ -23,8 +23,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -143,7 +143,7 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
@@ -151,78 +151,44 @@ void solve() {
     int n, m;
     rd(n, m);
 
-    vi good(n);
-    int k;
-    rd(k);
-    F(i, 1, k) {
-        int t;
-        rd(t);
-        t--;
-        good[t] = 1;
-    }
+    ll ans = 1;
+    vi vis(n + 1);
+    ll memo[30] = {0};
 
-    if (m == 1) {
-        prt(1);
-        return;
-    }
+    F(i, 2, n) {
+        if (vis[i]) {
+            continue;
+        }
 
-    vi f(2), g(2);
-    f[0] = 0;
-    g[0] = 0;
-    f[1] = 1;
-    g[1] = 1;
+        ll curr = i;
+        int len = 0;
+        while (curr <= n) {
+            vis[curr] = 1;
+            len++;
+            if (curr > n / i)
+                break;
+            curr *= i;
+        }
 
-    F(len, 2, n) {
-        vi nf(1 << len), ng(1 << len);
-        F(mask, 0, (1 << len) - 1) {
-            int u = 0;
-            int v = 1;
-
-            F(i, 0, len - 1) {
-                if (good[i]) {
-                    int mask2 = (mask & ((1 << i) - 1)) | ((mask >> (i + 1)) << i);
-                    u |= g[mask2];
-                    v &= f[mask2];
+        if (memo[len]) {
+            ans += memo[len];
+        } else {
+            vector<bool> dp(len * m + 1, false);
+            ll cnt = 0;
+            F(r, 1, len) {
+                F(c, 1, m) {
+                    if (!dp[r * c]) {
+                        dp[r * c] = true;
+                        cnt++;
+                    }
                 }
             }
-            nf[mask] = u;
-            ng[mask] = v;
-        }
-
-        f.swap(nf);
-        g.swap(ng);
-    }
-
-    vector<int> cnt(n + 1, 0);
-    F(mask, 0, (1 << n) - 1) {
-        if (f[mask]) {
-            cnt[__builtin_popcount(mask)]++;
+            memo[len] = cnt;
+            ans += cnt;
         }
     }
 
-    ll total_ans = 0;
-
-    F(v, 1, m) {
-        ll ways_high = m - v + 1;
-        ll ways_low = v - 1;
-
-        ll ph = 1;
-        vl pow_low(n + 1);
-        pow_low[0] = 1;
-        F(j, 1, n) pow_low[j] = (pow_low[j - 1] * ways_low) % MOD;
-
-        ll current_v_sum = 0;
-        F(k, 0, n) {
-            if (cnt[k] > 0) {
-                ll ways = (ph * pow_low[n - k]) % MOD;
-                current_v_sum = (current_v_sum + cnt[k] * ways) % MOD;
-            }
-            ph = (ph * ways_high) % MOD;
-        }
-        total_ans = (total_ans + current_v_sum) % MOD;
-    }
-
-    prt(total_ans);
+    prt(ans);
 }
 
 int main() {
