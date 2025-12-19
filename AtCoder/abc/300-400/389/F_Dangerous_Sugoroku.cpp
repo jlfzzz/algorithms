@@ -148,41 +148,95 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll n, m, a, b;
+    rd(n, m, a, b);
 
-    vl c(2 * n + 1);
-    vl x(n + 1);
+    vp c(m);
+    rv(c);
 
-    F(i, 1, n) cin >> c[i];
-    F(i, 1, n) cin >> x[i];
-
-    F(i, 1, n) c[i + n] = c[i];
-
-    vvl dp(2 * n + 2, vl(2 * n + 2, INF));
-
-    F(i, 1, 2 * n + 1) { dp[i][i - 1] = 0; }
-
-    F(len, 1, n) {
-        F(l, 1, 2 * n) {
-            int r = l + len - 1;
-            if (r > 2 * n)
-                break;
-
-            dp[l][r] = dp[l + 1][r] + 1 + x[c[l]];
-
-            F(k, l + 1, r) {
-                if (c[l] == c[k]) {
-                    ll cc = dp[l + 1][k - 1] + dp[k][r] + (k - l);
-                    dp[l][r] = min(dp[l][r], cc);
+    if (a == b) {
+        if ((n - 1) % a != 0) {
+            prt("No");
+            return;
+        }
+        for (auto [l, r]: c) {
+            if (r - l + 1 >= a) {
+                prt("No");
+                return;
+            }
+            for (ll k = l; k <= r; ++k) {
+                if ((k - 1) % a == 0) {
+                    prt("No");
+                    return;
                 }
+            }
+        }
+        prt("Yes");
+        return;
+    }
+
+    vector<pair<ll, ll>> safe_intervals;
+    ll cur = 1;
+    for (auto [l, r]: c) {
+        if (l - 1 >= cur) {
+            safe_intervals.pb(cur, l - 1);
+        }
+        cur = r + 1;
+    }
+    if (cur <= n) {
+        safe_intervals.pb(cur, n);
+    }
+
+    vi f(350, 0);
+    f[0] = 1;
+    F(i, 1, 349) {
+        F(j, a, b) {
+            if (i - j >= 0)
+                f[i] |= f[i - j];
+        }
+    }
+
+    dbg(safe_intervals);
+
+    map<ll, int> mp;
+    mp[1] = 1;
+
+    for (auto [l, r]: safe_intervals) {
+        ll head_end = min(r, l + b);
+
+        for (ll pos = l; pos <= head_end; ++pos) {
+            F(j, a, b) {
+                if (mp.count(pos - j)) {
+                    mp[pos] = 1;
+                    break;
+                }
+            }
+
+            if (mp.count(pos)) {
+                ll tail_start = max(pos, r - b);
+                for (ll k = tail_start; k <= r; ++k) {
+                    ll dist = k - pos;
+                    if (dist >= 342 || f[dist]) {
+                        mp[k] = 1;
+                    }
+                }
+            }
+        }
+
+        auto it = mp.begin();
+        while (it != mp.end()) {
+            if (it->first < r - b) {
+                it = mp.erase(it);
+            } else {
+                ++it;
             }
         }
     }
 
-    ll ans = INF;
-    F(i, 1, n) { ans = min(ans, dp[i][i + n - 1]); }
-    prt(ans);
+    if (mp.count(n))
+        prt("Yes");
+    else
+        prt("No");
 }
 
 int main() {

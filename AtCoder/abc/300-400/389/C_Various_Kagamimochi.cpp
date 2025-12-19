@@ -151,37 +151,18 @@ void solve() {
     int n;
     rd(n);
 
-    vl c(2 * n + 1);
-    vl x(n + 1);
+    vi a(n + 1);
+    rv(a, 1);
 
-    F(i, 1, n) cin >> c[i];
-    F(i, 1, n) cin >> x[i];
-
-    F(i, 1, n) c[i + n] = c[i];
-
-    vvl dp(2 * n + 2, vl(2 * n + 2, INF));
-
-    F(i, 1, 2 * n + 1) { dp[i][i - 1] = 0; }
-
-    F(len, 1, n) {
-        F(l, 1, 2 * n) {
-            int r = l + len - 1;
-            if (r > 2 * n)
-                break;
-
-            dp[l][r] = dp[l + 1][r] + 1 + x[c[l]];
-
-            F(k, l + 1, r) {
-                if (c[l] == c[k]) {
-                    ll cc = dp[l + 1][k - 1] + dp[k][r] + (k - l);
-                    dp[l][r] = min(dp[l][r], cc);
-                }
-            }
+    int l = 1;
+    ll ans = 0;
+    F(i, 1, n) {
+        while (l < i && a[l] <= a[i] / 2) {
+            l++;
         }
+        ans += l - 1;
     }
 
-    ll ans = INF;
-    F(i, 1, n) { ans = min(ans, dp[i][i + n - 1]); }
     prt(ans);
 }
 

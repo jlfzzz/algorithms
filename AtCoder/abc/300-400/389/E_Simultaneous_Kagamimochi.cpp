@@ -141,48 +141,89 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 2e5 + 5;
+constexpr int LOGN = 20;
+
+int n;
+int st[N][LOGN];
+int lg[N];
+
+void build_st(const vector<int> &b) {
+    lg[1] = 0;
+    for (int i = 2; i <= n; i++)
+        lg[i] = lg[i / 2] + 1;
+    for (int i = 1; i <= n; i++)
+        st[i][0] = b[i];
+    for (int j = 1; j < LOGN; j++)
+        for (int i = 1; i + (1 << j) - 1 <= n; i++)
+            st[i][j] = max(st[i][j - 1], st[i + (1 << (j - 1))][j - 1]);
+}
+
+int query_st(int l, int r) {
+    if (l > r)
+        return -inf;
+    int k = lg[r - l + 1];
+    return max(st[l][k], st[r - (1 << k) + 1][k]);
+}
 
 int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
     rd(n);
 
-    vl c(2 * n + 1);
-    vl x(n + 1);
+    vl a(n + 1);
+    rv(a, 1);
 
-    F(i, 1, n) cin >> c[i];
-    F(i, 1, n) cin >> x[i];
+    vi next_idx(n + 1);
+    vi b(n + 1);
 
-    F(i, 1, n) c[i + n] = c[i];
-
-    vvl dp(2 * n + 2, vl(2 * n + 2, INF));
-
-    F(i, 1, 2 * n + 1) { dp[i][i - 1] = 0; }
-
-    F(len, 1, n) {
-        F(l, 1, 2 * n) {
-            int r = l + len - 1;
-            if (r > 2 * n)
-                break;
-
-            dp[l][r] = dp[l + 1][r] + 1 + x[c[l]];
-
-            F(k, l + 1, r) {
-                if (c[l] == c[k]) {
-                    ll cc = dp[l + 1][k - 1] + dp[k][r] + (k - l);
-                    dp[l][r] = min(dp[l][r], cc);
-                }
-            }
+    // Precalculate next[i] and b[i]
+    for (int i = 1; i <= n; ++i) {
+        // Find smallest j such that a[j] >= 2 * a[i]
+        // Since a is sorted, use lower_bound
+        ll target = 2 * a[i];
+        auto it = lower_bound(a.begin() + 1, a.end(), target);
+        if (it == a.end()) {
+            next_idx[i] = n + 1;
+        } else {
+            next_idx[i] = distance(a.begin(), it);
         }
+        b[i] = next_idx[i] - i;
     }
 
-    ll ans = INF;
-    F(i, 1, n) { ans = min(ans, dp[i][i + n - 1]); }
-    prt(ans);
+    build_st(b);
+
+    int Q;
+    rd(Q);
+
+    while (Q--) {
+        int L, R;
+        rd(L, R);
+
+        int W = R - L + 1;
+        int low = 0, high = W / 2;
+        int ans = 0;
+
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            if (mid == 0) {
+                ans = max(ans, mid);
+                low = mid + 1;
+                continue;
+            }
+            // Check condition: K + max(B[L...L+K-1]) <= W
+            int max_b = query_st(L, L + mid - 1);
+            if (mid + max_b <= W) {
+                ans = mid;
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        prt(ans);
+    }
 }
 
 int main() {
