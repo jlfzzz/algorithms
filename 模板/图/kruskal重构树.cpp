@@ -6,12 +6,11 @@ const int LOGN = 20;
 
 struct Edge {
     int u, v, w;
-    // 升序排序用于求路径最大边权的最小值（Min-Max 问题）
-    // 降序排序用于求路径最小边权的最大值（Max-Min 问题）
+
+    // 升序
     bool operator<(const Edge &other) const { return w < other.w; }
 } edges[MAXN];
 
-// 重构树相关数组
 vector<int> adj[MAXN * 2];
 int val[MAXN * 2]; // 点权：1~n为0(或原点权)，n+1~cnt为边权
 int fa[MAXN * 2][LOGN]; // 倍增数组
