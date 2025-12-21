@@ -141,67 +141,80 @@ namespace utils {
 
 using namespace utils;
 
-int Multitest = 0;
+constexpr int N = 1e6 + 5;
 
-constexpr int N = 200005;
-int f[N];
-int s[N];
+int Multitest = 1;
 
-void init() {
-    f[0] = 1;
-    f[1] = 1;
-    s[0] = 1;
-    s[1] = 2;
-
-    for (int i = 2; i < N; i++) {
-        f[i] = (f[i - 1] + f[i - 2]) % MOD2;
-        s[i] = (s[i - 1] + f[i]) % MOD2;
-    }
-}
+void init() {}
 
 void solve() {
-    int n, p;
-    rd(n, p);
+    int r, c;
+    rd(r, c);
 
-    vi a(n);
-    rv(a);
+    vvl a(r, vl(c));
+    F(i, 0, r - 1) { rv(a[i]); }
 
-    set<int> st(all(a));
+    vl base(c);
+    rv(base);
 
-    ll ans = 0;
+    if (c < r) {
+        ll ans = INF;
+        F(mask, 1, (1 << c) - 1) {
+            ll cur = 0;
 
-    for (int x: a) {
-        bool bad = false;
-        int curr = x;
-
-        while (curr > 0) {
-            if (curr % 4 == 0) {
-                curr /= 4;
-            } else if (curr % 2 == 1) {
-                curr /= 2;
-            } else {
-                break;
+            F(j, 0, c - 1) {
+                if ((mask >> j) & 1) {
+                    cur += base[j];
+                }
             }
 
-            if (st.count(curr)) {
-                bad = true;
-                break;
+            bool can = true;
+            F(i, 0, r - 1) {
+                ll mn = INF;
+                F(j, 0, c - 1) {
+                    if ((mask >> j) & 1) {
+                        mn = min(mn, a[i][j]);
+                    }
+                }
+                if (mn == INF) {
+                    can = false;
+                    break;
+                }
+                cur += mn;
+            }
+
+            if (can) {
+                ans = min(ans, cur);
+            }
+        }
+        prt(ans);
+    } else {
+        vl best(1 << r, INF);
+
+        F(j, 0, c - 1) {
+            F(mask, 1, (1 << r) - 1) {
+                ll cur = base[j];
+                F(i, 0, r - 1) {
+                    if ((mask >> i) & 1) {
+                        cur += a[i][j];
+                    }
+                }
+                best[mask] = min(best[mask], cur);
             }
         }
 
-        if (bad) {
-            continue;
-        }
+        vl dp(1 << r, INF);
+        dp[0] = 0;
 
-        int len = 32 - __builtin_clz(x);
-
-        if (len <= p) {
-            int rem = p - len;
-            ans = (ans + s[rem]) % MOD2;
+        F(mask, 1, (1 << r) - 1) {
+            for (int sub = mask; sub > 0; sub = (sub - 1) & mask) {
+                if (dp[mask ^ sub] != INF && best[sub] != INF) {
+                    dp[mask] = min(dp[mask], dp[mask ^ sub] + best[sub]);
+                }
+            }
         }
+        prt(dp[(1 << r) - 1]);
     }
-
-    prt(ans);
 }
 
 int main() {

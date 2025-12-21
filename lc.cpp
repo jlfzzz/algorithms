@@ -639,6 +639,78 @@ constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 
+class Solution {
+public:
+    string generateString(string str1, string str2) {
+        int n = str1.size();
+        int m = str2.size();
+        int len = n + m - 1;
+
+        string ans(len, ' ');
+        vector<bool> fixed(len, false);
+
+        D(i, n - 1, 0) {
+            if (str1[i] == 'T') {
+                F(j, i, i + m - 1) {
+                    if (ans[j] != ' ' && ans[j] != str2[j - i]) {
+                        return "";
+                    }
+                    ans[j] = str2[j - i];
+                    fixed[j] = true;
+                }
+            }
+        }
+
+        F(i, 0, len - 1) {
+            if (ans[i] == ' ') {
+                ans[i] = 'a';
+            }
+        }
+
+        int i = 0;
+        while (i < n) {
+            if (str1[i] == 'F') {
+                bool same = true;
+                F(j, 0, m - 1) {
+                    if (ans[i + j] != str2[j]) {
+                        same = false;
+                        break;
+                    }
+                }
+
+                if (same) {
+                    int k = i + m - 1;
+                    while (k >= i) {
+                        if (!fixed[k] && ans[k] < 'z') {
+                            break;
+                        }
+                        k--;
+                    }
+
+                    if (k < i)
+                        return "";
+
+                    ans[k]++;
+
+                    F(p, k + 1, len - 1) {
+                        if (!fixed[p])
+                            ans[p] = 'a';
+                    }
+
+                    int next_i = k - m + 1;
+                    if (next_i < 0)
+                        next_i = 0;
+                    i = next_i - 1;
+                }
+            }
+            i++;
+        }
+
+        return ans;
+    }
+};
+
+
 // int main() {
 //     ios::sync_with_stdio(false);
 //     cin.tie(nullptr);

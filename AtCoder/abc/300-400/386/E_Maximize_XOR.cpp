@@ -141,65 +141,56 @@ namespace utils {
 
 using namespace utils;
 
+constexpr int N = 1e6 + 5;
+
 int Multitest = 0;
 
-constexpr int N = 200005;
-int f[N];
-int s[N];
-
-void init() {
-    f[0] = 1;
-    f[1] = 1;
-    s[0] = 1;
-    s[1] = 2;
-
-    for (int i = 2; i < N; i++) {
-        f[i] = (f[i - 1] + f[i - 2]) % MOD2;
-        s[i] = (s[i - 1] + f[i]) % MOD2;
-    }
-}
+void init() {}
 
 void solve() {
-    int n, p;
-    rd(n, p);
-
-    vi a(n);
+    int n, k;
+    rd(n, k);
+    vl a(n);
     rv(a);
 
-    set<int> st(all(a));
+    ll total = 0;
+    for (auto x: a)
+        total ^= x;
 
-    ll ans = 0;
-
-    for (int x: a) {
-        bool bad = false;
-        int curr = x;
-
-        while (curr > 0) {
-            if (curr % 4 == 0) {
-                curr /= 4;
-            } else if (curr % 2 == 1) {
-                curr /= 2;
-            } else {
-                break;
-            }
-
-            if (st.count(curr)) {
-                bad = true;
-                break;
-            }
-        }
-
-        if (bad) {
-            continue;
-        }
-
-        int len = 32 - __builtin_clz(x);
-
-        if (len <= p) {
-            int rem = p - len;
-            ans = (ans + s[rem]) % MOD2;
-        }
+    int target = k;
+    bool flag = false;
+    if (k > n / 2) {
+        target = n - k;
+        flag = true;
     }
+
+    ll ans = -1;
+
+    auto dfs = [&](auto &&self, int index, int cnt, ll val) -> void {
+        if (cnt == target) {
+            ll res;
+            if (flag) {
+                res = total ^ val;
+            } else {
+                res = val;
+            }
+            if (ans == -1 || res > ans)
+                ans = res;
+            return;
+        }
+
+        if (index == n)
+            return;
+
+        if (cnt + (n - index) < target)
+            return;
+
+        self(self, index + 1, cnt + 1, val ^ a[index]);
+
+        self(self, index + 1, cnt, val);
+    };
+
+    dfs(dfs, 0, 0, 0);
 
     prt(ans);
 }

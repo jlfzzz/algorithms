@@ -141,67 +141,54 @@ namespace utils {
 
 using namespace utils;
 
+constexpr int N = 1e6 + 5;
+
 int Multitest = 0;
 
-constexpr int N = 200005;
-int f[N];
-int s[N];
+void init() {}
 
-void init() {
-    f[0] = 1;
-    f[1] = 1;
-    s[0] = 1;
-    s[1] = 2;
-
-    for (int i = 2; i < N; i++) {
-        f[i] = (f[i - 1] + f[i - 2]) % MOD2;
-        s[i] = (s[i - 1] + f[i]) % MOD2;
-    }
-}
+struct Point {
+    int x, y, type;
+};
 
 void solve() {
-    int n, p;
-    rd(n, p);
+    int n, m;
+    rd(n, m);
 
-    vi a(n);
-    rv(a);
+    vector<Point> pts;
+    pts.reserve(m);
 
-    set<int> st(all(a));
+    F(i, 1, m) {
+        int x, y;
+        char c;
+        rd(x, y, c);
+        // B -> 0, W -> 1
+        pts.push_back({x, y, (c == 'B' ? 0 : 1)});
+    }
 
-    ll ans = 0;
-
-    for (int x: a) {
-        bool bad = false;
-        int curr = x;
-
-        while (curr > 0) {
-            if (curr % 4 == 0) {
-                curr /= 4;
-            } else if (curr % 2 == 1) {
-                curr /= 2;
-            } else {
-                break;
-            }
-
-            if (st.count(curr)) {
-                bad = true;
-                break;
-            }
+    // Sort by x descending.
+    // For same x, process Black (0) before White (1).
+    sort(all(pts), [](const Point &a, const Point &b) {
+        if (a.x != b.x) {
+            return a.x > b.x;
         }
+        return a.type < b.type;
+    });
 
-        if (bad) {
-            continue;
-        }
+    int max_black_y = 0;
 
-        int len = 32 - __builtin_clz(x);
-
-        if (len <= p) {
-            int rem = p - len;
-            ans = (ans + s[rem]) % MOD2;
+    for (const auto &p: pts) {
+        if (p.type == 0) { // Black
+            max_black_y = max(max_black_y, p.y);
+        } else { // White
+            if (max_black_y >= p.y) {
+                prt("No");
+                return;
+            }
         }
     }
 
-    prt(ans);
+    prt("Yes");
 }
 
 int main() {
