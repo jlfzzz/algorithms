@@ -1,0 +1,293 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(104206969);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+
+namespace utils {
+    template<typename A, typename B>
+    ostream &operator<<(ostream &os, const pair<A, B> &p) {
+        return os << '(' << p.first << ", " << p.second << ')';
+    }
+
+    template<typename Tuple, size_t... Is>
+    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
+        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
+    }
+
+    template<typename... Args>
+    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
+        os << '(';
+        print_tuple(os, t, index_sequence_for<Args...>{});
+        return os << ')';
+    }
+
+    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
+    ostream &operator<<(ostream &os, const T &v) {
+        os << '{';
+        bool first = true;
+        for (auto &x: v) {
+            if (!first)
+                os << ", ";
+            first = false;
+            os << x;
+        }
+        return os << '}';
+    }
+
+    void debug_out() { cerr << endl; }
+
+    template<typename Head, typename... Tail>
+    void debug_out(Head H, Tail... T) {
+        cerr << H;
+        if (sizeof...(T))
+            cerr << " ";
+        debug_out(T...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+#ifdef WOAIHUTAO
+#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
+
+using namespace utils;
+
+constexpr int N = 1e7 + 5;
+
+struct Sieve {
+    bool is_not_prime[N + 1]{};
+    std::vector<int> primes;
+    int min_prime_factor[N + 1]{};
+    int distinct_factors_count[N + 1]{}; // 不同质因子个数
+
+    int divisor_count[N + 1]{}; // 约数个数
+    int cnt_exp[N + 1]{}; // 最小质因子的指数
+
+    Sieve() { init(N); }
+
+    void init(int n) {
+        is_not_prime[0] = is_not_prime[1] = true;
+        min_prime_factor[0] = min_prime_factor[1] = 0;
+        distinct_factors_count[1] = 0;
+
+        divisor_count[1] = 1;
+        cnt_exp[1] = 0;
+
+        for (int i = 2; i <= n; ++i) {
+            if (!is_not_prime[i]) {
+                primes.push_back(i);
+                min_prime_factor[i] = i;
+                distinct_factors_count[i] = 1;
+
+                cnt_exp[i] = 1;
+                divisor_count[i] = 2;
+            }
+
+            for (int p: primes) {
+                long long x = 1LL * i * p;
+                if (x > n)
+                    break;
+                is_not_prime[i * p] = true;
+                min_prime_factor[i * p] = p;
+
+                if (i % p == 0) {
+                    distinct_factors_count[i * p] = distinct_factors_count[i];
+
+                    cnt_exp[i * p] = cnt_exp[i] + 1;
+                    divisor_count[i * p] = divisor_count[i] / (cnt_exp[i] + 1) * (cnt_exp[i * p] + 1);
+
+                    break;
+                } else {
+                    distinct_factors_count[i * p] = distinct_factors_count[i] + 1;
+
+                    cnt_exp[i * p] = 1;
+                    divisor_count[i * p] = divisor_count[i] * 2;
+                }
+            }
+        }
+    }
+
+    [[nodiscard]] bool is_prime(int x) const {
+        if (x <= 1 || x > N)
+            return false;
+        return !is_not_prime[x];
+    }
+} sieve;
+
+int Multitest = 1;
+
+ll Add(ll x, ll y) { return (x + y) % MOD; }
+
+vl good;
+vl pref1, pref2;
+
+void init() {
+    F(i, 1, int(1e7)) {
+        if (sieve.is_prime(i) && sieve.is_prime(i + 2)) {
+            good.pb(i);
+        }
+    }
+
+    pref1.pb(0), pref2.pb(0);
+    for (int x: sieve.primes) {
+        pref1.pb(Add(pref1.back(), x));
+    }
+
+    for (ll x: good) {
+        pref2.pb(Add(pref2.back(), x));
+    }
+}
+
+void solve() {
+    int n, k;
+    rd(n, k);
+
+    if (k > 4) {
+        prt(0);
+        return;
+    }
+
+    if (k == 1) {
+        prt(n);
+    } else if (k == 2) {
+        int j = ranges::upper_bound(sieve.primes, n) - sieve.primes.begin();
+        ll sum1 = 1ll * j * n % MOD;
+        ll sum2 = pref1[j];
+        prt((sum1 - sum2 + MOD) % MOD);
+    } else if (k == 3) {
+        int j = ranges::upper_bound(good, n) - good.begin();
+        j = ranges::upper_bound(good, n - 2) - good.begin();
+
+        ll cnt = j;
+        ll sumP = pref2[j];
+
+        ll sum1 = 1ll * (n - 2) * cnt % MOD;
+        ll sum2 = sumP;
+        ll ans = (sum1 - sum2 + MOD) % MOD;
+        ans = (ans * 2) % MOD;
+
+        prt(ans);
+    } else {
+        if (n >= 8) {
+            prt((n - 7) % MOD);
+        } else {
+            prt(0);
+        }
+    }
+
+    // F(i, 1, 1e7) {
+    //     if (sieve.is_prime(i) && sieve.is_prime(i + 4) && sieve.is_prime(i + 2)) {
+    //         dbg(i);
+    //     }
+    // }
+
+    // F(i, 1, 10000) {
+    //     F(j, i + 1, 10000) {
+    //         if (sieve.is_prime(i) && sieve.is_prime(j) && sieve.is_prime(i + j) && i != j) {
+    //             dbg(i, j, i + j);
+    //         }
+    //     }
+    // }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
+}
