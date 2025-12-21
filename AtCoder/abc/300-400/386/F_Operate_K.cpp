@@ -141,67 +141,62 @@ namespace utils {
 
 using namespace utils;
 
+constexpr int N = 1e6 + 5;
+
 int Multitest = 0;
 
-constexpr int N = 200005;
-int f[N];
-int s[N];
-
-void init() {
-    f[0] = 1;
-    f[1] = 1;
-    s[0] = 1;
-    s[1] = 2;
-
-    for (int i = 2; i < N; i++) {
-        f[i] = (f[i - 1] + f[i - 2]) % MOD2;
-        s[i] = (s[i - 1] + f[i]) % MOD2;
-    }
-}
+void init() {}
 
 void solve() {
-    int n, p;
-    rd(n, p);
+    int k;
+    string s, t;
+    rd(k, s, t);
 
-    vi a(n);
-    rv(a);
+    int n = SZ(s);
+    int m = SZ(t);
 
-    set<int> st(all(a));
+    if (abs(n - m) > k) {
+        prt("No");
+        return;
+    }
 
-    ll ans = 0;
+    vvi dp(n + 1, vi(2 * k + 1, inf));
 
-    for (int x: a) {
-        bool bad = false;
-        int curr = x;
+    F(d, 0, k) {
+        if (d <= m)
+            dp[0][d + k] = d;
+    }
 
-        while (curr > 0) {
-            if (curr % 4 == 0) {
-                curr /= 4;
-            } else if (curr % 2 == 1) {
-                curr /= 2;
-            } else {
-                break;
+    F(i, 1, n) {
+        F(d, -k, k) {
+            int j = i + d;
+            int idx = d + k;
+
+            if (j < 0 || j > m)
+                continue;
+
+            if (d + 1 <= k) {
+                dp[i][idx] = min(dp[i][idx], dp[i - 1][idx + 1] + 1);
             }
 
-            if (st.count(curr)) {
-                bad = true;
-                break;
+            if (d - 1 >= -k && j > 0) {
+                dp[i][idx] = min(dp[i][idx], dp[i][idx - 1] + 1);
             }
-        }
 
-        if (bad) {
-            continue;
-        }
-
-        int len = 32 - __builtin_clz(x);
-
-        if (len <= p) {
-            int rem = p - len;
-            ans = (ans + s[rem]) % MOD2;
+            if (j > 0) {
+                int cost = (s[i - 1] == t[j - 1] ? 0 : 1);
+                dp[i][idx] = min(dp[i][idx], dp[i - 1][idx] + cost);
+            }
         }
     }
 
-    prt(ans);
+    int pos = m - n;
+
+    if (dp[n][pos + k] <= k) {
+        prt("Yes");
+    } else {
+        prt("No");
+    }
 }
 
 int main() {
