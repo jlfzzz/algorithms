@@ -1,17 +1,35 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
 using namespace std;
-using namespace __gnu_pbds;
-using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_multiset =
-    tree<pair<long long, long long>, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
-constexpr int N = int(5e5 + 5);
-int INIT = [] { return 0; }();
-
-namespace DEBUG {
+namespace utils {
     template<typename A, typename B>
     ostream &operator<<(ostream &os, const pair<A, B> &p) {
         return os << '(' << p.first << ", " << p.second << ')';
@@ -51,11 +69,77 @@ namespace DEBUG {
             cerr << " ";
         debug_out(T...);
     }
-} // namespace DEBUG
 
-using namespace DEBUG;
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
 
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
+
+using namespace utils;
 
 namespace atcoder {
 
@@ -589,83 +673,117 @@ namespace atcoder {
         using is_dynamic_modint_t = std::enable_if_t<is_dynamic_modint<T>::value>;
 
     } // namespace internal
-    template<int m>
-    ostream &operator<<(ostream &os, const static_modint<m> &x) {
-        return os << x.val();
-    }
+
 } // namespace atcoder
 
-using Z = atcoder::static_modint<int(1e9 + 7)>;
+using Z = atcoder::static_modint<998244352>;
 
-Z q_pow(Z base, long long exp) {
-    Z result(1);
-    while (exp > 0) {
-        if (exp & 1)
-            result *= base;
-        base *= base;
-        exp >>= 1;
+using Matrix = vector<vector<Z>>;
+
+namespace MatrixUtils {
+    Matrix identity(int n) {
+        Matrix unit(n, std::vector<Z>(n, 0));
+        for (int i = 0; i < n; ++i) {
+            unit[i][i] = 1;
+        }
+        return unit;
     }
-    return result;
-}
 
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-#define i128 __int128_t
-#define db long double
-#define pb emplace_back
-#define pf emplace_front
-#define pob pop_back
-#define ep emplace
-#define ins insert
-#define all(x) (x).begin(), (x).end()
-#define all2(x, i) (x).begin() + (i), (x).end()
-using pii = pair<ll, ll>;
-#define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vl vector<long long>
-#define vvi vector<vector<int>>
-#define vvp vector<vector<pii>>
-#define vvl vector<vector<long long>>
-#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
-#define SZ(a) ((int) (a).size())
-#define prq priority_queue
-#define fi first
-#define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
-constexpr int inf = 0x3f3f3f3f;
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+    Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
+        int n = m1.size();
+        int p = m1[0].size();
+        int m = m2[0].size();
 
+        if (p != static_cast<int>(m2.size())) {
+            throw std::runtime_error("Matrix multiplication dimensions mismatch");
+        }
 
-class Solution {
-public:
-    int longestValidParentheses(string s) {
-        int n = s.size();
-        stack<int> st;
-        st.push(-1);
-        int ans = 0;
-
-        for (int i = 0; i < n; i++) {
-            if (s[i] == '(') {
-                st.push(i);
-            } else {
-                st.pop();
-                if (st.empty()) {
-                    st.push(i);
-                } else {
-                    ans = max(ans, i - st.top());
+        Matrix ret(n, vector<Z>(m, 0));
+        for (int i = 0; i < n; ++i) {
+            for (int k = 0; k < p; ++k) {
+                if (m1[i][k] == 0) {
+                    continue;
+                }
+                for (int j = 0; j < m; ++j) {
+                    ret[i][j] += m1[i][k] * m2[k][j];
                 }
             }
         }
-        return ans;
+        return ret;
     }
-};
 
+    Matrix quick_mul(Matrix mat, long long n) {
+        int m = mat.size();
 
-// int main() {
-//     ios::sync_with_stdio(false);
-//     cin.tie(nullptr);
-//     Solution sol;
-// }
+        if (m == 0 || m != static_cast<int>(mat[0].size())) {
+            throw std::runtime_error("Matrix power requires a square matrix");
+        }
+
+        Matrix res = identity(m);
+
+        while (n > 0) {
+            if (n & 1) {
+                res = mat_mul(res, mat);
+            }
+            mat = mat_mul(mat, mat);
+            n >>= 1;
+        }
+        return res;
+    }
+} // namespace MatrixUtils
+
+using namespace MatrixUtils;
+
+constexpr int N = 1e6 + 5;
+
+int Multitest = 0;
+
+void init() {}
+
+void solve() {
+    ll n;
+    rd(n);
+
+    if (n == 0) {
+        prt(1);
+        return;
+    }
+    if (n == 1) {
+        prt(2);
+        return;
+    }
+
+    Matrix mat0(2, vector<Z>(2, 1));
+    mat0[1][1] = 0;
+    Matrix mat1(2, vector<Z>(1, 0));
+    mat1[0][0] = 1;
+
+    auto mat = quick_mul(mat0, n - 1);
+    mat = mat_mul(mat, mat1);
+
+    auto q_pow = [&](ll base, ll exp) -> ll {
+        ll res = 1;
+        while (exp) {
+            if (exp & 1)
+                res = res * base % MOD;
+            base = base * base % MOD;
+            exp >>= 1;
+        }
+        return res;
+    };
+
+    prt(q_pow(2, mat[0][0].val()));
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
+}

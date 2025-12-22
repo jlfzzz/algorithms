@@ -148,57 +148,42 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-
-    vvp g(n + 1);
-    F(i, 1, m) {
-        ll l, r, s;
-        rd(l, r, s);
-
-        g[l - 1].pb(r, s);
-        g[r].pb(l - 1, -s);
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
 
-    F(i, 0, n - 1) { g[i].pb(i + 1, 1); }
+    int max_snowflake_size = 0;
 
-    queue<ll> q;
-    vector<ll> cnt(n + 1), dis(n + 1, -inf), vis(n + 1);
-    auto spfa = [&]() -> bool {
-        dis[0] = 0;
-        q.push(0);
-        vis[0] = true;
-        cnt[0] = 1;
-
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            vis[u] = false;
-
-            for (auto &[v, w]: g[u]) {
-                if (dis[u] + w > dis[v]) {
-                    dis[v] = dis[u] + w;
-
-                    if (!vis[v]) {
-                        cnt[v]++; // 入队次数+1
-                        if (cnt[v] >= n + 2) {
-                            return true; // 检测到负环
-                        }
-                        q.push(v);
-                        vis[v] = true;
-                    }
-                }
+    F(u, 1, n) {
+        vi caps;
+        for (int v: g[u]) {
+            int capacity = SZ(g[v]) - 1;
+            if (capacity >= 1) {
+                caps.pb(capacity);
             }
         }
-        return false;
-    };
 
-    if (spfa()) {
-        prt(-1);
-    } else {
-        prt(dis[n]);
+        sort(all(caps), greater<int>());
+        for (int i = 0; i < SZ(caps); i++) {
+            long long x = i + 1;
+            long long y = caps[i];
+
+            long long current_size = 1 + x + x * y;
+
+            if (current_size > max_snowflake_size) {
+                max_snowflake_size = current_size;
+            }
+        }
     }
+
+    prt(n - max_snowflake_size);
 }
 
 int main() {

@@ -141,64 +141,31 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
+constexpr int N = 1e7 + 5;
 
 int Multitest = 0;
 
 void init() {}
 
+ll dp[N];
+
 void solve() {
-    int n, m;
-    rd(n, m);
+    ll n, x, y;
+    rd(n, x, y);
 
+    dp[1] = x;
 
-    vvp g(n + 1);
-    F(i, 1, m) {
-        ll l, r, s;
-        rd(l, r, s);
+    for (int i = 2; i <= n; i++) {
+        dp[i] = dp[i - 1] + x;
 
-        g[l - 1].pb(r, s);
-        g[r].pb(l - 1, -s);
-    }
-
-    F(i, 0, n - 1) { g[i].pb(i + 1, 1); }
-
-    queue<ll> q;
-    vector<ll> cnt(n + 1), dis(n + 1, -inf), vis(n + 1);
-    auto spfa = [&]() -> bool {
-        dis[0] = 0;
-        q.push(0);
-        vis[0] = true;
-        cnt[0] = 1;
-
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            vis[u] = false;
-
-            for (auto &[v, w]: g[u]) {
-                if (dis[u] + w > dis[v]) {
-                    dis[v] = dis[u] + w;
-
-                    if (!vis[v]) {
-                        cnt[v]++; // 入队次数+1
-                        if (cnt[v] >= n + 2) {
-                            return true; // 检测到负环
-                        }
-                        q.push(v);
-                        vis[v] = true;
-                    }
-                }
-            }
+        if (i % 2 == 0) {
+            dp[i] = min(dp[i], dp[i / 2] + y);
+        } else {
+            dp[i] = min(dp[i], dp[(i + 1) / 2] + y + x);
         }
-        return false;
-    };
-
-    if (spfa()) {
-        prt(-1);
-    } else {
-        prt(dis[n]);
     }
+
+    prt(dp[n]);
 }
 
 int main() {

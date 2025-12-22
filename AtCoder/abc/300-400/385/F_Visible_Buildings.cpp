@@ -148,56 +148,34 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    cin >> n;
 
-
-    vvp g(n + 1);
-    F(i, 1, m) {
-        ll l, r, s;
-        rd(l, r, s);
-
-        g[l - 1].pb(r, s);
-        g[r].pb(l - 1, -s);
+    vector<pair<ll, ll>> a(n);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i].first >> a[i].second;
     }
 
-    F(i, 0, n - 1) { g[i].pb(i + 1, 1); }
+    if (n == 1) {
+        cout << "-1\n";
+        return;
+    }
 
-    queue<ll> q;
-    vector<ll> cnt(n + 1), dis(n + 1, -inf), vis(n + 1);
-    auto spfa = [&]() -> bool {
-        dis[0] = 0;
-        q.push(0);
-        vis[0] = true;
-        cnt[0] = 1;
+    db ans = -1e18;
 
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            vis[u] = false;
+    for (int i = 1; i < n; i++) {
+        ll x1 = a[i - 1].first, h1 = a[i - 1].second;
+        ll x2 = a[i].first, h2 = a[i].second;
 
-            for (auto &[v, w]: g[u]) {
-                if (dis[u] + w > dis[v]) {
-                    dis[v] = dis[u] + w;
+        db val = (db) ((db) h1 * x2 - (db) h2 * x1) / (db) (x2 - x1);
+        if (val > ans)
+            ans = val;
+    }
 
-                    if (!vis[v]) {
-                        cnt[v]++; // 入队次数+1
-                        if (cnt[v] >= n + 2) {
-                            return true; // 检测到负环
-                        }
-                        q.push(v);
-                        vis[v] = true;
-                    }
-                }
-            }
-        }
-        return false;
-    };
-
-    if (spfa()) {
-        prt(-1);
+    if (ans < 0) {
+        cout << "-1\n";
     } else {
-        prt(dis[n]);
+        cout << fixed << setprecision(18) << ans << "\n";
     }
 }
 

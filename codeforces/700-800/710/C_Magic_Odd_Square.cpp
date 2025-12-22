@@ -148,56 +148,32 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
+    vvi ans(n, vi(n, 0));
+    int r = 0;
+    int c = n / 2;
+    ans[r][c] = 1;
 
-    vvp g(n + 1);
-    F(i, 1, m) {
-        ll l, r, s;
-        rd(l, r, s);
+    F(k, 2, n * n) {
+        int nr = (r - 1 + n) % n;
+        int nc = (c + 1) % n;
 
-        g[l - 1].pb(r, s);
-        g[r].pb(l - 1, -s);
+        if (ans[nr][nc] != 0) {
+            nr = (r + 1) % n;
+            nc = c;
+        }
+
+        dbg(nr, nc);
+        ans[nr][nc] = k;
+        r = nr;
+        c = nc;
     }
 
-    F(i, 0, n - 1) { g[i].pb(i + 1, 1); }
-
-    queue<ll> q;
-    vector<ll> cnt(n + 1), dis(n + 1, -inf), vis(n + 1);
-    auto spfa = [&]() -> bool {
-        dis[0] = 0;
-        q.push(0);
-        vis[0] = true;
-        cnt[0] = 1;
-
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            vis[u] = false;
-
-            for (auto &[v, w]: g[u]) {
-                if (dis[u] + w > dis[v]) {
-                    dis[v] = dis[u] + w;
-
-                    if (!vis[v]) {
-                        cnt[v]++; // 入队次数+1
-                        if (cnt[v] >= n + 2) {
-                            return true; // 检测到负环
-                        }
-                        q.push(v);
-                        vis[v] = true;
-                    }
-                }
-            }
-        }
-        return false;
-    };
-
-    if (spfa()) {
-        prt(-1);
-    } else {
-        prt(dis[n]);
+    for (auto &v: ans) {
+        F(i, 0, n - 1) { cout << v[i] << (i == n - 1 ? "" : " "); }
+        cout << '\n';
     }
 }
 

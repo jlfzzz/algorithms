@@ -141,6 +141,55 @@ namespace utils {
 
 using namespace utils;
 
+template<typename T = long long>
+class BIT {
+    vector<T> tree;
+
+public:
+    BIT(int n) : tree(n + 1) {}
+
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
+        }
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+
+    // 点更新取 max
+    void updateMax(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            if (val > tree[i]) {
+                tree[i] = val;
+            }
+        }
+    }
+
+    T preMax(int i) const {
+        T res = numeric_limits<T>::min();
+        for (; i > 0; i &= i - 1) {
+            res = max(res, tree[i]);
+        }
+        return res;
+    }
+};
+
 constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
@@ -148,57 +197,64 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
+    vi a(n + 1);
+    rv(a, 1);
 
-    vvp g(n + 1);
-    F(i, 1, m) {
-        ll l, r, s;
-        rd(l, r, s);
+    int mx1 = 0, mx2 = 0;
+    vi good(n + 1), good2(n + 1);
+    int cnt = 0;
 
-        g[l - 1].pb(r, s);
-        g[r].pb(l - 1, -s);
-    }
-
-    F(i, 0, n - 1) { g[i].pb(i + 1, 1); }
-
-    queue<ll> q;
-    vector<ll> cnt(n + 1), dis(n + 1, -inf), vis(n + 1);
-    auto spfa = [&]() -> bool {
-        dis[0] = 0;
-        q.push(0);
-        vis[0] = true;
-        cnt[0] = 1;
-
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            vis[u] = false;
-
-            for (auto &[v, w]: g[u]) {
-                if (dis[u] + w > dis[v]) {
-                    dis[v] = dis[u] + w;
-
-                    if (!vis[v]) {
-                        cnt[v]++; // 入队次数+1
-                        if (cnt[v] >= n + 2) {
-                            return true; // 检测到负环
-                        }
-                        q.push(v);
-                        vis[v] = true;
-                    }
-                }
-            }
+    F(i, 1, n) {
+        int x = a[i];
+        if (mx2 > x) {
+            continue;
         }
-        return false;
-    };
 
-    if (spfa()) {
-        prt(-1);
-    } else {
-        prt(dis[n]);
+        good[i] = 1;
+
+        if (x > mx1) {
+            cnt++;
+            good2[i] = 1;
+
+            mx2 = mx1;
+            mx1 = x;
+        } else if (x > mx2) {
+            mx2 = x;
+        }
     }
+
+    BIT bit(n + 10);
+    D(i, n, 1) {
+        if (good[i]) {
+            bit.update(a[i], 1);
+        }
+    }
+
+    int ans = -1;
+    int idx = 1;
+    F(i, 1, n) {
+        int x = a[i];
+        if (good[i]) {
+            bit.update(x, -1);
+        }
+
+        int t = cnt;
+        if (good2[i]) {
+            t--;
+        }
+
+        t += bit.pre(x);
+        if (t > ans || (t == ans && a[i] < a[idx])) {
+            idx = i;
+            ans = t;
+        }
+    }
+
+    dbg(ans);
+    prt(a[idx]);
 }
 
 int main() {
