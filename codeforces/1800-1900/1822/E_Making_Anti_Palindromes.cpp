@@ -149,7 +149,51 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    
+    int n;
+    rd(n);
+
+    string s;
+    rd(s);
+
+    if (n & 1) {
+        prt(-1);
+        return;
+    }
+
+    int m = n / 2;
+    int other = n & 1;
+    vi cnt(26);
+    vi bad(26);
+
+    F(i, 0, m - 1) {
+        int x = s[i] - 'a';
+        int y = s[n - i - 1] - 'a';
+
+        if (x == y) {
+            bad[x]++;
+        }
+
+        cnt[x]++;
+        cnt[y]++;
+    }
+
+    if (n & 1) {
+        cnt[s[m] - 'a']++;
+    }
+
+    int mx = 0;
+    int tot = 0;
+    F(i, 0, 25) {
+        tot += bad[i];
+        mx = max(mx, bad[i]);
+
+        if (cnt[i] > n - cnt[i]) {
+            prt(-1);
+            return;
+        }
+    }
+
+    prt(max(mx, (tot + 1) / 2));
 }
 
 int main() {

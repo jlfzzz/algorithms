@@ -641,24 +641,37 @@ constexpr int inf = 0x3f3f3f3f;
 
 class Solution {
 public:
-    int longestValidParentheses(string s) {
-        int n = s.size();
-        stack<int> st;
-        st.push(-1);
-        int ans = 0;
+    bool is(char c) { return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'; }
 
-        for (int i = 0; i < n; i++) {
-            if (s[i] == '(') {
-                st.push(i);
-            } else {
-                st.pop();
-                if (st.empty()) {
-                    st.push(i);
-                } else {
-                    ans = max(ans, i - st.top());
-                }
-            }
+    long long beautifulSubstrings(string s, int k) {
+        ll d = 1;
+        while ((d * d) % k != 0) {
+            d++;
         }
+
+        map<pii, int> mp;
+        mp[{0, 0}] = 1;
+
+        ll v = 0, c = 0;
+        ll ans = 0;
+        int n = SZ(s);
+
+        F(i, 0, n - 1) {
+            if (is(s[i]))
+                v++;
+            else
+                c++;
+
+            ll diff = v - c;
+            ll mod = v % d;
+
+            if (mp.count({diff, mod})) {
+                ans += mp[{diff, mod}];
+            }
+
+            mp[{diff, mod}]++;
+        }
+
         return ans;
     }
 };

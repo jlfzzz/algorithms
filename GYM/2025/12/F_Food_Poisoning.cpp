@@ -144,23 +144,33 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve() {
-    
-}
-
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+
+    int n, p, inf = 1e9;
+    cin >> n >> p;
+
+    p = min(p, 20);
+    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
+
+    for (int i = 1; i <= p; i++) {
+        for (int j = 1; j <= n; j++) {
+            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
+        }
     }
-    while (T--) {
-        solve();
+
+    for (int i = 0; i <= n; i++) {
+        if (dp[p][i] >= n) {
+            cout << i;
+            break;
+        }
     }
+
+    return 0;
 }
