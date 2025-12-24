@@ -146,48 +146,120 @@ constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
 
-ll Add(ll x, ll y) { return (x + y) % MOD; }
-
-ll Mul(ll x, ll y) { return x * y % MOD; }
-
 void init() {}
 
 void solve() {
     int n;
     rd(n);
 
-    vl a(n);
-    rv(a);
+    vvl cost(3, vl(n + 1));
+    rv(cost[0], 1);
+    rv(cost[1], 1);
+    rv(cost[2], 1);
 
-    ranges::sort(a);
+    vi deg(n + 1);
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+        deg[v]++;
+        deg[u]++;
+    }
 
-    ll sum = accumulate(all(a), 0ll);
-    vl dp(sum + 1);
-    dp[0] = 1;
+    int deg1 = -1;
+    F(i, 1, n) {
+        if (deg[i] >= 3) {
+            prt(-1);
+            return;
+        }
+        if (deg[i] == 1) {
+            if (deg1 == -1)
+                deg1 = i;
+        }
+    }
 
-    ll ans = 0;
-    F(i, 0, n - 1) {
-        ll cur = a[i];
-        D(j, sum, cur) {
-            dp[j] = Add(dp[j], dp[j - cur]);
-
-            if (cur * 2 >= j) {
-                ans = Add(ans, Mul(dp[j - cur], cur));
-            } else {
-                ans = Add(ans, Mul(dp[j - cur], (j + 1) / 2));
+    vi a;
+    a.pb(deg1);
+    int curr = deg1;
+    int p = 0;
+    while (SZ(a) < n) {
+        for (int v: g[curr]) {
+            if (v != p) {
+                p = curr;
+                curr = v;
+                a.pb(curr);
+                break;
             }
         }
+    }
 
-        // F(j, cur, sum) {
-        //     if (cur * 2 >= j) {
-        //         ans = Add(ans, Mul(dp[j], cur));
-        //     } else {
-        //         ans = Add(ans, Mul(dp[j], (j + 1) / 2));
-        //     }
-        // }
+    dbg(a);
+
+    vector<vvl> dp(n, vvl(3, vl(3, INF)));
+
+    F(i, 0, 2) {
+        F(j, 0, 2) {
+            if (i != j) {
+                dp[1][j][i] = min(dp[1][j][i], cost[j][a[1]] + cost[i][a[0]]);
+            }
+        }
+    }
+
+    dbg(dp);
+
+    F(i, 2, n - 1) {
+        vvl ndp(3, vl(3, INF));
+        F(k, 0, 2) {
+            F(j, 0, 2) {
+                if (j != k) {
+                    int cur = 3 - k - j;
+                    if (dp[i - 1][j][k] != INF) {
+                        ndp[cur][j] = min(ndp[cur][j], dp[i - 1][j][k] + cost[cur][a[i]]);
+                    }
+                }
+            }
+        }
+        dp[i].swap(ndp);
+    }
+
+    ll ans = INF;
+    int bcur = -1, bprev = -1;
+
+    F(cur, 0, 2) {
+        F(prev, 0, 2) {
+            if (dp[n - 1][cur][prev] < ans) {
+                ans = dp[n - 1][cur][prev];
+                bcur = cur;
+                bprev = prev;
+            }
+        }
     }
 
     prt(ans);
+
+    vi res;
+    res.pb(bcur);
+    res.pb(bprev);
+
+    int cur = bcur;
+    int prev = bprev;
+
+    D(i, n - 1, 2) {
+        int pprev = 3 - cur - prev;
+        res.pb(pprev);
+        cur = prev;
+        prev = pprev;
+    }
+
+    ranges::reverse(res);
+
+    vi out(n + 1);
+    F(i, 0, n - 1) {
+        out[a[i]] = res[i] + 1;
+    }
+    prv(out, 1);
 }
 
 int main() {

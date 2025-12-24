@@ -146,49 +146,36 @@ constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
 
-ll Add(ll x, ll y) { return (x + y) % MOD; }
-
-ll Mul(ll x, ll y) { return x * y % MOD; }
-
 void init() {}
 
+
 void solve() {
-    int n;
-    rd(n);
+    ll n, p, w, d;
+    rd(n, p, w, d);
 
-    vl a(n);
-    rv(a);
-
-    ranges::sort(a);
-
-    ll sum = accumulate(all(a), 0ll);
-    vl dp(sum + 1);
-    dp[0] = 1;
-
-    ll ans = 0;
-    F(i, 0, n - 1) {
-        ll cur = a[i];
-        D(j, sum, cur) {
-            dp[j] = Add(dp[j], dp[j - cur]);
-
-            if (cur * 2 >= j) {
-                ans = Add(ans, Mul(dp[j - cur], cur));
-            } else {
-                ans = Add(ans, Mul(dp[j - cur], (j + 1) / 2));
-            }
+    F(i, 0, w) {
+        ll s1 = d * i;
+        ll left = p - s1;
+        if (left < 0) {
+            break;
         }
 
-        // F(j, cur, sum) {
-        //     if (cur * 2 >= j) {
-        //         ans = Add(ans, Mul(dp[j], cur));
-        //     } else {
-        //         ans = Add(ans, Mul(dp[j], (j + 1) / 2));
-        //     }
-        // }
+        if (left % w) {
+            continue;
+        }
+
+        ll cw = left / w;
+
+        if (i + cw <= n) {
+            prt(cw, i, n - i - cw);
+            return;
+        }
     }
 
-    prt(ans);
+    prt(-1);
 }
+
+
 
 int main() {
     ios::sync_with_stdio(false);

@@ -146,45 +146,64 @@ constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
 
-ll Add(ll x, ll y) { return (x + y) % MOD; }
-
-ll Mul(ll x, ll y) { return x * y % MOD; }
-
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll n, k;
+    rd(n, k);
 
-    vl a(n);
-    rv(a);
+    vl a(n + 1);
+    rv(a, 1);
 
-    ranges::sort(a);
+    sort(all2(a, 1));
 
-    ll sum = accumulate(all(a), 0ll);
-    vl dp(sum + 1);
-    dp[0] = 1;
+    vl pref(n + 5);
+    F(i, 1, n) { pref[i] = pref[i - 1] + a[i]; }
 
+    ll lo = 0;
+    ll hi = 5e10;
     ll ans = 0;
-    F(i, 0, n - 1) {
-        ll cur = a[i];
-        D(j, sum, cur) {
-            dp[j] = Add(dp[j], dp[j - cur]);
 
-            if (cur * 2 >= j) {
-                ans = Add(ans, Mul(dp[j - cur], cur));
-            } else {
-                ans = Add(ans, Mul(dp[j - cur], (j + 1) / 2));
+    while (lo < hi) {
+        ll mid = (lo + hi) / 2;
+
+        ll cost = INF;
+        int r = 1;
+        F(i, 1, n) {
+            ll cur = a[i];
+            while (r <= n && a[r] - a[i] <= mid) {
+                r++;
             }
+
+            ll cost1 = 1ll * (i - 1) * cur - pref[i - 1];
+            ll c2 = n - r + 1;
+            ll R = cur + mid;
+            ll cost2 = pref[n] - pref[r - 1] - R * c2;
+
+            cost = min(cost, cost1 + cost2);
         }
 
-        // F(j, cur, sum) {
-        //     if (cur * 2 >= j) {
-        //         ans = Add(ans, Mul(dp[j], cur));
-        //     } else {
-        //         ans = Add(ans, Mul(dp[j], (j + 1) / 2));
-        //     }
-        // }
+        int l = 1;
+        F(i, 1, n) {
+            ll cur = a[i];
+            ll L = cur - mid;
+
+            while (l <= n && a[l] < L) {
+                l++;
+            }
+
+            ll cost1 = 1ll * (l - 1) * L - pref[l - 1];
+            ll c2 = n - i;
+            ll cost2 = (pref[n] - pref[i]) - cur * c2;
+            cost = min(cost, cost1 + cost2);
+        }
+
+        if (cost <= k) {
+            hi = mid;
+            ans = mid;
+        } else {
+            lo = mid + 1;
+        }
     }
 
     prt(ans);
