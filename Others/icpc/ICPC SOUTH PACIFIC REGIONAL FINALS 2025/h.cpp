@@ -30,10 +30,10 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+// lazy线段树 + 注意力
 
 const int N = (1e5 + 5) * 4;
 pii dxy[4] = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
-
 
 struct Node {
     pii dxy1, dxy2;
