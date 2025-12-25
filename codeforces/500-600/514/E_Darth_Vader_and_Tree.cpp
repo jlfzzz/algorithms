@@ -5,35 +5,70 @@ using ll = long long;
 #define db long double
 #define pb emplace_back
 #define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
 #define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
+#define us unsigned
 #define vi vector<int>
 #define vp vector<pii>
 #define vl vector<long long>
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
 #define vvl vector<vector<long long>>
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 #define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
-    void dbg() { cerr << "\n"; }
+    template<typename A, typename B>
+    ostream &operator<<(ostream &os, const pair<A, B> &p) {
+        return os << '(' << p.first << ", " << p.second << ')';
+    }
 
-    template<typename T, typename... Args>
-    void dbg(const string &s, T x, Args... args) {
-        cerr << s << " = " << x;
-        if (sizeof...(args) > 0)
-            cerr << ", ";
-        dbg(args...);
+    template<typename Tuple, size_t... Is>
+    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
+        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
+    }
+
+    template<typename... Args>
+    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
+        os << '(';
+        print_tuple(os, t, index_sequence_for<Args...>{});
+        return os << ')';
+    }
+
+    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
+    ostream &operator<<(ostream &os, const T &v) {
+        os << '{';
+        bool first = true;
+        for (auto &x: v) {
+            if (!first)
+                os << ", ";
+            first = false;
+            os << x;
+        }
+        return os << '}';
+    }
+
+    void debug_out() { cerr << endl; }
+
+    template<typename Head, typename... Tail>
+    void debug_out(Head H, Tail... T) {
+        cerr << H;
+        if (sizeof...(T))
+            cerr << " ";
+        debug_out(T...);
     }
 
     template<typename T>
@@ -99,7 +134,15 @@ namespace utils {
     }
 } // namespace utils
 
+#ifdef WOAIHUTAO
+#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
+
 using namespace utils;
+
+constexpr int N = 1e6 + 5;
 
 namespace atcoder {
 
@@ -636,75 +679,92 @@ namespace atcoder {
 
 } // namespace atcoder
 
-using Z = atcoder::static_modint<MOD>;
+using Z = atcoder::static_modint<MOD2>;
 
 using Matrix = vector<vector<Z>>;
 
-Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
-    int n = m1.size();
-    int p = m1[0].size();
-    int m = m2[0].size();
+namespace MatrixUtils {
+    Matrix identity(int n) {
+        Matrix unit(n, std::vector<Z>(n, 0));
+        for (int i = 0; i < n; ++i) {
+            unit[i][i] = 1;
+        }
+        return unit;
+    }
 
-    Matrix ret(n, vector<Z>(m, 0));
-    for (int i = 0; i < n; ++i) {
-        for (int k = 0; k < p; ++k) {
-            if (m1[i][k] == 0) {
-                continue;
-            }
-            for (int j = 0; j < m; ++j) {
-                ret[i][j] = ret[i][j] + m1[i][k] * m2[k][j];
+    Matrix mat_mul(const Matrix &m1, const Matrix &m2) {
+        int n = m1.size();
+        int p = m1[0].size();
+        int m = m2[0].size();
+
+        if (p != static_cast<int>(m2.size())) {
+            throw std::runtime_error("Matrix multiplication dimensions mismatch");
+        }
+
+        Matrix ret(n, vector<Z>(m, 0));
+        for (int i = 0; i < n; ++i) {
+            for (int k = 0; k < p; ++k) {
+                if (m1[i][k] == 0) {
+                    continue;
+                }
+                for (int j = 0; j < m; ++j) {
+                    ret[i][j] = ret[i][j] + m1[i][k] * m2[k][j];
+                }
             }
         }
-    }
-    return ret;
-}
-
-Matrix quick_mul(Matrix mat, long long n) {
-    int m = mat.size();
-    Matrix unit(m, vector<Z>(m, 0));
-    for (int i = 0; i < m; ++i) {
-        unit[i][i] = 1;
+        return ret;
     }
 
-    while (n) {
-        if (n & 1) {
-            unit = mat_mul(unit, mat);
+    Matrix quick_mul(Matrix mat, long long n) {
+        int m = mat.size();
+
+        if (m == 0 || m != static_cast<int>(mat[0].size())) {
+            throw std::runtime_error("Matrix power requires a square matrix");
         }
-        mat = mat_mul(mat, mat);
-        n >>= 1;
-    }
-    return unit;
-}
 
-constexpr int N = 105;
+        Matrix res = identity(m);
+
+        while (n > 0) {
+            if (n & 1) {
+                res = mat_mul(res, mat);
+            }
+            mat = mat_mul(mat, mat);
+            n >>= 1;
+        }
+        return res;
+    }
+} // namespace MatrixUtils
+
+using namespace MatrixUtils;
 
 int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    ll n, x;
-    rd(n, x);
+    int n, k;
+    rd(n, k);
 
-    vi cnt(N);
-    F(i, 1, n) {
-        int t;
-        rd(t);
-        cnt[t]++;
+    vi d(n);
+    rv(d);
+    int mx = ranges::max(d);
+
+    Matrix mat0(mx + 1, vector<Z>(mx + 1));
+    Matrix col0(mx + 1, vector<Z>(1));
+
+    for (int x: d) {
+        mat0[0][x - 1]++;
     }
 
-    Matrix mat0(N, vector<Z>(1));
-    mat0[0][0] = mat0[1][0] = 1;
+    F(i, 1, mx) { mat0[i][i - 1] = 1; }
+    col0[0][0] = col0[mx][0] = 1;
+    F(j, 0, mx - 1) { mat0[mx][j] = mat0[0][j]; }
+    mat0[mx][mx] = 1;
 
-    Matrix mat1(N, vector<Z>(N));
-    mat1[0][0] = 1;
-    F(i, 1, N - 1) { mat1[0][i] = mat1[1][i] = cnt[i]; }
-    F(i, 2, N - 1) { mat1[i][i - 1] = 1; }
+    auto mat1 = quick_mul(mat0, k);
+    mat1 = mat_mul(mat1, col0);
 
-    mat1 = quick_mul(mat1, x);
-    auto mat2 = mat_mul(mat1, mat0);
-
-    prt(mat2[0][0].val());
+    prt(mat1[mx][0].val());
 }
 
 int main() {

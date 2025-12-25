@@ -45,4 +45,4 @@ struct Trie {
         }
         return end[p];
     }
-};
+} trie;

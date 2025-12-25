@@ -92,6 +92,23 @@ struct HashSeq {
         __int128 res = (HR[R] - (HR[L - 1] * P[R - L + 1]) % (__int128) MOD);
         return (long long) ((res + (__int128) MOD) % (__int128) MOD);
     }
+
+    // 滚动哈希，修改第idx位, 1-index
+    // old_c -> new_c
+    long long get_mod_hash(int idx, char old_c, char new_c) const {
+        if (old_c == new_c)
+            return (long long) H[n];
+
+        __int128 power = P[n - idx];
+
+        __int128 old_val = old_c ^ 7;
+        __int128 new_val = new_c ^ 7;
+        __int128 current_h = H[n];
+
+        __int128 res = (current_h - (old_val * power) % (__int128) MOD + (new_val * power) % (__int128) MOD);
+
+        return (long long) ((res % (__int128) MOD + (__int128) MOD) % (__int128) MOD);
+    }
 };
 
 // 字符串哈希模板结束
