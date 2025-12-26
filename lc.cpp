@@ -641,38 +641,37 @@ constexpr int inf = 0x3f3f3f3f;
 
 class Solution {
 public:
-    bool is(char c) { return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'; }
-
-    long long beautifulSubstrings(string s, int k) {
-        ll d = 1;
-        while ((d * d) % k != 0) {
-            d++;
-        }
-
-        map<pii, int> mp;
-        mp[{0, 0}] = 1;
-
-        ll v = 0, c = 0;
-        ll ans = 0;
-        int n = SZ(s);
-
-        F(i, 0, n - 1) {
-            if (is(s[i]))
-                v++;
-            else
-                c++;
-
-            ll diff = v - c;
-            ll mod = v % d;
-
-            if (mp.count({diff, mod})) {
-                ans += mp[{diff, mod}];
+    bool pyramidTransition(string bottom, vector<string> &allowed) {
+        bool ok = false;
+        unordered_set<string> st(all(allowed));
+        auto dfs = [&](this auto &&dfs, string cur) -> void {
+            if (ok) {
+                return;
             }
 
-            mp[{diff, mod}]++;
-        }
+            if (cur.size() == 1) {
+                if (st.empty()) {
+                    ok = true;
+                }
+                return;
+            }
 
-        return ans;
+            int n = cur.size();
+            F(i, 1, n - 1) {
+                char c1 = cur[i - 1];
+                char c2 = cur[i];
+                F(j, 0, 25) {
+                    char ch2 = char('A' + j);
+                    string temp(3, ' ');
+                    temp[0] = c1;
+                    temp[1] = c2;
+                    temp[2] = ch2;
+
+                    if (st.contains(temp)) {
+                    }
+                }
+            }
+        };
     }
 };
 
