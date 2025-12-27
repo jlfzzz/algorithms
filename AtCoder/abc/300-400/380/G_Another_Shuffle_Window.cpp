@@ -1,17 +1,36 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
 using namespace std;
-using namespace __gnu_pbds;
-using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
-using ordered_multiset =
-    tree<pair<long long, long long>, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define us unsigned
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
-constexpr int N = int(5e5 + 5);
-int INIT = [] { return 0; }();
-
-namespace DEBUG {
+namespace utils {
     template<typename A, typename B>
     ostream &operator<<(ostream &os, const pair<A, B> &p) {
         return os << '(' << p.first << ", " << p.second << ')';
@@ -51,11 +70,77 @@ namespace DEBUG {
             cerr << " ";
         debug_out(T...);
     }
-} // namespace DEBUG
 
-using namespace DEBUG;
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
 
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
+
+using namespace utils;
 
 namespace atcoder {
 
@@ -595,7 +680,7 @@ namespace atcoder {
     }
 } // namespace atcoder
 
-using Z = atcoder::static_modint<int(1e9 + 7)>;
+using Z = atcoder::static_modint<MOD>;
 
 Z q_pow(Z base, long long exp) {
     Z result(1);
@@ -608,86 +693,119 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-#define i128 __int128_t
-#define db long double
-#define pb emplace_back
-#define pf emplace_front
-#define pob pop_back
-#define ep emplace
-#define ins insert
-#define all(x) (x).begin(), (x).end()
-#define all2(x, i) (x).begin() + (i), (x).end()
-using pii = pair<ll, ll>;
-#define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vl vector<long long>
-#define vvi vector<vector<int>>
-#define vvp vector<vector<pii>>
-#define vvl vector<vector<long long>>
-#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
-#define SZ(a) ((int) (a).size())
-#define prq priority_queue
-#define fi first
-#define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
-constexpr int inf = 0x3f3f3f3f;
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+template<typename T = long long>
+class BIT {
+    vector<T> tree;
 
-
-class Solution {
 public:
-    int mostBooked(int n, vector<vector<int>> &a) {
-        ranges::sort(a, [&](auto &x, auto &y) { return x[0] < y[0]; });
-        prq<pii, vp, greater<>> pq1, pq2;
-        F(i, 0, n - 1) { pq1.emplace(i, 0); }
+    BIT(int n) : tree(n + 1) {}
 
-        vi ans(n);
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
+        }
+    }
 
-        for (auto &v: a) {
-            ll l = v[0];
-            ll r = v[1];
-            ll time = r - l;
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
 
-            while (!pq2.empty() && pq2.top().fi <= l) {
-                auto [t, id] = pq2.top();
-                pq2.pop();
-                pq1.emplace(id, t);
-            }
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
 
-            if (!pq1.empty()) {
-                auto [id, t] = pq1.top();
-                pq1.pop();
-                ans[id]++;
-                pq2.emplace(r, id);
-            } else {
-                auto [t, id] = pq2.top();
-                pq2.pop();
-                ans[id]++;
-                pq2.emplace(t + time, id);
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+
+    // 点更新取 max
+    void updateMax(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            if (val > tree[i]) {
+                tree[i] = val;
             }
         }
+    }
 
-        int mx = 0;
-        int res = 0;
-        F(i, 0, n - 1) {
-            if (ans[i] > mx) {
-                mx = ans[i];
-                res = i;
-            }
+    T preMax(int i) const {
+        T res = numeric_limits<T>::min();
+        for (; i > 0; i &= i - 1) {
+            res = max(res, tree[i]);
         }
-
         return res;
     }
 };
 
+constexpr int N = 1e6 + 5;
 
-// int main() {
-//     ios::sync_with_stdio(false);
-//     cin.tie(nullptr);
-//     Solution sol;
-// }
+int Multitest = 0;
+
+void init() {}
+
+void solve() {
+    int n, k;
+    rd(n, k);
+    vi p(n);
+    rv(p);
+
+
+    BIT<int> bt(n);
+    Z total_inv = 0;
+    for (int i = 0; i < n; ++i) {
+        total_inv += (i - bt.pre(p[i]));
+        bt.update(p[i], 1);
+    }
+
+    BIT<int> w_bt(n);
+    Z current_win_inv = 0;
+
+    for (int i = 0; i < k; ++i) {
+        current_win_inv += (i - w_bt.pre(p[i]));
+        w_bt.update(p[i], 1);
+    }
+
+    Z sum_removed = current_win_inv;
+
+    for (int i = 0; i < n - k; ++i) {
+        int out_v = p[i];
+        int in_v = p[i + k];
+
+        w_bt.update(out_v, -1);
+        current_win_inv -= w_bt.pre(out_v - 1);
+
+        int smaller_count = w_bt.pre(in_v);
+        int larger_count = (k - 1) - smaller_count;
+        current_win_inv += larger_count;
+
+        w_bt.update(in_v, 1);
+
+        sum_removed += current_win_inv;
+    }
+
+    Z M = n - k + 1;
+    Z avg_removed = sum_removed / M;
+    Z avg_added = Z(k) * Z(k - 1) / 4;
+
+    Z ans = total_inv - avg_removed + avg_added;
+
+    prt(ans);
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
+}

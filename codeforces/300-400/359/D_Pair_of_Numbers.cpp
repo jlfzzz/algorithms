@@ -1,6 +1,146 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define us unsigned
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define L(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+namespace utils {
+    template<typename A, typename B>
+    ostream &operator<<(ostream &os, const pair<A, B> &p) {
+        return os << '(' << p.first << ", " << p.second << ')';
+    }
+
+    template<typename Tuple, size_t... Is>
+    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
+        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
+    }
+
+    template<typename... Args>
+    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
+        os << '(';
+        print_tuple(os, t, index_sequence_for<Args...>{});
+        return os << ')';
+    }
+
+    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
+    ostream &operator<<(ostream &os, const T &v) {
+        os << '{';
+        bool first = true;
+        for (auto &x: v) {
+            if (!first)
+                os << ", ";
+            first = false;
+            os << x;
+        }
+        return os << '}';
+    }
+
+    void debug_out() { cerr << endl; }
+
+    template<typename Head, typename... Tail>
+    void debug_out(Head H, Tail... T) {
+        cerr << H;
+        if (sizeof...(T))
+            cerr << " ";
+        debug_out(T...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+#ifdef WOAIHUTAO
+#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
+
+using namespace utils;
 
 namespace atcoder {
     namespace internal {
@@ -255,35 +395,81 @@ namespace atcoder {
 } // namespace atcoder
 
 struct S {
-    int sum, len;
+    int g;
 };
 
 struct F {
     int lazy;
 };
 
-S op(S a, S b) { return {a.sum + b.sum, a.len + b.len}; }
+S op(S a, S b) { return {gcd(a.g, b.g)}; }
 
-S e() { return {0, 0}; }
+S e() { return {0}; }
 
-S mapping(F f, S x) { return {x.sum + x.len * f.lazy, x.len}; }
+S mapping(F f, S x) { return x; }
 
 F composition(F f, F g) { return f; }
 
 F id() { return {0}; }
 
-vector<S> tree_arr;
-atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(tree_arr);
+constexpr int N = 1e6 + 5;
 
-// S 就是 Node，结构体
-// F 是 lazy 的结构体
-// op 就是maintain，pushup，合并节点
-// e 就是无效值，例如0，或者求最大值的时候一定要设置会为最小，反之
-// mapping 就是用lazy去更新
-// composition 就是lazy合并，参数f是新lazy，g是旧lazy。记得优先级
-// id 就是无效的lazy，例如-1
+int Multitest = 0;
 
-// 构造函数记得传入 S 数组 tree_arr
-// 查询是 左闭右开！
-// max_right 是传入一个索引，左起点，从它开始一直往右,直到第一个return false的点，所以这个点是false的
-// min_left 是传入一个索引，右起点，从它开始一直往左，找到最左的仍然满足true的，所以这个点是true的
+void init() {}
+
+void solve() {
+    int n;
+    rd(n);
+
+    vi a(n);
+    rv(a);
+
+    vector<S> tree_arr(n);
+    for (int i = 0; i < n; i++) {
+        tree_arr[i] = {a[i]};
+    }
+    atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(tree_arr);
+    int mx = -1;
+    vi ans;
+
+    for (int i = 0; i < n; i++) {
+        int x = a[i];
+        auto check = [&](S s) { return s.g % x == 0; };
+
+        int l = seg.min_left(i, check);
+        int r = seg.max_right(i, check);
+
+        int len = (r - 1) - l;
+
+        if (len > mx) {
+            mx = len;
+            ans.clear();
+            ans.pb(l + 1);
+        } else if (len == mx) {
+            ans.pb(l + 1);
+        }
+    }
+
+    sort(all(ans));
+    ans.erase(unique(all(ans)), ans.end());
+
+    prt(SZ(ans), mx);
+    for (int i = 0; i < SZ(ans); i++) {
+        cout << ans[i] << (i == SZ(ans) - 1 ? "" : " ");
+    }
+    cout << "\n";
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
+}
