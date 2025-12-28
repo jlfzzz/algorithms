@@ -9,7 +9,7 @@ using ordered_multiset =
     tree<pair<long long, long long>, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
 
 constexpr int N = int(5e5 + 5);
-int INIT = [] { return 0; }();
+// int INIT = [] { return 0; }();
 
 namespace DEBUG {
     template<typename A, typename B>
@@ -637,54 +637,6 @@ constexpr int MOD = int(1e9 + 7);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
-
-
-class Solution {
-public:
-    int mostBooked(int n, vector<vector<int>> &a) {
-        ranges::sort(a, [&](auto &x, auto &y) { return x[0] < y[0]; });
-        prq<pii, vp, greater<>> pq1, pq2;
-        F(i, 0, n - 1) { pq1.emplace(i, 0); }
-
-        vi ans(n);
-
-        for (auto &v: a) {
-            ll l = v[0];
-            ll r = v[1];
-            ll time = r - l;
-
-            while (!pq2.empty() && pq2.top().fi <= l) {
-                auto [t, id] = pq2.top();
-                pq2.pop();
-                pq1.emplace(id, t);
-            }
-
-            if (!pq1.empty()) {
-                auto [id, t] = pq1.top();
-                pq1.pop();
-                ans[id]++;
-                pq2.emplace(r, id);
-            } else {
-                auto [t, id] = pq2.top();
-                pq2.pop();
-                ans[id]++;
-                pq2.emplace(t + time, id);
-            }
-        }
-
-        int mx = 0;
-        int res = 0;
-        F(i, 0, n - 1) {
-            if (ans[i] > mx) {
-                mx = ans[i];
-                res = i;
-            }
-        }
-
-        return res;
-    }
-};
-
 
 // int main() {
 //     ios::sync_with_stdio(false);
