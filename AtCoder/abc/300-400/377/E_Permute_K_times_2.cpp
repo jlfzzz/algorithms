@@ -148,64 +148,65 @@ int Multitest = 0;
 
 void init() {}
 
+ll qpow(ll base, ll exp, ll mod) {
+    ll res = 1;
+    base %= mod;
+    while (exp > 0) {
+        if (exp % 2 == 1)
+            res = (res * base) % mod;
+        base = (base * base) % mod;
+        exp /= 2;
+    }
+    return res;
+}
+
 void solve() {
-    ll n, p;
-    rd(n, p);
+    int n;
+    ll k;
+    rd(n, k);
 
-    auto check = [&](ll w) -> bool {
-        ll sum = 1;
-        ll cur = 1;
+    vi p(n + 1);
+    F(i, 1, n) rd(p[i]);
 
-        F(i, 1, p) {
-            if (i > w)
-                break;
+    dbg(p[50]);
 
-            cur = cur * (w - i + 1) / i;
+    vi ans(n + 1);
+    vector<bool> vis(n + 1, false);
 
-            sum += cur;
+    F(i, 1, n) {
+        if (!vis[i]) {
+            vi cycle;
+            int curr = i;
+            while (!vis[curr]) {
+                vis[curr] = true;
+                cycle.pb(curr);
+                curr = p[curr];
+            }
 
-            if (sum >= n)
-                return true;
-        }
-        return sum >= n;
-    };
+            ll L = SZ(cycle);
+            ll shift = qpow(2, k, L);
 
-    ll l = 0, r = n, ans = n;
-    while (l <= r) {
-        ll mid = l + (r - l) / 2;
-        if (check(mid)) {
-            ans = mid;
-            r = mid - 1;
-        } else {
-            l = mid + 1;
+            F(j, 0, L - 1) {
+                int u = cycle[j];
+                int v = cycle[(j + shift) % L];
+                ans[u] = v;
+            }
         }
     }
-    prt(ans);
+
+    F(i, 1, n) { cout << ans[i] << (i == n ? "" : " "); }
+    cout << "\n";
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, p, inf = 1e9;
-    cin >> n >> p;
-
-    p = min(p, 20);
-    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
-
-    for (int i = 1; i <= p; i++) {
-        for (int j = 1; j <= n; j++) {
-            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
-        }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-
-    for (int i = 0; i <= n; i++) {
-        if (dp[p][i] >= n) {
-            cout << i;
-            break;
-        }
+    while (T--) {
+        solve();
     }
-
-    return 0;
 }

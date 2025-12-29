@@ -147,65 +147,49 @@ constexpr int N = 1e6 + 5;
 int Multitest = 0;
 
 void init() {}
+const int dx[] = {1, 2, 2, 1, -1, -2, -2, -1};
+const int dy[] = {2, 1, -1, -2, -2, -1, 1, 2};
+
 
 void solve() {
-    ll n, p;
-    rd(n, p);
+    ll n;
+    int m;
+    rd(n, m);
 
-    auto check = [&](ll w) -> bool {
-        ll sum = 1;
-        ll cur = 1;
+    vp bad;
+    bad.reserve(m * 9);
 
-        F(i, 1, p) {
-            if (i > w)
-                break;
+    F(i, 1, m) {
+        ll r, c;
+        rd(r, c);
+        bad.pb(r, c);
 
-            cur = cur * (w - i + 1) / i;
-
-            sum += cur;
-
-            if (sum >= n)
-                return true;
-        }
-        return sum >= n;
-    };
-
-    ll l = 0, r = n, ans = n;
-    while (l <= r) {
-        ll mid = l + (r - l) / 2;
-        if (check(mid)) {
-            ans = mid;
-            r = mid - 1;
-        } else {
-            l = mid + 1;
+        F(j, 0, 7) {
+            ll nr = r + dx[j];
+            ll nc = c + dy[j];
+            if (nr >= 1 && nr <= n && nc >= 1 && nc <= n) {
+                bad.pb(nr, nc);
+            }
         }
     }
+
+    sort(all(bad));
+    bad.erase(unique(all(bad)), bad.end());
+
+    ll ans = n * n - SZ(bad);
+
     prt(ans);
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, p, inf = 1e9;
-    cin >> n >> p;
-
-    p = min(p, 20);
-    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
-
-    for (int i = 1; i <= p; i++) {
-        for (int j = 1; j <= n; j++) {
-            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
-        }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-
-    for (int i = 0; i <= n; i++) {
-        if (dp[p][i] >= n) {
-            cout << i;
-            break;
-        }
+    while (T--) {
+        solve();
     }
-
-    return 0;
 }

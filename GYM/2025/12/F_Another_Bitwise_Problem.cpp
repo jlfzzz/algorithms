@@ -149,63 +149,65 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    ll n, p;
-    rd(n, p);
+    int n;
+    ll l, r;
+    rd(n, l, r);
+    vi a(n);
+    rv(a);
 
-    auto check = [&](ll w) -> bool {
-        ll sum = 1;
-        ll cur = 1;
-
-        F(i, 1, p) {
-            if (i > w)
-                break;
-
-            cur = cur * (w - i + 1) / i;
-
-            sum += cur;
-
-            if (sum >= n)
-                return true;
-        }
-        return sum >= n;
-    };
-
-    ll l = 0, r = n, ans = n;
-    while (l <= r) {
-        ll mid = l + (r - l) / 2;
-        if (check(mid)) {
-            ans = mid;
-            r = mid - 1;
-        } else {
-            l = mid + 1;
+    int K = 17;
+    vi cnt(K, 0);
+    F(i, 0, n - 1) {
+        F(j, 0, K - 1) {
+            if ((a[i] >> j) & 1) {
+                cnt[j]++;
+            }
         }
     }
-    prt(ans);
+
+    int u = (1 << K);
+    vl sums;
+
+    F(L, 0, u - 1) {
+        ll s = 0;
+        F(j, 0, K - 1) {
+            if ((L >> j) & 1) {
+                s += (ll) (n - cnt[j]) * (1 << j);
+            } else {
+                s += (ll) cnt[j] * (1 << j);
+            }
+        }
+        sums.pb(s);
+    }
+
+    sort(all(sums));
+    sums.erase(unique(all(sums)), sums.end());
+
+    ll S = (ll) n * u;
+
+    auto calc = [&](ll lim) -> ll {
+        ll tot = lim / S;
+        ll rem = lim % S;
+
+        ll ans = tot * SZ(sums);
+
+        int rem2 = upper_bound(all(sums), rem) - sums.begin();
+
+        return ans + rem2;
+    };
+
+    prt(calc(r) - calc(l - 1));
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, p, inf = 1e9;
-    cin >> n >> p;
-
-    p = min(p, 20);
-    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
-
-    for (int i = 1; i <= p; i++) {
-        for (int j = 1; j <= n; j++) {
-            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
-        }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-
-    for (int i = 0; i <= n; i++) {
-        if (dp[p][i] >= n) {
-            cout << i;
-            break;
-        }
+    while (T--) {
+        solve();
     }
-
-    return 0;
 }

@@ -149,63 +149,56 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    ll n, p;
-    rd(n, p);
+    int n;
+    rd(n);
 
-    auto check = [&](ll w) -> bool {
-        ll sum = 1;
-        ll cur = 1;
+    ll sum1 = 0;
+    ll sum2 = 0;
+    vi others;
 
-        F(i, 1, p) {
-            if (i > w)
-                break;
+    F(i, 1, n) {
+        int s;
+        rd(s);
+        vi c(s);
+        rv(c);
 
-            cur = cur * (w - i + 1) / i;
+        int half = s / 2;
 
-            sum += cur;
-
-            if (sum >= n)
-                return true;
+        for (int j = 0; j < half; j++) {
+            sum1 += c[j];
         }
-        return sum >= n;
-    };
 
-    ll l = 0, r = n, ans = n;
-    while (l <= r) {
-        ll mid = l + (r - l) / 2;
-        if (check(mid)) {
-            ans = mid;
-            r = mid - 1;
-        } else {
-            l = mid + 1;
+        for (int j = s - half; j < s; j++) {
+            sum2 += c[j];
+        }
+
+        if (s % 2 != 0) {
+            others.pb(c[half]);
         }
     }
-    prt(ans);
+
+    sort(all(others), greater<int>());
+
+    for (int i = 0; i < SZ(others); i++) {
+        if (i % 2 == 0) {
+            sum1 += others[i];
+        } else {
+            sum2 += others[i];
+        }
+    }
+
+    prt(sum1, sum2);
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, p, inf = 1e9;
-    cin >> n >> p;
-
-    p = min(p, 20);
-    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
-
-    for (int i = 1; i <= p; i++) {
-        for (int j = 1; j <= n; j++) {
-            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
-        }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-
-    for (int i = 0; i <= n; i++) {
-        if (dp[p][i] >= n) {
-            cout << i;
-            break;
-        }
+    while (T--) {
+        solve();
     }
-
-    return 0;
 }

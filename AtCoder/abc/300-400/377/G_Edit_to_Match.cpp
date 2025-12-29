@@ -148,64 +148,72 @@ int Multitest = 0;
 
 void init() {}
 
+struct Node {
+    int ch[26];
+    int min_len;
+    Node() {
+        memset(ch, 0, sizeof(ch));
+        min_len = inf;
+    }
+};
+
 void solve() {
-    ll n, p;
-    rd(n, p);
+    int n;
+    rd(n);
 
-    auto check = [&](ll w) -> bool {
-        ll sum = 1;
-        ll cur = 1;
+    vector<Node> trie;
+    trie.reserve(200005);
+    trie.pb(Node());
 
-        F(i, 1, p) {
-            if (i > w)
-                break;
+    F(i, 1, n) {
+        string s;
+        rd(s);
+        int len = SZ(s);
 
-            cur = cur * (w - i + 1) / i;
+        int ans = len;
 
-            sum += cur;
+        int u = 0;
 
-            if (sum >= n)
-                return true;
+        if (trie[0].min_len != inf) {
+            ans = min(ans, len + trie[0].min_len);
         }
-        return sum >= n;
-    };
 
-    ll l = 0, r = n, ans = n;
-    while (l <= r) {
-        ll mid = l + (r - l) / 2;
-        if (check(mid)) {
-            ans = mid;
-            r = mid - 1;
-        } else {
-            l = mid + 1;
+        for (int j = 0; j < len; ++j) {
+            int c = s[j] - 'a';
+            if (!trie[u].ch[c])
+                break;
+            u = trie[u].ch[c];
+
+            if (trie[u].min_len != inf) {
+                ans = min(ans, len + trie[u].min_len - 2 * (j + 1));
+            }
+        }
+        prt(ans);
+
+        u = 0;
+        trie[0].min_len = min(trie[0].min_len, len);
+
+        for (char c: s) {
+            int v = c - 'a';
+            if (!trie[u].ch[v]) {
+                trie[u].ch[v] = SZ(trie);
+                trie.pb(Node());
+            }
+            u = trie[u].ch[v];
+            trie[u].min_len = min(trie[u].min_len, len);
         }
     }
-    prt(ans);
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, p, inf = 1e9;
-    cin >> n >> p;
-
-    p = min(p, 20);
-    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
-
-    for (int i = 1; i <= p; i++) {
-        for (int j = 1; j <= n; j++) {
-            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
-        }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-
-    for (int i = 0; i <= n; i++) {
-        if (dp[p][i] >= n) {
-            cout << i;
-            break;
-        }
+    while (T--) {
+        solve();
     }
-
-    return 0;
 }

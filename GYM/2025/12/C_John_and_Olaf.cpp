@@ -149,63 +149,62 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    ll n, p;
-    rd(n, p);
+    int n, x, y;
+    rd(n, x, y);
 
-    auto check = [&](ll w) -> bool {
-        ll sum = 1;
-        ll cur = 1;
+    vl dp(n + 1, 0);
+    dp[y] = 1;
 
-        F(i, 1, p) {
-            if (i > w)
-                break;
+    int pos = x;
+    ll ans = 0;
+    ll inv2 = (MOD2 + 1) / 2;
 
-            cur = cur * (w - i + 1) / i;
+    F(t, 1, n) {
+        vl ndp(n + 1, 0);
+        int npos = pos + 1;
 
-            sum += cur;
+        int L = pos + 1;
+        F(j, L, n) {
+            if (dp[j] == 0)
+                continue;
 
-            if (sum >= n)
-                return true;
+            if (j == n) {
+                if (n - 1 <= npos) {
+                    ans = (ans + dp[j] * t) % MOD2;
+                } else {
+                    ndp[n - 1] = (ndp[n - 1] + dp[j]) % MOD2;
+                }
+            } else {
+                ll prob = (dp[j] * inv2) % MOD2;
+
+                if (j - 1 <= npos) {
+                    ans = (ans + prob * t) % MOD2;
+                } else {
+                    ndp[j - 1] = (ndp[j - 1] + prob) % MOD2;
+                }
+
+                if (j + 1 <= n) {
+                    ndp[j + 1] = (ndp[j + 1] + prob) % MOD2;
+                }
+            }
         }
-        return sum >= n;
-    };
 
-    ll l = 0, r = n, ans = n;
-    while (l <= r) {
-        ll mid = l + (r - l) / 2;
-        if (check(mid)) {
-            ans = mid;
-            r = mid - 1;
-        } else {
-            l = mid + 1;
-        }
+        dp = ndp;
+        pos = npos;
     }
+
     prt(ans);
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, p, inf = 1e9;
-    cin >> n >> p;
-
-    p = min(p, 20);
-    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
-
-    for (int i = 1; i <= p; i++) {
-        for (int j = 1; j <= n; j++) {
-            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
-        }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-
-    for (int i = 0; i <= n; i++) {
-        if (dp[p][i] >= n) {
-            cout << i;
-            break;
-        }
+    while (T--) {
+        solve();
     }
-
-    return 0;
 }

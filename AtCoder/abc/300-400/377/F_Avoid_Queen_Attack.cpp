@@ -149,63 +149,99 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    ll n, p;
-    rd(n, p);
+    ll n;
+    int m;
+    rd(n, m);
+    vl rows, cols, m_diag, a_diag;
 
-    auto check = [&](ll w) -> bool {
-        ll sum = 1;
-        ll cur = 1;
-
-        F(i, 1, p) {
-            if (i > w)
-                break;
-
-            cur = cur * (w - i + 1) / i;
-
-            sum += cur;
-
-            if (sum >= n)
-                return true;
-        }
-        return sum >= n;
-    };
-
-    ll l = 0, r = n, ans = n;
-    while (l <= r) {
-        ll mid = l + (r - l) / 2;
-        if (check(mid)) {
-            ans = mid;
-            r = mid - 1;
-        } else {
-            l = mid + 1;
-        }
+    F(i, 1, m) {
+        ll r, c;
+        rd(r, c);
+        rows.pb(r);
+        cols.pb(c);
+        m_diag.pb(r - c);
+        a_diag.pb(r + c);
     }
-    prt(ans);
+
+    auto uniq = [&](vl &v) {
+        sort(all(v));
+        v.erase(unique(all(v)), v.end());
+    };
+    uniq(rows);
+    uniq(cols);
+    uniq(m_diag);
+    uniq(a_diag);
+
+    ll attacked_cnt = 0;
+
+    attacked_cnt += (ll) SZ(rows) * n;
+    attacked_cnt += (ll) SZ(cols) * n;
+    attacked_cnt -= (ll) SZ(rows) * SZ(cols);
+
+    for (ll k: m_diag) {
+        ll min_x = max(1LL, 1LL - k);
+        ll max_x = min(n, n - k);
+        if (min_x > max_x)
+            continue;
+
+        ll len = max_x - min_x + 1;
+        set<pii> overlap;
+
+        for (ll r: rows) {
+            ll c = r - k;
+            if (c >= 1 && c <= n)
+                overlap.ins({r, c});
+        }
+        for (ll c: cols) {
+            ll r = c + k;
+            if (r >= 1 && r <= n)
+                overlap.ins({r, c});
+        }
+        attacked_cnt += (len - SZ(overlap));
+    }
+
+    for (ll s: a_diag) {
+        ll min_x = max(1LL, s - n);
+        ll max_x = min(n, s - 1LL);
+        if (min_x > max_x)
+            continue;
+
+        ll len = max_x - min_x + 1;
+        set<pii> overlap;
+
+        for (ll r: rows) {
+            ll c = s - r;
+            if (c >= 1 && c <= n)
+                overlap.ins({r, c});
+        }
+        for (ll c: cols) {
+            ll r = s - c;
+            if (r >= 1 && r <= n)
+                overlap.ins({r, c});
+        }
+        for (ll k: m_diag) {
+            if ((s + k) % 2 != 0)
+                continue;
+            ll r = (s + k) / 2;
+            ll c = (s - k) / 2;
+            if (r >= 1 && r <= n && c >= 1 && c <= n)
+                overlap.ins({r, c});
+        }
+        attacked_cnt += (len - SZ(overlap));
+    }
+
+    prt(n * n - attacked_cnt);
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, p, inf = 1e9;
-    cin >> n >> p;
-
-    p = min(p, 20);
-    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
-
-    for (int i = 1; i <= p; i++) {
-        for (int j = 1; j <= n; j++) {
-            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
-        }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-
-    for (int i = 0; i <= n; i++) {
-        if (dp[p][i] >= n) {
-            cout << i;
-            break;
-        }
+    while (T--) {
+        solve();
     }
-
-    return 0;
 }

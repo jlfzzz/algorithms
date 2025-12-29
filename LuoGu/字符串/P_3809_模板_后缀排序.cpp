@@ -146,66 +146,107 @@ constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
 
-void init() {}
+struct SuffixArray {
+    int n, m;
+    char s[N];
+    int sa[N], rk[N], oldrk[N], id[N], cnt[N], height[N];
 
-void solve() {
-    ll n, p;
-    rd(n, p);
+    void build(const string &str) {
+        n = str.length();
+        m = 300;
 
-    auto check = [&](ll w) -> bool {
-        ll sum = 1;
-        ll cur = 1;
+        for (int i = 1; i <= n; ++i)
+            s[i] = str[i - 1];
 
-        F(i, 1, p) {
-            if (i > w)
+        memset(cnt, 0, sizeof(cnt));
+        memset(rk, 0, sizeof(rk));
+
+        get_sa();
+        get_height();
+    }
+
+private:
+    void get_sa() {
+        for (int i = 1; i <= n; ++i)
+            ++cnt[rk[i] = s[i]];
+        for (int i = 1; i <= m; ++i)
+            cnt[i] += cnt[i - 1];
+        for (int i = n; i >= 1; --i)
+            sa[cnt[rk[i]]--] = i;
+
+        for (int w = 1; w < n; w <<= 1) {
+            int p = 0;
+            for (int i = n; i > n - w; --i)
+                id[++p] = i;
+            for (int i = 1; i <= n; ++i) {
+                if (sa[i] > w)
+                    id[++p] = sa[i] - w;
+            }
+
+            memset(cnt, 0, sizeof(cnt));
+            for (int i = 1; i <= n; ++i)
+                ++cnt[rk[id[i]]];
+            for (int i = 1; i <= m; ++i)
+                cnt[i] += cnt[i - 1];
+            for (int i = n; i >= 1; --i)
+                sa[cnt[rk[id[i]]]--] = id[i];
+
+            memcpy(oldrk, rk, sizeof(rk));
+            p = 0;
+            for (int i = 1; i <= n; ++i) {
+                if (oldrk[sa[i]] == oldrk[sa[i - 1]] && oldrk[sa[i] + w] == oldrk[sa[i - 1] + w]) {
+                    rk[sa[i]] = p;
+                } else {
+                    rk[sa[i]] = ++p;
+                }
+            }
+
+            if (p == n)
                 break;
-
-            cur = cur * (w - i + 1) / i;
-
-            sum += cur;
-
-            if (sum >= n)
-                return true;
-        }
-        return sum >= n;
-    };
-
-    ll l = 0, r = n, ans = n;
-    while (l <= r) {
-        ll mid = l + (r - l) / 2;
-        if (check(mid)) {
-            ans = mid;
-            r = mid - 1;
-        } else {
-            l = mid + 1;
+            m = p;
         }
     }
-    prt(ans);
+
+    void get_height() {
+        int k = 0;
+        for (int i = 1; i <= n; ++i) {
+            if (rk[i] == 1) {
+                height[rk[i]] = 0;
+                continue;
+            }
+            if (k)
+                k--;
+            int j = sa[rk[i] - 1];
+            while (i + k <= n && j + k <= n && s[i + k] == s[j + k])
+                k++;
+            height[rk[i]] = k;
+        }
+    }
+};
+
+void init() {}
+
+SuffixArray sa;
+
+void solve() {
+    string s;
+    rd(s);
+
+    sa.build(s);
+    for (int i = 1; i <= sa.n; ++i) {
+        cout << sa.sa[i] << " \n"[i == sa.n];
+    }
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, p, inf = 1e9;
-    cin >> n >> p;
-
-    p = min(p, 20);
-    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
-
-    for (int i = 1; i <= p; i++) {
-        for (int j = 1; j <= n; j++) {
-            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
-        }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-
-    for (int i = 0; i <= n; i++) {
-        if (dp[p][i] >= n) {
-            cout << i;
-            break;
-        }
+    while (T--) {
+        solve();
     }
-
-    return 0;
 }

@@ -149,63 +149,42 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    ll n, p;
-    rd(n, p);
+    int n;
+    rd(n);
+    vi a(n);
+    rv(a);
 
-    auto check = [&](ll w) -> bool {
-        ll sum = 1;
-        ll cur = 1;
+    sort(all(a));
 
-        F(i, 1, p) {
-            if (i > w)
-                break;
+    vi used(n, 0);
+    int ans = 0;
+    int cnt = 0;
 
-            cur = cur * (w - i + 1) / i;
+    while (cnt < n) {
+        ans++;
+        int h = 0;
 
-            sum += cur;
-
-            if (sum >= n)
-                return true;
-        }
-        return sum >= n;
-    };
-
-    ll l = 0, r = n, ans = n;
-    while (l <= r) {
-        ll mid = l + (r - l) / 2;
-        if (check(mid)) {
-            ans = mid;
-            r = mid - 1;
-        } else {
-            l = mid + 1;
+        F(i, 0, n - 1) {
+            if (!used[i] && a[i] >= h) {
+                used[i] = 1;
+                h++;
+                cnt++;
+            }
         }
     }
+
     prt(ans);
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, p, inf = 1e9;
-    cin >> n >> p;
-
-    p = min(p, 20);
-    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
-
-    for (int i = 1; i <= p; i++) {
-        for (int j = 1; j <= n; j++) {
-            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
-        }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-
-    for (int i = 0; i <= n; i++) {
-        if (dp[p][i] >= n) {
-            cout << i;
-            break;
-        }
+    while (T--) {
+        solve();
     }
-
-    return 0;
 }

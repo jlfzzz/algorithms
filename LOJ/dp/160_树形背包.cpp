@@ -149,63 +149,137 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    ll n, p;
-    rd(n, p);
+    int n, w;
+    rd(n, w);
 
-    auto check = [&](ll w) -> bool {
-        ll sum = 1;
-        ll cur = 1;
+    // 原始数据
+    vi raw_d(n + 1);
+    vl raw_weights(n + 1), raw_vals(n + 1);
+    rv(raw_d, 1);
+    rv(raw_weights, 1);
+    rv(raw_vals, 1);
 
-        F(i, 1, p) {
-            if (i > w)
-                break;
+    // 建图 (0 为虚拟根)
+    vvi g(n + 1);
+    F(i, 1, n) { g[raw_d[i]].pb(i); }
 
-            cur = cur * (w - i + 1) / i;
+    // --- DFS 序预处理 ---
+    // new_w, new_v: 按照 DFS 序重排后的重量和价值
+    // sub_sz: 记录该节点(包含子树)的节点数量，用于跳跃
+    vl new_w(n + 2), new_v(n + 2);
+    vi sub_sz(n + 2);
+    int timer = 0;
 
-            sum += cur;
-
-            if (sum >= n)
-                return true;
+    timer = 0;
+    auto dfs_build = [&](auto &&self, int u) -> int {
+        int my_id = ++timer; // 分配 DFS 序 ID
+        new_w[my_id] = (u == 0 ? 0 : raw_weights[u]);
+        new_v[my_id] = (u == 0 ? 0 : raw_vals[u]);
+        int sz = 1;
+        for (int v: g[u]) {
+            sz += self(self, v);
         }
-        return sum >= n;
+        sub_sz[my_id] = sz;
+        return sz;
     };
 
-    ll l = 0, r = n, ans = n;
-    while (l <= r) {
-        ll mid = l + (r - l) / 2;
-        if (check(mid)) {
-            ans = mid;
-            r = mid - 1;
-        } else {
-            l = mid + 1;
+    dfs_build(dfs_build, 0);
+
+    // --- 线性 DP ---
+    // dp[i][j]: 从 DFS 序第 i 个物品开始考虑，容量为 j 的最大值
+    // 空间可以优化成 1D，也可以直接用 vector<long long> 滚动
+    // 为了稳妥，用 n+2 行 (0..n+1)
+    // 注意：timer 最终是 n+1 (包含0号节点)
+
+    // 我们使用滚动数组或者两行，或者直接 N 行 (如果 N*W 不大)
+    // 假设 N,W <= 2000，二维数组完全没问题且最快
+    // 这里使用 vector<vector> 但是一次性分配，比递归中反复用好得多
+    // 甚至可以直接用一维数组倒着推（类似01背包），但 DFS 序通常是从后往前推 i
+
+    vvl dp(timer + 2, vl(w + 1, 0));
+
+    // 从后往前枚举 DFS 序
+    D(i, timer, 1) {
+        F(j, 0, w) {
+            // 选项1: 不选物品 i，必须跳过整棵子树
+            // 下一个状态是 i + sub_sz[i]
+            // 如果越界了(后面没了)，就是 0
+            ll val_skip = (i + sub_sz[i] > timer) ? 0 : dp[i + sub_sz[i]][j];
+
+            // 选项2: 选物品 i，处理下一个物品 i + 1
+            // 前提：容量够，且不是强制不选的情况(比如依赖没满足? 不，DFS序天然满足依赖)
+            ll val_pick = 0;
+            if (j >= new_w[i]) {
+                val_pick = dp[i + 1][j - new_w[i]] + new_v[i];
+            } else {
+                val_pick = -INF; // 容量不够不能选
+            }
+
+            dp[i][j] = max(val_skip, val_pick);
         }
     }
-    prt(ans);
+
+    // 答案是 dp[1][w] (因为 1 号是虚拟根 0，它的重量是 0)
+    // 如果题目要求不能算虚拟根的 value (本身是0)，那正好
+    // 但是虚拟根必须选（作为入口），它的 w=0，所以一定能选上
+    prt(dp[1][w]);
 }
 
+// void solve() {
+//     int n, w;
+//     rd(n, w);
+
+//     vl d(n + 1), weights(n + 1), vals(n + 1);
+//     rv(d, 1);
+//     rv(weights, 1);
+//     rv(vals, 1);
+
+//     vvi g(n + 1);
+//     F(i, 1, n) { g[d[i]].pb(i); }
+
+//     vvl dp(n + 1, vl(w + 1));
+//     vi sz(n + 1);
+
+//     auto dfs = [&](auto &&dfs, int u, int fa) -> void {
+//         int we = weights[u];
+//         ll val = vals[u];
+
+//         sz[u] = we;
+//         F(j, we, w) dp[u][j] = val;
+
+//         for (int v: g[u]) {
+//             if (v == fa)
+//                 continue;
+
+//             dfs(dfs, v, u);
+
+//             int mx = min(w, sz[u] + sz[v]);
+
+//             for (int j = mx; j >= we; j--) {
+//                 int KK = min(sz[v], j - we);
+
+//                 for (int k = 0; k <= KK; k++) {
+//                     dp[u][j] = max(dp[u][j], dp[u][j - k] + dp[v][k]);
+//                 }
+//             }
+//             sz[u] += sz[v];
+//         }
+//     };
+
+//     dfs(dfs, 0, -1);
+//     prt(dp[0][w]);
+// }
+
+
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, p, inf = 1e9;
-    cin >> n >> p;
-
-    p = min(p, 20);
-    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
-
-    for (int i = 1; i <= p; i++) {
-        for (int j = 1; j <= n; j++) {
-            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
-        }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-
-    for (int i = 0; i <= n; i++) {
-        if (dp[p][i] >= n) {
-            cout << i;
-            break;
-        }
+    while (T--) {
+        solve();
     }
-
-    return 0;
 }

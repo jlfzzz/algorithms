@@ -149,63 +149,62 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    ll n, p;
-    rd(n, p);
+    int k;
+    rd(k);
 
-    auto check = [&](ll w) -> bool {
-        ll sum = 1;
-        ll cur = 1;
+    vector<string> ans(1005, string(1005, 'N'));
 
-        F(i, 1, p) {
-            if (i > w)
-                break;
+    vi h(35);
+    h[0] = 1;
+    int cnt = 2;
 
-            cur = cur * (w - i + 1) / i;
+    F(i, 0, 29) {
+        h[i + 1] = ++cnt;
+        int u = ++cnt;
+        int v = ++cnt;
 
-            sum += cur;
+        ans[h[i]][u] = ans[u][h[i]] = 'Y';
+        ans[u][h[i + 1]] = ans[h[i + 1]][u] = 'Y';
 
-            if (sum >= n)
-                return true;
-        }
-        return sum >= n;
-    };
+        ans[h[i]][v] = ans[v][h[i]] = 'Y';
+        ans[v][h[i + 1]] = ans[h[i + 1]][v] = 'Y';
+    }
 
-    ll l = 0, r = n, ans = n;
-    while (l <= r) {
-        ll mid = l + (r - l) / 2;
-        if (check(mid)) {
-            ans = mid;
-            r = mid - 1;
-        } else {
-            l = mid + 1;
+    vi t(105);
+    t[0] = 2;
+    F(d, 1, 63) {
+        t[d] = ++cnt;
+        ans[t[d]][t[d - 1]] = ans[t[d - 1]][t[d]] = 'Y';
+    }
+
+    int L = 62;
+
+    F(i, 0, 29) {
+        if ((k >> i) & 1) {
+            int needed = L - 2 * i - 1;
+            int u = h[i];
+            int v = t[needed];
+
+            ans[u][v] = ans[v][u] = 'Y';
         }
     }
-    prt(ans);
+
+    prt(cnt);
+    F(i, 1, cnt) {
+        F(j, 1, cnt) { cout << ans[i][j]; }
+        cout << '\n';
+    }
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, p, inf = 1e9;
-    cin >> n >> p;
-
-    p = min(p, 20);
-    vector<vector<int>> dp(p + 1, vector<int>(n + 1, 1));
-
-    for (int i = 1; i <= p; i++) {
-        for (int j = 1; j <= n; j++) {
-            dp[i][j] = min(dp[i - 1][j - 1] + dp[i][j - 1], inf);
-        }
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-
-    for (int i = 0; i <= n; i++) {
-        if (dp[p][i] >= n) {
-            cout << i;
-            break;
-        }
+    while (T--) {
+        solve();
     }
-
-    return 0;
 }
