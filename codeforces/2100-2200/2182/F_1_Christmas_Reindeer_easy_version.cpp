@@ -1,7 +1,146 @@
 #include <bits/stdc++.h>
 using namespace std;
-constexpr int MOD = int(1e9 + 7);
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define us unsigned
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+namespace utils {
+    template<typename A, typename B>
+    ostream &operator<<(ostream &os, const pair<A, B> &p) {
+        return os << '(' << p.first << ", " << p.second << ')';
+    }
+
+    template<typename Tuple, size_t... Is>
+    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
+        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
+    }
+
+    template<typename... Args>
+    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
+        os << '(';
+        print_tuple(os, t, index_sequence_for<Args...>{});
+        return os << ')';
+    }
+
+    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
+    ostream &operator<<(ostream &os, const T &v) {
+        os << '{';
+        bool first = true;
+        for (auto &x: v) {
+            if (!first)
+                os << ", ";
+            first = false;
+            os << x;
+        }
+        return os << '}';
+    }
+
+    void debug_out() { cerr << endl; }
+
+    template<typename Head, typename... Tail>
+    void debug_out(Head H, Tail... T) {
+        cerr << H;
+        if (sizeof...(T))
+            cerr << " ";
+        debug_out(T...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+#ifdef WOAIHUTAO
+#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
+
+using namespace utils;
 
 namespace atcoder {
 
@@ -613,19 +752,96 @@ struct Comb {
     }
 } comb(N);
 
-using Z = atcoder::modint;
-Z::set_mod(M);
+int Multitest = 0;
 
-// 模数不是质数的时候用 欧拉定理或者扩展lucas
+void init() {}
 
-constexpr int N = 5005;
-Z C[N][N];
+void solve() {
+    int n, m;
+    rd(n, m);
 
-void init() {
-    for (int i = 0; i < N; i++) {
-        C[i][0] = C[i][i] = 1;
-        for (int j = 1; j < i; j++) {
-            C[i][j] = C[i - 1][j - 1] + C[i - 1][j];
+    vi cnts(65, 0);
+    vi a(n);
+    rv(a);
+    for (int x: a)
+        cnts[x]++;
+
+    while (m--) {
+        ll op;
+        ll x;
+        rd(op, x);
+
+        if (op == 1) {
+            cnts[x]++;
+        } else if (op == 2) {
+            cnts[x]--;
+        } else {
+            // st=2 is ok
+            vector<vector<Z>> dp(70, vector<Z>(3, 0));
+            dp[0][1] = 1;
+
+            D(bit, 60, 0) {
+                int lim = cnts[bit];
+                vector<vector<Z>> ndp(70, vector<Z>(3, 0));
+
+                F(chosen, 0, 65) {
+                    F(st, 1, 2) {
+                        F(k, 0, lim) {
+                            int nxt = min(chosen + k, 65);
+                            int nst = st;
+
+                            if (st == 2) {
+                                ndp[nxt][2] += dp[chosen][st] * comb.C(lim, k);
+                                continue;
+                            }
+
+                            bool can = true;
+
+                            F(j, 0, k) {
+                                int b = bit - chosen - j;
+                                int cur = (j < k) ? 1 : 0;
+                                int xb = 0;
+                                if (b >= 0) {
+                                    xb = (x >> b) & 1;
+                                }
+
+                                if (cur > xb) {
+                                    nst = 2;
+                                    break;
+                                } else if (cur < xb) {
+                                    can = false;
+                                    break;
+                                }
+                            }
+
+                            if (can) {
+                                ndp[nxt][nst] += dp[chosen][st] * comb.C(lim, k);
+                            }
+                        }
+                    }
+                }
+                dp.swap(ndp);
+            }
+
+            Z ans = 0;
+            F(chosen, 0, 65) {
+                ans += dp[chosen][1];
+                ans += dp[chosen][2];
+            }
+            prt(ans.val());
         }
+    }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
     }
 }
