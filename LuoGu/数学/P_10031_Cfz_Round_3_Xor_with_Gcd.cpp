@@ -149,33 +149,21 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    ll l, r;
-    rd(l, r);
+    ll n;
+    rd(n);
 
-    int cnt = 0;
-    while ((l >> cnt & 1) == 0 && ((r >> cnt & 1))) {
-        cnt++;
-    }
-
-    l >>= cnt;
-    r >>= cnt;
-
-    ll ans = 1;
-    if (l == r) {
-        ans = 1;
+    if (n & 1) {
+        prt(n);
     } else {
-        ll t = l ^ r;
-        if ((t & (t + 1)) == 0) {
-            ans = 2;
-        } else {
-            ans = 1;
-        }
+        prt((n / 2) ^ n);
     }
 
-    ans = ans * (1ll << cnt);
-    ans--;
-
-    prt(ans);
+    // ll sum = 0;
+    // F(i, 1, n) {
+    //     ll g = gcd(i, n);
+    //     sum ^= g;
+    //     dbg(i,g, sum);
+    // }
 }
 
 int main() {

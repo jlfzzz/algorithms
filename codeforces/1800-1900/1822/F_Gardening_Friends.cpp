@@ -149,31 +149,55 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    ll l, r;
-    rd(l, r);
-
-    int cnt = 0;
-    while ((l >> cnt & 1) == 0 && ((r >> cnt & 1))) {
-        cnt++;
+    int n;
+    ll k, c;
+    rd(n, k, c);
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
     }
 
-    l >>= cnt;
-    r >>= cnt;
+    vi d1(n + 1, 0), d2(n + 1, 0), up(n + 1, 0), dep(n + 1, 0);
 
-    ll ans = 1;
-    if (l == r) {
-        ans = 1;
-    } else {
-        ll t = l ^ r;
-        if ((t & (t + 1)) == 0) {
-            ans = 2;
-        } else {
-            ans = 1;
+    auto dfs1 = [&](auto &&self, int u, int p, int d) -> void {
+        dep[u] = d;
+        for (auto v: g[u]) {
+            if (v == p)
+                continue;
+            self(self, v, u, d + 1);
+
+            int dist = d1[v] + 1;
+            if (dist > d1[u]) {
+                d2[u] = d1[u];
+                d1[u] = dist;
+            } else if (dist > d2[u]) {
+                d2[u] = dist;
+            }
         }
-    }
+    };
 
-    ans = ans * (1ll << cnt);
-    ans--;
+    ll ans = -INF;
+    auto dfs2 = [&](auto &&self, int u, int p) -> void {
+        ll cost = max(d1[u], up[u]) * k;
+        ll c2 = (ll) dep[u] * c;
+        ans = max(ans, cost - c2);
+
+        for (auto v: g[u]) {
+            if (v == p)
+                continue;
+
+            int t = (d1[v] + 1 == d1[u]) ? d2[u] : d1[u];
+            up[v] = max(up[u], t) + 1;
+
+            self(self, v, u);
+        }
+    };
+
+    dfs1(dfs1, 1, 0, 0);
+    dfs2(dfs2, 1, 0);
 
     prt(ans);
 }

@@ -12,6 +12,7 @@ using ll = long long;
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
+#define us unsigned
 #define vi vector<int>
 #define vp vector<pii>
 #define vl vector<long long>
@@ -150,35 +151,30 @@ void init() {}
 void solve() {
     int n;
     rd(n);
+
     vl a(n);
     rv(a);
 
-    if (n < 2) {
-        prt(0);
-        return;
-    }
-
+    ll L = 0, R = inf;
     int ans = 0;
-    ll L = 0, R = INF;
-
-    F(i, 0, n - 2) {
-        ll d = a[i + 1] - a[i];
-
+    F(i, 1, n - 1) {
+        ll d = a[i] - a[i - 1];
         R = min(R, d);
 
+        ll nl = d - R;
+        ll nr = d - L;
         if (L < R) {
             ans++;
-            ll nL = d - R;
-            ll nR = d - L;
-            L = nL;
-            R = nR;
         } else {
-            L = 0;
-            R = d;
+            nl = 0, nr = d;
         }
+
+        L = nl, R = nr;
     }
+
     prt(ans);
 }
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

@@ -149,33 +149,72 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    ll l, r;
-    rd(l, r);
+    int n, q;
+    rd(n, q);
 
-    int cnt = 0;
-    while ((l >> cnt & 1) == 0 && ((r >> cnt & 1))) {
-        cnt++;
-    }
+    vvl a(n + 1, vl(n + 1));
+    F(i, 1, n) { rv(a[i], 1); }
 
-    l >>= cnt;
-    r >>= cnt;
+    vi vis(2 * n + 1);
+    vl vals(2 * n + 1);
 
-    ll ans = 1;
-    if (l == r) {
-        ans = 1;
-    } else {
-        ll t = l ^ r;
-        if ((t & (t + 1)) == 0) {
-            ans = 2;
-        } else {
-            ans = 1;
+    auto calc = [&]() -> ll {
+        vvl dp(n + 1, vl(n + 1));
+        dp[1][1] = a[1][1];
+
+        F(i, 1, n) {
+            F(j, 1, n) {
+                if (i == 1 && j == 1)
+                    continue;
+
+                ll cur = a[i][j];
+                ll mx = -INF;
+
+                if (i > 1)
+                    mx = max(mx, dp[i - 1][j]);
+                if (j > 1)
+                    mx = max(mx, dp[i][j - 1]);
+
+                dp[i][j] = mx + cur;
+            }
         }
+        return dp[n][n];
+    };
+
+    ll ans = calc();
+
+    while (q--) {
+        ll k;
+        ll v;
+        rd(k, v);
+
+        if (vis[k]) {
+            ll diff = v - vals[k];
+            ans += diff;
+            vals[k] = v;
+
+            F(i, 1, n) {
+                int j = k - i;
+                if (j >= 1 && j <= n) {
+                    a[i][j] = v;
+                }
+            }
+        } else {
+            vis[k] = true;
+            vals[k] = v;
+
+            F(i, 1, n) {
+                int j = k - i;
+                if (j >= 1 && j <= n) {
+                    a[i][j] = v;
+                }
+            }
+
+            ans = calc();
+        }
+
+        prt(ans);
     }
-
-    ans = ans * (1ll << cnt);
-    ans--;
-
-    prt(ans);
 }
 
 int main() {

@@ -242,7 +242,7 @@ namespace helpers {
             s = string(width - s.size(), fill) + s;
         }
 
-        cout << s << "\n";
+        cout << s << endl;
     }
 
     // 打印向量vector的二进制
@@ -1047,26 +1047,27 @@ void func1() {
     auto random_arr1 = random_array(n, 1, 1e5);
     auto random_arr2 = random_array(n, 1, 1e7);
 
-    int a = 16446;
-    int b = a + 1;
-    int c = a + 2;
-    F(i, 1, 100) {
-        int t = a * i;
-        int tt = 1;
-        while (true) {
-            if (tt > t && tt % b == 0) {
+    ll l, r;
+    rd(l, r);
+
+    prt_bin(l, 30);
+    prt_bin(r, 30);
+
+    F(i, 1, 1000) {
+        bool ok = true;
+        F(j, l, r) {
+            ll t = j ^ i;
+            if (t >= l && t <= r) {
+            } else {
+                ok = false;
                 break;
             }
-            tt++;
         }
-        int ttt = 1;
-        while (true) {
-            if (ttt > tt && ttt % c == 0) {
-                break;
-            }
-            ttt++;
+
+        if (ok) {
+            dbg(i);
+            prt_bin(i, 30);
         }
-        dbg(t, tt, ttt);
     }
 }
 

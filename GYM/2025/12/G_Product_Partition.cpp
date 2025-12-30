@@ -143,39 +143,48 @@ namespace utils {
 using namespace utils;
 
 constexpr int N = 1e6 + 5;
-
+ll fac[N];
 int Multitest = 1;
 
-void init() {}
+void init() {
+    fac[0] = 1;
+    F(i, 1, N - 1) fac[i] = (fac[i - 1] * i) % MOD;
+}
 
 void solve() {
-    ll l, r;
-    rd(l, r);
+    int n, l, r;
+    rd(n, l, r);
 
-    int cnt = 0;
-    while ((l >> cnt & 1) == 0 && ((r >> cnt & 1))) {
-        cnt++;
-    }
+    F(i, l, r) {
+        int left = n - i;
+        if (left == 0) {
+            prt(1, fac[i]);
+            prt(1, i);
+            return;
+        }
 
-    l >>= cnt;
-    r >>= cnt;
+        int k = left / l;
 
-    ll ans = 1;
-    if (l == r) {
-        ans = 1;
-    } else {
-        ll t = l ^ r;
-        if ((t & (t + 1)) == 0) {
-            ans = 2;
-        } else {
-            ans = 1;
+        if (k > 0 && left <= k * r) {
+            prt(1 + k, fac[i]);
+
+            prt(1, i);
+
+            int start = i + 1;
+
+            int step = left / k;
+            int extra = left % k;
+
+            F(j, 1, k) {
+                int len = step + (j <= extra ? 1 : 0);
+                prt(start, start + len - 1);
+                start += len;
+            }
+            return;
         }
     }
 
-    ans = ans * (1ll << cnt);
-    ans--;
-
-    prt(ans);
+    prt(-1);
 }
 
 int main() {

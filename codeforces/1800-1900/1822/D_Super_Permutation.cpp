@@ -149,33 +149,30 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    ll l, r;
-    rd(l, r);
+    int n;
+    rd(n);
 
-    int cnt = 0;
-    while ((l >> cnt & 1) == 0 && ((r >> cnt & 1))) {
-        cnt++;
+    if (n == 1) {
+        prt(1);
+        return;
     }
 
-    l >>= cnt;
-    r >>= cnt;
-
-    ll ans = 1;
-    if (l == r) {
-        ans = 1;
-    } else {
-        ll t = l ^ r;
-        if ((t & (t + 1)) == 0) {
-            ans = 2;
-        } else {
-            ans = 1;
-        }
+    if (n & 1) {
+        prt(-1);
+        return;
     }
 
-    ans = ans * (1ll << cnt);
-    ans--;
+    vi ans;
 
-    prt(ans);
+    ans.pb(n);
+    ans.pb(n - 1);
+
+    for (int i = 1; i * 2 < n; i++) {
+        ans.pb(2 * i);
+        ans.pb(n - 1 - 2 * i);
+    }
+
+    prv(ans);
 }
 
 int main() {

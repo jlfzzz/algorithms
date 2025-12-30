@@ -148,34 +148,53 @@ int Multitest = 1;
 
 void init() {}
 
-void solve() {
-    ll l, r;
-    rd(l, r);
 
-    int cnt = 0;
-    while ((l >> cnt & 1) == 0 && ((r >> cnt & 1))) {
-        cnt++;
+vi cnt(N);
+
+void solve() {
+    int n;
+    rd(n);
+    vi a(n);
+    rv(a);
+
+    vi temp;
+    for (int x: a) {
+        if (cnt[x] == 0) {
+            temp.pb(x);
+        }
+        cnt[x]++;
     }
 
-    l >>= cnt;
-    r >>= cnt;
+    sort(all(temp));
 
-    ll ans = 1;
-    if (l == r) {
-        ans = 1;
-    } else {
-        ll t = l ^ r;
-        if ((t & (t + 1)) == 0) {
-            ans = 2;
-        } else {
-            ans = 1;
+    ll ans = 0;
+
+    for (int x: temp) {
+        ll c = cnt[x];
+
+        if (c >= 3) {
+            ans += c * (c - 1) * (c - 2);
+        }
+
+
+        for (int b = 2;; ++b) {
+            ll y = 1LL * x * b;
+            ll z = y * b;
+
+            if (z > 1000000)
+                break;
+
+            if (cnt[y] && cnt[z]) {
+                ans += c * cnt[y] * cnt[z];
+            }
         }
     }
 
-    ans = ans * (1ll << cnt);
-    ans--;
-
     prt(ans);
+
+    for (int x: a) {
+        cnt[x] = 0;
+    }
 }
 
 int main() {
