@@ -152,53 +152,38 @@ void solve() {
     int n;
     rd(n);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vi a(n);
+    rv(a);
+    set<int> st;
+    for (int x: a) {
+        st.ins(x);
     }
 
-    ll ans = 0;
-
-    auto dfs = [&](auto &&dfs, int u, int fa) -> ll {
-        int sz = g[u].size();
-        ll sum = 0;
-
-        for (auto v: g[u]) {
-            if (v == fa)
-                continue;
-            ll res = dfs(dfs, v, u);
-
-            if (sz == 3) {
-                ans += sum * res;
-                sum += res;
-            } else if (sz == 2) {
-                ans += res;
-            }
-        }
-
-        if (sz == 2)
-            return 1;
-        if (sz == 3)
-            return sum;
-        return 0; 
-    };
-
-    dfs(dfs, 1, 0);
-
-    F(i, 1, n) {
-        if (g[i].size() == 2) {
-            for (auto v: g[i]) {
-                if (v > i && g[v].size() == 2) {
-                    ans--;
+    int c2 = 0, c3 = 0;
+    pii ans;
+    F(i, 0, 30) {
+        int t = 1 << i;
+        for (int x: a) {
+            if (st.contains(x + t)) {
+                c2 = 1;
+                ans = {x, x + t};
+                if (st.contains(x + 2 * t)) {
+                    c3 = 1;
+                    prt(3);
+                    prt(x, x + t, x + 2 * t);
+                    return;
                 }
             }
         }
     }
 
-    prt(ans);
+    if (c2) {
+        prt(2);
+        prt(ans.fi, ans.se);
+    } else {
+        prt(1);
+        prt(a[0]);
+    }
 }
 
 int main() {

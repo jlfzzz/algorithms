@@ -144,58 +144,49 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll n, m;
+    rd(n, m);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vp a;
+    vl b(m + 1);
+    F(i, 1, m) {
+        ll x, y;
+        rd(x, y);
+
+        a.pb(x, y);
+        b[i] = x;
     }
 
-    ll ans = 0;
+    sort(all2(b, 1));
+    vl pref(m + 1);
+    F(i, 1, m) { pref[i] = pref[i - 1] + b[i]; }
 
-    auto dfs = [&](auto &&dfs, int u, int fa) -> ll {
-        int sz = g[u].size();
-        ll sum = 0;
-
-        for (auto v: g[u]) {
-            if (v == fa)
-                continue;
-            ll res = dfs(dfs, v, u);
-
-            if (sz == 3) {
-                ans += sum * res;
-                sum += res;
-            } else if (sz == 2) {
-                ans += res;
-            }
+    ll ans = -inf;
+    for (auto [x, y]: a) {
+        int i = ranges::upper_bound(b, y) - b.begin();
+        if (m - i + 1 >= n) {
+            ans = max(ans, pref[m] - pref[m - n]);
+            continue;
         }
 
-        if (sz == 2)
-            return 1;
-        if (sz == 3)
-            return sum;
-        return 0; 
-    };
+        ll val1 = pref[m] - pref[i - 1];
+        int j = ranges::upper_bound(b, x) - b.begin() - 1;
+        ll t = n - (m - i + 1);
+        ll sum = val1;
 
-    dfs(dfs, 1, 0);
-
-    F(i, 1, n) {
-        if (g[i].size() == 2) {
-            for (auto v: g[i]) {
-                if (v > i && g[v].size() == 2) {
-                    ans--;
-                }
-            }
+        if (j < i) {
+            t--;
+            sum += x;
         }
+
+        sum += y * t;
+
+        ans = max(ans, sum);
     }
 
     prt(ans);

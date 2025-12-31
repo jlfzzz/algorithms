@@ -149,54 +149,32 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, m;
+    rd(n, m);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vvi a(m + 1);
+    F(i, 1, n) {
+        int s, t;
+        rd(s, t);
+        a[s].pb(t);
+    }
+
+    vl cnt(n + 1);
+
+    F(i, 1, m) {
+        ranges::sort(a[i], greater<>());
+
+        ll sum = 0;
+        F(j, 0, SZ(a[i]) - 1) {
+            sum += a[i][j];
+            if (sum > 0) {
+                cnt[j + 1] += sum;
+            }
+        }
     }
 
     ll ans = 0;
-
-    auto dfs = [&](auto &&dfs, int u, int fa) -> ll {
-        int sz = g[u].size();
-        ll sum = 0;
-
-        for (auto v: g[u]) {
-            if (v == fa)
-                continue;
-            ll res = dfs(dfs, v, u);
-
-            if (sz == 3) {
-                ans += sum * res;
-                sum += res;
-            } else if (sz == 2) {
-                ans += res;
-            }
-        }
-
-        if (sz == 2)
-            return 1;
-        if (sz == 3)
-            return sum;
-        return 0; 
-    };
-
-    dfs(dfs, 1, 0);
-
-    F(i, 1, n) {
-        if (g[i].size() == 2) {
-            for (auto v: g[i]) {
-                if (v > i && g[v].size() == 2) {
-                    ans--;
-                }
-            }
-        }
-    }
+    F(i, 1, n) { ans = max(ans, cnt[i]); }
 
     prt(ans);
 }

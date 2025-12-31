@@ -149,56 +149,38 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int k;
+    rd(k);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    map<ll, pii> cnt;
+    vvi a(k + 1);
+    F(i, 1, k) {
+        int n;
+        rd(n);
+        a[i].resize(n);
+        rv(a[i]);
     }
 
-    ll ans = 0;
-
-    auto dfs = [&](auto &&dfs, int u, int fa) -> ll {
-        int sz = g[u].size();
-        ll sum = 0;
-
-        for (auto v: g[u]) {
-            if (v == fa)
-                continue;
-            ll res = dfs(dfs, v, u);
-
-            if (sz == 3) {
-                ans += sum * res;
-                sum += res;
-            } else if (sz == 2) {
-                ans += res;
+    F(i, 1, k) {
+        ll sum = accumulate(all(a[i]), 0ll);
+        F(j, 0, SZ(a[i]) - 1) {
+            ll t = sum - a[i][j];
+            if (cnt.contains(t)) {
+                prt("YES");
+                prt(cnt[t].fi, cnt[t].se + 1);
+                prt(i, j + 1);
+                return;
             }
         }
 
-        if (sz == 2)
-            return 1;
-        if (sz == 3)
-            return sum;
-        return 0; 
-    };
-
-    dfs(dfs, 1, 0);
-
-    F(i, 1, n) {
-        if (g[i].size() == 2) {
-            for (auto v: g[i]) {
-                if (v > i && g[v].size() == 2) {
-                    ans--;
-                }
-            }
+        F(j, 0, SZ(a[i]) - 1) {
+            ll t = sum - a[i][j];
+            dbg(i, j, t);
+            cnt[t] = {i, j};
         }
     }
 
-    prt(ans);
+    prt("NO");
 }
 
 int main() {

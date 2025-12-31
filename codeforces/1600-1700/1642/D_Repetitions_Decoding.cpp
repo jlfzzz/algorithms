@@ -144,7 +144,7 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
@@ -152,53 +152,54 @@ void solve() {
     int n;
     rd(n);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    vi a(n + 1);
+    rv(a, 1);
 
-    ll ans = 0;
-
-    auto dfs = [&](auto &&dfs, int u, int fa) -> ll {
-        int sz = g[u].size();
-        ll sum = 0;
-
-        for (auto v: g[u]) {
-            if (v == fa)
-                continue;
-            ll res = dfs(dfs, v, u);
-
-            if (sz == 3) {
-                ans += sum * res;
-                sum += res;
-            } else if (sz == 2) {
-                ans += res;
-            }
-        }
-
-        if (sz == 2)
-            return 1;
-        if (sz == 3)
-            return sum;
-        return 0; 
-    };
-
-    dfs(dfs, 1, 0);
-
-    F(i, 1, n) {
-        if (g[i].size() == 2) {
-            for (auto v: g[i]) {
-                if (v > i && g[v].size() == 2) {
-                    ans--;
-                }
-            }
+    map<int, int> cnt;
+    F(i, 1, n) { cnt[a[i]]++; }
+    for (auto [x, c]: cnt) {
+        if (c & 1) {
+            prt(-1);
+            return;
         }
     }
 
-    prt(ans);
+    int i = 1;
+    vp ans1;
+    vi ans;
+
+    while (i < SZ(a)) {
+        int j = i + 1;
+        while (j < SZ(a)) {
+            if (a[j] == a[i])
+                break;
+            j++;
+        }
+
+        vi temp;
+        F(k, i + 1, j - 1) { temp.pb(a[k]); }
+
+        F(k, 0, SZ(temp) - 1) { ans1.pb(j + k, temp[k]); }
+
+        vi rev = temp;
+        reverse(all(temp));
+        rev.insert(rev.end(), all(temp));
+
+        a.insert(a.begin() + j + 1, all(rev));
+
+        int len = (SZ(temp) + 1) * 2;
+        ans.pb(len);
+
+        i += len;
+    }
+
+    prt(SZ(ans1));
+    for (auto [x, y]: ans1) {
+        prt(x, y);
+    }
+
+    prt(SZ(ans));
+    prv(ans);
 }
 
 int main() {

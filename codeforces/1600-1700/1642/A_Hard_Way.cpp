@@ -144,61 +144,39 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll x1, y1;
+    ll x2, y2, x3, y3;
+    rd(x1, y1, x2, y2, x3, y3);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    cout << fixed << setprecision(20);
 
-    ll ans = 0;
-
-    auto dfs = [&](auto &&dfs, int u, int fa) -> ll {
-        int sz = g[u].size();
-        ll sum = 0;
-
-        for (auto v: g[u]) {
-            if (v == fa)
-                continue;
-            ll res = dfs(dfs, v, u);
-
-            if (sz == 3) {
-                ans += sum * res;
-                sum += res;
-            } else if (sz == 2) {
-                ans += res;
-            }
+    if (y1 == y2) {
+        if (y3 > y1) {
+            cout << 0 << endl;
+            return;
         }
 
-        if (sz == 2)
-            return 1;
-        if (sz == 3)
-            return sum;
-        return 0; 
-    };
-
-    dfs(dfs, 1, 0);
-
-    F(i, 1, n) {
-        if (g[i].size() == 2) {
-            for (auto v: g[i]) {
-                if (v > i && g[v].size() == 2) {
-                    ans--;
-                }
-            }
+        cout << abs(x1 - x2) << endl;
+    } else if (y1 == y3) {
+        if (y2 > y1) {
+            cout << 0 << endl;
+            return;
         }
+        cout << abs(x1 - x3) << endl;
+    } else if (y2 == y3) {
+        if (y1 > y2) {
+            cout << 0 << endl;
+            return;
+        }
+        cout << abs(x2 - x3) << endl;
+    } else {
+        cout << 0 << endl;
     }
-
-    prt(ans);
 }
 
 int main() {

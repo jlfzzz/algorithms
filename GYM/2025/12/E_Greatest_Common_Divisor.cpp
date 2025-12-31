@@ -144,61 +144,81 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll n, k;
+    rd(n, k);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vl a(n);
+    rv(a);
+
+    int mx = ranges::max(a);
+    vl cnt(2 * mx + 1);
+    ll sum = 0;
+
+    for (ll x: a) {
+        cnt[x]++;
+        sum += x;
     }
 
-    ll ans = 0;
+    if (mx * n - sum <= k) {
+        ll S = sum + k;
+        ll ans = 1;
+        for (ll i = 1; i * i <= S; i++) {
+            if (S % i == 0) {
+                if (i * n <= S)
+                    ans = max(ans, i);
 
-    auto dfs = [&](auto &&dfs, int u, int fa) -> ll {
-        int sz = g[u].size();
-        ll sum = 0;
-
-        for (auto v: g[u]) {
-            if (v == fa)
-                continue;
-            ll res = dfs(dfs, v, u);
-
-            if (sz == 3) {
-                ans += sum * res;
-                sum += res;
-            } else if (sz == 2) {
-                ans += res;
+                ll d = S / i;
+                if (d * n <= S)
+                    ans = max(ans, d);
             }
         }
 
-        if (sz == 2)
-            return 1;
-        if (sz == 3)
-            return sum;
-        return 0; 
-    };
-
-    dfs(dfs, 1, 0);
-
-    F(i, 1, n) {
-        if (g[i].size() == 2) {
-            for (auto v: g[i]) {
-                if (v > i && g[v].size() == 2) {
-                    ans--;
-                }
-            }
+        if (ans > mx) {
+            prt(ans);
+            return;
         }
     }
 
-    prt(ans);
+    vl pref(2 * mx + 1), preC(2 * mx + 1);
+    F(i, 1, 2 * mx) {
+        pref[i] = pref[i - 1] + 1ll * i * cnt[i];
+        preC[i] = preC[i - 1] + cnt[i];
+    }
+
+    // dbg(cnt, pref, preC);
+
+    D(i, mx, 2) {
+        if ((sum + k) % i != 0)
+            continue;
+
+        ll c1 = 1ll * i * preC[i] - pref[i];
+
+        for (ll t = i + i; t <= mx + i; t += i) {
+            ll l = t - i;
+            ll r = min(2ll * mx, t);
+
+            ll cntt = preC[r] - preC[l];
+            ll sum = pref[r] - pref[l];
+
+            c1 += cntt * t - sum;
+
+            if (c1 > k) {
+                break;
+            }
+        }
+
+        if (c1 <= k) {
+            prt(i);
+            return;
+        }
+    }
+
+    prt(1);
 }
 
 int main() {

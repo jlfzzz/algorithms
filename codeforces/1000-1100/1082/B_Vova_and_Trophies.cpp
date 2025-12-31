@@ -152,51 +152,54 @@ void solve() {
     int n;
     rd(n);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    string s;
+    rd(s);
 
-    ll ans = 0;
+    auto calc = [&](string &s) {
+        vi len(n);
+        vi suf(n + 1);
+        D(i, n - 1, 0) { suf[i] = suf[i + 1] + (s[i] == 'G'); }
 
-    auto dfs = [&](auto &&dfs, int u, int fa) -> ll {
-        int sz = g[u].size();
-        ll sum = 0;
-
-        for (auto v: g[u]) {
-            if (v == fa)
+        F(i, 0, n - 1) {
+            if (s[i] == 'S') {
                 continue;
-            ll res = dfs(dfs, v, u);
-
-            if (sz == 3) {
-                ans += sum * res;
-                sum += res;
-            } else if (sz == 2) {
-                ans += res;
             }
+
+            int j = i + 1;
+            while (j < n && s[j] == 'G') {
+                j++;
+            }
+            len[i] = j - i;
+            i = j;
         }
 
-        if (sz == 2)
-            return 1;
-        if (sz == 3)
-            return sum;
-        return 0; 
-    };
+        int ans = ranges::max(len);
+        F(i, 0, n - 1) {
+            if (s[i] == 'S') {
+                continue;
+            }
 
-    dfs(dfs, 1, 0);
-
-    F(i, 1, n) {
-        if (g[i].size() == 2) {
-            for (auto v: g[i]) {
-                if (v > i && g[v].size() == 2) {
-                    ans--;
+            int j = i + len[i];
+            if (suf[j]) {
+                ans = max(ans, len[i] + 1);
+            }
+            if (j + 1 < n && s[j + 1] == 'G') {
+                int len2 = len[j + 1];
+                if (suf[j + 1 + len2]) {
+                    ans = max(ans, len[i] + len2 + 1);
+                } else {
+                    ans = max(ans, len[i] + len2);
                 }
             }
+
+            i = i + len[i];
         }
-    }
+        return ans;
+    };
+
+    int ans = calc(s);
+    ranges::reverse(s);
+    ans = max(ans, calc(s));
 
     prt(ans);
 }

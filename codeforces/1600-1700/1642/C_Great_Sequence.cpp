@@ -144,58 +144,38 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll n, x;
+    rd(n, x);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vl a(n);
+    rv(a);
+
+    ranges::sort(a);
+
+    map<ll, ll> cnt;
+    for (ll y: a) {
+        if (y % x == 0) {
+            if (cnt[y / x]) {
+                cnt[y / x]--;
+                continue;
+            }
+        }
+        if (cnt[y * x]) {
+            cnt[y * x]--;
+            continue;
+        }
+
+        cnt[y]++;
     }
 
     ll ans = 0;
-
-    auto dfs = [&](auto &&dfs, int u, int fa) -> ll {
-        int sz = g[u].size();
-        ll sum = 0;
-
-        for (auto v: g[u]) {
-            if (v == fa)
-                continue;
-            ll res = dfs(dfs, v, u);
-
-            if (sz == 3) {
-                ans += sum * res;
-                sum += res;
-            } else if (sz == 2) {
-                ans += res;
-            }
-        }
-
-        if (sz == 2)
-            return 1;
-        if (sz == 3)
-            return sum;
-        return 0; 
-    };
-
-    dfs(dfs, 1, 0);
-
-    F(i, 1, n) {
-        if (g[i].size() == 2) {
-            for (auto v: g[i]) {
-                if (v > i && g[v].size() == 2) {
-                    ans--;
-                }
-            }
-        }
+    for (auto [y, c]: cnt) {
+        ans += c;
     }
 
     prt(ans);

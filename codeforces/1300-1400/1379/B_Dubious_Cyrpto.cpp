@@ -144,61 +144,56 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll l, r, m;
+    rd(l, r, m);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
-
-    ll ans = 0;
-
-    auto dfs = [&](auto &&dfs, int u, int fa) -> ll {
-        int sz = g[u].size();
-        ll sum = 0;
-
-        for (auto v: g[u]) {
-            if (v == fa)
-                continue;
-            ll res = dfs(dfs, v, u);
-
-            if (sz == 3) {
-                ans += sum * res;
-                sum += res;
-            } else if (sz == 2) {
-                ans += res;
+    ll mn = l - r;
+    ll mx = r - l;
+    F(a, l, r) {
+        auto calc = [&](ll x) -> pii {
+            ll d = m - x;
+            if (x <= 0) {
+                return {-1, -1};
             }
-        }
-
-        if (sz == 2)
-            return 1;
-        if (sz == 3)
-            return sum;
-        return 0; 
-    };
-
-    dfs(dfs, 1, 0);
-
-    F(i, 1, n) {
-        if (g[i].size() == 2) {
-            for (auto v: g[i]) {
-                if (v > i && g[v].size() == 2) {
-                    ans--;
+            if (d <= mx && d >= mn) {
+                if (d >= 0) {
+                    ll b = r;
+                    ll c = r - d;
+                    return {b, c};
+                } else {
+                    ll b = l;
+                    ll c = b - d;
+                    return {b, c};
                 }
             }
+            return {-1, -1};
+        };
+
+        ll n = m / a;
+        auto [p1, p2] = calc(n * a);
+        if (p1 != -1) {
+            prt(a, p1, p2);
+            return;
+        }
+
+        auto [p3, p4] = calc((n + 1) * a);
+        if (p3 != -1) {
+            prt(a, p3, p4);
+            return;
+        }
+
+        auto [p5, p6] = calc((n - 1) * a);
+        if (p5 != -1) {
+            prt(a, p5, p6);
+            return;
         }
     }
-
-    prt(ans);
+    prt(-1);
 }
 
 int main() {
