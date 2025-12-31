@@ -149,25 +149,25 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    string s;
+    rd(s);
 
-    vi mnR(m + 2, m + 1);
-
-    F(i, 1, n) {
-        int l, r;
-        rd(l, r);
-        mnR[l] = min(mnR[l], r);
-    }
-
+    ll n = s.size();
     ll ans = 0;
-    int suf = m + 1;
 
-    D(l, m, 1) {
-        suf = min(suf, mnR[l]);
-        if (suf > l) {
-            ans += (suf - l);
+    vector<ll> cnt(26, 0);
+    vector<ll> sum_idx(26, 0);
+
+    for (int k = 0; k < n; k++) {
+        int c = s[k] - 'A';
+
+        if (cnt[c] > 0) {
+            ll contribution = (ll) (k - 1) * cnt[c] - sum_idx[c];
+            ans += contribution;
         }
+
+        cnt[c]++;
+        sum_idx[c] += k;
     }
 
     prt(ans);

@@ -148,29 +148,59 @@ int Multitest = 0;
 
 void init() {}
 
+int dp[105][1505][1505];
+
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-    vi mnR(m + 2, m + 1);
+    vp a(n + 1);
+    rv(a, 1);
 
-    F(i, 1, n) {
-        int l, r;
-        rd(l, r);
-        mnR[l] = min(mnR[l], r);
+    int sum = 0;
+    F(i, 1, n) { sum += a[i].se; }
+
+    if (sum % 3) {
+        prt(-1);
+        return;
     }
 
-    ll ans = 0;
-    int suf = m + 1;
+    memset(dp, 0x3f, sizeof(dp));
 
-    D(l, m, 1) {
-        suf = min(suf, mnR[l]);
-        if (suf > l) {
-            ans += (suf - l);
+    dp[0][0][0] = 0;
+    F(i, 1, n) {
+        auto [id, b] = a[i];
+
+        int c1 = 0, c2 = 0, c3 = 0;
+
+        if (id == 1) {
+            c2 = c3 = 1;
+        } else if (id == 2) {
+            c1 = c3 = 1;
+        } else {
+            c2 = c1 = 1;
+        }
+
+        F(j, 0, 1500) {
+            F(k, 0, 1500) {
+                if (j + b <= 1500) {
+                    dp[i][j + b][k] = min(dp[i][j + b][k], dp[i - 1][j][k] + c1);
+                }
+                if (k + b <= 1500) {
+                    dp[i][j][k + b] = min(dp[i][j][k + b], dp[i - 1][j][k] + c2);
+                }
+                dp[i][j][k] = min(dp[i][j][k], dp[i - 1][j][k] + c3);
+            }
         }
     }
+    
+    if (dp[n][sum / 3][sum / 3] > n) {
+        prt(-1);
+        return;
+    }
 
-    prt(ans);
+
+    prt(dp[n][sum / 3][sum / 3]);
 }
 
 int main() {

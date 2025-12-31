@@ -149,25 +149,43 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n, c;
+    rd(n, c);
 
-    vi mnR(m + 2, m + 1);
+    vi a(n + 1);
+    rv(a, 1);
 
-    F(i, 1, n) {
-        int l, r;
-        rd(l, r);
-        mnR[l] = min(mnR[l], r);
-    }
+    int mxx = ranges::max(a);
+    vvi pos(mxx + 1);
+    F(i, 1, n) { pos[a[i]].pb(i); }
 
-    ll ans = 0;
-    int suf = m + 1;
+    vi pref(n + 1);
+    F(i, 1, n) { pref[i] = pref[i - 1] + (a[i] == c); }
 
-    D(l, m, 1) {
-        suf = min(suf, mnR[l]);
-        if (suf > l) {
-            ans += (suf - l);
+    int ans = pref[n];
+
+    for (auto &v: pos) {
+        if (v.empty() || a[v[0]] == c)
+            continue;
+
+        int last = 0;
+        int mx = -inf;
+        int cur = 0;
+
+        for (int p: v) {
+            int cost = pref[p] - pref[last];
+
+            cur -= cost;
+
+            if (cur < 0)
+                cur = 0;
+
+            cur++;
+            mx = max(mx, cur);
+            last = p;
         }
+
+        ans = max(ans, pref[n] + mx);
     }
 
     prt(ans);

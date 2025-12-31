@@ -148,29 +148,88 @@ int Multitest = 0;
 
 void init() {}
 
+struct Edge {
+    int u, v;
+    ll w;
+};
+
+struct Q {
+    int op, u, v;
+};
+
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n, m, q;
+    rd(n, m, q);
 
-    vi mnR(m + 2, m + 1);
+    vector<Edge> edges(m + 1);
+    F(i, 1, m) { rd(edges[i].u, edges[i].v, edges[i].w); }
 
-    F(i, 1, n) {
-        int l, r;
-        rd(l, r);
-        mnR[l] = min(mnR[l], r);
-    }
+    vector<Q> qs(q + 1);
+    vi is_del(m + 1, 0);
 
-    ll ans = 0;
-    int suf = m + 1;
-
-    D(l, m, 1) {
-        suf = min(suf, mnR[l]);
-        if (suf > l) {
-            ans += (suf - l);
+    F(i, 1, q) {
+        int op;
+        rd(op);
+        qs[i].op = op;
+        if (op == 1) {
+            int idx;
+            rd(idx);
+            qs[i].u = idx;
+            is_del[idx] = 1;
+        } else {
+            rd(qs[i].u, qs[i].v);
         }
     }
 
-    prt(ans);
+    vvl dis(n + 1, vl(n + 1, INF));
+    F(i, 1, n) dis[i][i] = 0;
+
+    F(i, 1, m) {
+        if (!is_del[i]) {
+            int u = edges[i].u, v = edges[i].v;
+            ll w = edges[i].w;
+            dis[u][v] = min(dis[u][v], w);
+            dis[v][u] = min(dis[v][u], w);
+        }
+    }
+
+    F(k, 1, n) {
+        F(i, 1, n) {
+            F(j, 1, n) { dis[i][j] = min(dis[i][j], dis[i][k] + dis[k][j]); }
+        }
+    }
+
+    vl ans;
+
+    D(i, q, 1) {
+        if (qs[i].op == 1) {
+            int idx = qs[i].u;
+            int u = edges[idx].u;
+            int v = edges[idx].v;
+            ll w = edges[idx].w;
+
+            dis[u][v] = min(dis[u][v], w);
+            dis[v][u] = min(dis[v][u], w);
+
+            F(x, 1, n) {
+                F(y, 1, n) {
+                    ll d1 = dis[x][u] + w + dis[v][y];
+                    ll d2 = dis[x][v] + w + dis[u][y];
+                    dis[x][y] = min(dis[x][y], min(d1, d2));
+                }
+            }
+        } else {
+            int u = qs[i].u, v = qs[i].v;
+            if (dis[u][v] >= INF)
+                ans.pb(-1);
+            else
+                ans.pb(dis[u][v]);
+        }
+    }
+
+    reverse(all(ans));
+    for (auto v: ans)
+        prt(v);
 }
 
 int main() {

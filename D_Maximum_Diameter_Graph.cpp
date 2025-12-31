@@ -149,28 +149,57 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
+    vi a(n);
+    rv(a);
 
-    vi mnR(m + 2, m + 1);
+    int sum = accumulate(all(a), 0);
 
-    F(i, 1, n) {
-        int l, r;
-        rd(l, r);
-        mnR[l] = min(mnR[l], r);
+    if (sum < 2 * n - 2) {
+        prt("NO");
+        return;
     }
 
-    ll ans = 0;
-    int suf = m + 1;
+    vp b(n);
+    F(i, 0, n - 1) { b[i] = {a[i], i + 1}; }
+    ranges::sort(b);
 
-    D(l, m, 1) {
-        suf = min(suf, mnR[l]);
-        if (suf > l) {
-            ans += (suf - l);
+    int c1 = 0;
+    while (c1 < n && b[c1].fi == 1)
+        c1++;
+
+    int ans = n - 1;
+    if (c1 > 0)
+        ans = (n - c1) + min(c1, 2) - 1;
+
+    prt("YES", ans);
+    prt(n - 1);
+
+    for (int i = c1; i < n - 1; i++) {
+        prt(b[i].se, b[i + 1].se);
+        b[i].fi--;
+        b[i + 1].fi--;
+    }
+
+    if (c1 > 0) {
+        prt(b[0].se, b[c1].se);
+        b[c1].fi--;
+    }
+
+    if (c1 > 1) {
+        prt(b[1].se, b[n - 1].se);
+        b[n - 1].fi--;
+    }
+
+    int t = c1;
+    for (int i = 2; i < c1; i++) {
+        while (t < n && b[t].fi == 0) {
+            t++;
         }
+        prt(b[i].se, b[t].se);
+        b[t].fi--;
     }
-
-    prt(ans);
 }
 
 int main() {
