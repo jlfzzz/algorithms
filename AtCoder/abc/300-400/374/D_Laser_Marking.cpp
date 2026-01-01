@@ -5,10 +5,14 @@ using ll = long long;
 #define db long double
 #define pb emplace_back
 #define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
 #define all(x) (x).begin(), (x).end()
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
+#define us unsigned
 #define vi vector<int>
 #define vp vector<pii>
 #define vl vector<long long>
@@ -19,11 +23,12 @@ using pii = pair<ll, ll>;
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
 #define fi first
+#define se second
 constexpr int MOD2 = int(1e9 + 7);
 constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
-#define L(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
     template<typename A, typename B>
@@ -137,143 +142,68 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e5 + 5;
-
-struct Node {
-    ll val = INF;
-};
-
-class PST {
-private:
-    int n, ts;
-    std::vector<int> lc, rc;
-    std::vector<Node> tree;
-
-    void newnode(int pre, int cur) {
-        lc[cur] = lc[pre];
-        rc[cur] = rc[pre];
-        tree[cur] = tree[pre];
-    }
-
-    Node merge(const Node &left, const Node &right) { return Node{min(left.val, right.val)}; }
-
-    int _build(int l, int r) {
-        int cur = ++ts;
-        tree[cur] = Node{INF};
-        if (l == r) {
-            return cur;
-        }
-        int m = (l + r) / 2;
-        lc[cur] = _build(l, m);
-        rc[cur] = _build(m + 1, r);
-        tree[cur] = merge(tree[lc[cur]], tree[rc[cur]]);
-        return cur;
-    }
-
-    int _update(int pre, int l, int r, int pos, ll val) {
-        int cur = ++ts;
-        newnode(pre, cur);
-        if (l == r) {
-            tree[cur].val = val;
-            return cur;
-        }
-        int m = (l + r) / 2;
-        if (pos <= m)
-            lc[cur] = _update(lc[pre], l, m, pos, val);
-        else
-            rc[cur] = _update(rc[pre], m + 1, r, pos, val);
-
-        tree[cur] = merge(tree[lc[cur]], tree[rc[cur]]);
-        return cur;
-    }
-
-    ll _query(int cur, int l, int r, int ql, int qr) {
-        if (ql > r || qr < l)
-            return INF;
-        if (ql <= l && r <= qr)
-            return tree[cur].val;
-        int m = (l + r) / 2;
-        return min(_query(lc[cur], l, m, ql, qr), _query(rc[cur], m + 1, r, ql, qr));
-    }
-
-public:
-    PST(int n) : n(n), ts(0), lc(40 * n + 5), rc(40 * n + 5), tree(40 * n + 5) {}
-
-    int build() { return _build(1, n); }
-
-    int update(int pre_version, int pos, ll val) { return _update(pre_version, 1, n, pos, val); }
-
-    ll query(int cur_version, int l, int r) { return _query(cur_version, 1, n, l, r); }
-};
+constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
-vi g[N];
-int tin[N], tout[N], dep[N];
-int ts;
-ll a[N];
-vi depth[N];
-int roots[N];
-
-void dfs(int u, int p, int d) {
-    tin[u] = ++ts;
-    dep[u] = d;
-    depth[d].push_back(u);
-    for (int v: g[u]) {
-        if (v != p) {
-            dfs(v, u, d + 1);
-        }
-    }
-    tout[u] = ts;
-}
 
 void init() {}
 
-void solve() {
-    int n, r;
-    rd(n, r);
-    L(i, 1, n) rd(a[i]);
-
-    ts = 0;
-    L(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
-
-    dfs(r, 0, 1);
-    int mxD = 0;
-    L(i, 1, n) mxD = max(mxD, dep[i]);
-
-    PST pst(n);
-    roots[0] = pst.build();
-
-    L(d, 1, mxD) {
-        int t = roots[d - 1];
-        for (int u: depth[d]) {
-            t = pst.update(t, tin[u], a[u]);
-        }
-        roots[d] = t;
-    }
-
-    int m;
-    rd(m);
-    int last = 0;
-    while (m--) {
-        int p, q;
-        rd(p, q);
-        int x = (p + last) % n + 1;
-        int k = (q + last) % n;
-
-        int mx = min(mxD, dep[x] + k);
-
-        ll ans = pst.query(roots[mx], tin[x], tout[x]);
-
-        prt(ans);
-        last = ans % n;
-    }
+long double get_dist(long double x1, long double y1, long double x2, long double y2) {
+    return sqrtl((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
 
+void solve() {
+    int n;
+    long double s, t;
+    rd(n, s, t);
+
+    vector<pair<pii, pii>> a(n);
+    F(i, 0, n - 1) {
+        int aa, b, c, d;
+        rd(aa, b, c, d);
+        a[i] = {{aa, b}, {c, d}};
+    }
+
+    long double ans = 1e18;
+    vi vis(n, 0);
+
+    auto dfs = [&](this auto &&dfs, int cnt, long double time_sum, long double cur_x, long double cur_y) -> void {
+        if (time_sum >= ans)
+            return;
+
+        if (cnt == n) {
+            ans = min(ans, time_sum);
+            return;
+        }
+
+        F(j, 0, n - 1) {
+            if (!vis[j]) {
+                vis[j] = 1;
+
+                auto [p1, p2] = a[j];
+                long double x1 = p1.fi, y1 = p1.se;
+                long double x2 = p2.fi, y2 = p2.se;
+
+                long double len = get_dist(x1, y1, x2, y2);
+                long double print_time = len / t;
+
+                long double move_dist1 = get_dist(cur_x, cur_y, x1, y1);
+                long double move_time1 = move_dist1 / s;
+                dfs(cnt + 1, time_sum + move_time1 + print_time, x2, y2);
+
+                long double move_dist2 = get_dist(cur_x, cur_y, x2, y2);
+                long double move_time2 = move_dist2 / s;
+                dfs(cnt + 1, time_sum + move_time2 + print_time, x1, y1);
+
+                vis[j] = 0;
+            }
+        }
+    };
+
+    dfs(0, 0.0, 0.0, 0.0);
+
+    cout << fixed << setprecision(20) << ans << endl;
+}
 
 int main() {
     ios::sync_with_stdio(false);

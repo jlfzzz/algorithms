@@ -2,13 +2,13 @@
 using namespace std;
 using ll = long long;
 
-class UnionFind {
+class DSU {
 public:
 	vector<int> parent;
 	vector<int> rank;
 	int count;
 
-	explicit UnionFind(const int n) : count(n) {
+	explicit DSU(const int n) : count(n) {
 		parent.resize(n);
 		rank.resize(n);
 		ranges::fill(rank, 1);
@@ -44,14 +44,14 @@ public:
 };
 
 // 带权
-class WeightedUnionFind {
+class WeightedDSU {
 public:
     std::vector<int> parent;
     std::vector<int> rank;
     std::vector<long long> weight;
     int count;
 
-    explicit WeightedUnionFind(int n) : parent(n), rank(n), weight(n), count(n) {
+    explicit WeightedDSU(int n) : parent(n), rank(n), weight(n), count(n) {
         std::ranges::fill(rank, 1);
         std::ranges::fill(weight, 0LL);
         std::iota(parent.begin(), parent.end(), 0);

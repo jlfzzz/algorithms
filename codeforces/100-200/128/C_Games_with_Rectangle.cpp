@@ -5,10 +5,14 @@ using ll = long long;
 #define db long double
 #define pb emplace_back
 #define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
 #define all(x) (x).begin(), (x).end()
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
+#define us unsigned
 #define vi vector<int>
 #define vp vector<pii>
 #define vl vector<long long>
@@ -19,6 +23,7 @@ using pii = pair<ll, ll>;
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
 #define fi first
+#define se second
 constexpr int MOD2 = int(1e9 + 7);
 constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
@@ -136,8 +141,6 @@ namespace utils {
 #endif
 
 using namespace utils;
-
-constexpr int N = 1e6 + 5;
 
 namespace atcoder {
 
@@ -687,6 +690,8 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
+constexpr int N = 1'000'005;
+
 struct Comb {
     int n;
     std::vector<Z> _fac;
@@ -747,88 +752,28 @@ struct Comb {
     }
 } comb(N);
 
-struct Sieve {
-    bool is_not_prime[N + 1]{};
-    std::vector<int> primes;
-    int min_prime_factor[N + 1]{};
-    int distinct_factors_count[N + 1]{}; // 不同质因子个数
-
-    int divisor_count[N + 1]{}; // 约数个数
-    int cnt_exp[N + 1]{}; // 最小质因子的指数
-
-    Sieve() { init(N); }
-
-    void init(int n) {
-        is_not_prime[0] = is_not_prime[1] = true;
-        min_prime_factor[0] = min_prime_factor[1] = 0;
-        distinct_factors_count[1] = 0;
-
-        divisor_count[1] = 1;
-        cnt_exp[1] = 0;
-
-        for (int i = 2; i <= n; ++i) {
-            if (!is_not_prime[i]) {
-                primes.push_back(i);
-                min_prime_factor[i] = i;
-                distinct_factors_count[i] = 1;
-
-                cnt_exp[i] = 1;
-                divisor_count[i] = 2;
-            }
-
-            for (int p: primes) {
-                long long x = 1LL * i * p;
-                if (x > n)
-                    break;
-                is_not_prime[i * p] = true;
-                min_prime_factor[i * p] = p;
-
-                if (i % p == 0) {
-                    distinct_factors_count[i * p] = distinct_factors_count[i];
-
-                    cnt_exp[i * p] = cnt_exp[i] + 1;
-                    divisor_count[i * p] = divisor_count[i] / (cnt_exp[i] + 1) * (cnt_exp[i * p] + 1);
-
-                    break;
-                } else {
-                    distinct_factors_count[i * p] = distinct_factors_count[i] + 1;
-
-                    cnt_exp[i * p] = 1;
-                    divisor_count[i * p] = divisor_count[i] * 2;
-                }
-            }
-        }
-    }
-
-    [[nodiscard]] bool is_prime(int x) const {
-        if (x <= 1 || x > N)
-            return false;
-        return !is_not_prime[x];
-    }
-} sieve;
-
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int x, y;
-    rd(x, y);
+    int n, m, k;
+    rd(n, m, k);
 
-    Z ans = 1;
-    int tmp = x;
+    Z ans = comb.C(n - 1, 2 * k) * comb.C(m - 1, 2 * k);
+    // F(i, 1, n) {
+    //     F(j, 1, m) {
+    //         if (n - i - 1 <= 0 || m - j - 1 <= 0)
+    //             continue;
 
-    while (tmp > 1) {
-        int p = sieve.min_prime_factor[tmp];
-        int e = 0;
-        while (tmp % p == 0) {
-            e++;
-            tmp /= p;
-        }
-        ans *= comb.C(e + y - 1, y - 1);
-    }
+    //         Z tot = (Z) (n - i - 1) * (m - j - 1);
 
-    ans *= Z(2).pow(y - 1);
+    //         if (i - 1 >= 2 * k - 2 && j - 1 >= 2 * k - 2) {
+    //             tot *= comb.C(i - 1, 2 * k - 2) * comb.C(j - 1, 2 * k - 2);
+    //             ans += tot;
+    //         }
+    //     }
+    // }
 
     prt(ans.val());
 }
