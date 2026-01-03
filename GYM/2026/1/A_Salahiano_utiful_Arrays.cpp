@@ -144,79 +144,94 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
-void solve() {
-    int N;
-    ll M, K;
-    rd(N, M, K);
-
-    vl A(N);
-    rv(A);
-
-    ll sum_A = 0;
-    for (auto x: A)
-        sum_A += x;
-    ll total_rem = K - sum_A;
-
-    vector<pair<ll, int>> sorted_A(N);
-    F(i, 0, N - 1) { sorted_A[i] = {A[i], i}; }
-
-    sort(all(sorted_A), [&](const pair<ll, int> &a, const pair<ll, int> &b) { return a.fi > b.fi; });
-
-    vi pos(N);
-    F(i, 0, N - 1) { pos[sorted_A[i].se] = i; }
-
-    vl pref(N + 1, 0);
-    F(i, 0, N - 1) { pref[i + 1] = pref[i] + sorted_A[i].fi; }
-
-    vl ans(N);
-
-    F(i, 0, N - 1) {
-        ll low = 0, high = total_rem;
-        ll res = -1;
-
-        int rk = pos[i];
-
-        while (low <= high) {
-            ll X = low + (high - low) / 2;
-            ll my_votes = A[i] + X;
-            ll rem_votes = total_rem - X;
-
-            int limit_idx = (rk < M) ? M : M - 1;
-            auto it = lower_bound(all(sorted_A), make_pair(my_votes, 2 * N),
-                                  [&](const pair<ll, int> &a, const pair<ll, int> &b) { return a.fi > b.fi; });
-            int split_idx = distance(sorted_A.begin(), it);
-
-            ll cost = 0;
-            int L = split_idx;
-            int R = limit_idx;
-
-            if (L <= R) {
-                ll count = R - L + 1;
-                ll sum_range = pref[R + 1] - pref[L];
-
-                if (rk >= L && rk <= R) {
-                    count--;
-                    sum_range -= sorted_A[rk].fi;
-                }
-
-                cost = count * (my_votes + 1) - sum_range;
-            }
-
-            if (cost > rem_votes) {
-                res = X;
-                high = X - 1;
-            } else {
-                low = X + 1;
-            }
-        }
-        ans[i] = res;
+struct DSU {
+    vi fa, sz, cost;
+    DSU(int n) {
+        fa.resize(n + 1);
+        iota(all(fa), 0);
+        sz.assign(n + 1, 1);
+        cost.assign(n + 1, 0);
     }
 
-    prv(ans);
+    int find(int x) { return fa[x] == x ? x : fa[x] = find(fa[x]); }
+
+    bool merge(int x, int y) {
+        int fx = find(x), fy = find(y);
+        if (fx == fy)
+            return false;
+        fa[fx] = fy;
+        sz[fy] += sz[fx];
+        cost[fy] += cost[fx];
+        return true;
+    }
+};
+
+void solve() {
+    int n;
+    rd(n);
+
+    DSU dsu(2 * n);
+    F(i, n + 1, 2 * n) { dsu.cost[i] = 1; }
+
+    vi a(n + 1), b(n + 1);
+    vvi pos(2 * n + 1);
+
+    F(i, 1, n) {
+        rd(a[i], b[i]);
+        pos[a[i]].pb(i);
+        pos[b[i]].pb(i);
+    }
+
+    F(val, 1, 2 * n) {
+        if (SZ(pos[val]) > 2) {
+            prt(-1);
+            return;
+        }
+        if (SZ(pos[val]) < 2)
+            continue;
+
+        int u = pos[val][0];
+        int v = pos[val][1];
+
+        if (u == v)
+            continue;
+
+        bool f1 = (a[u] == val);
+        bool f2 = (a[v] == val);
+
+        if (f1 == f2) {
+            dsu.merge(u, v + n);
+            dsu.merge(u + n, v);
+        } else {
+            dsu.merge(u, v);
+            dsu.merge(u + n, v + n);
+        }
+    }
+
+    int ans = 0;
+    vi vis(2 * n + 1);
+
+    F(i, 1, n) {
+        int root0 = dsu.find(i);
+        int root1 = dsu.find(i + n);
+
+        if (root0 == root1) {
+            prt(-1);
+            return;
+        }
+
+        if (!vis[root0] && !vis[root1]) {
+            vis[root0] = true;
+            vis[root1] = true;
+            ans += min(dsu.cost[root0], dsu.cost[root1]);
+        }
+    }
+
+    prt(ans);
 }
 
 int main() {

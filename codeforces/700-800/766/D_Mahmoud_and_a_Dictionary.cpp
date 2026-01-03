@@ -148,52 +148,136 @@ int Multitest = 0;
 
 void init() {}
 
+struct DSU {
+    vi p;
+    vi bad;
+
+    DSU(int n) {
+        p.resize(n + 1);
+        iota(all(p), 0);
+        bad.assign(n + 1, 0);
+    }
+
+    int find(int x) {
+        if (p[x] == x)
+            return x;
+        return p[x] = find(p[x]);
+    }
+
+    void unite(int x, int y) {
+        int rx = find(x), ry = find(y);
+        if (rx != ry)
+            p[rx] = ry;
+    }
+
+    void unite1(int u, int v) {
+        int ru = find(u);
+        int badu = bad[ru];
+
+        int rv = find(v);
+        int badv = bad[rv];
+
+        if (badu == rv || badv == ru) {
+            prt("NO");
+            return;
+        }
+
+        prt("YES");
+
+        unite(ru, rv);
+
+        if (badu != 0 && badv != 0) {
+            unite(badu, badv);
+        }
+
+        int nroot = find(ru);
+        int nbad = 0;
+        if (badu != 0)
+            nbad = find(badu);
+        else if (badv != 0)
+            nbad = find(badv);
+
+        bad[nroot] = nbad;
+        if (nbad != 0)
+            bad[nbad] = nroot;
+    }
+
+    void unite2(int u, int v) {
+        int ru = find(u);
+        int badu = bad[ru];
+
+        int rv = find(v);
+        int badv = bad[rv];
+
+        if (ru == rv) {
+            prt("NO");
+            return;
+        }
+
+        prt("YES");
+
+        if (badv != 0) {
+            unite(ru, badv);
+        }
+
+        if (badu != 0) {
+            unite(rv, badu);
+        }
+
+        int ruu = find(u);
+        int rvv = find(v);
+
+        bad[ruu] = rvv;
+        bad[rvv] = ruu;
+    }
+
+    int query(int u, int v) {
+        int ru = find(u);
+        int rv = find(v);
+
+        if (ru == rv)
+            return 1;
+        if (bad[ru] == rv)
+            return 2;
+        return 3;
+    }
+};
+
 void solve() {
-    int n, limit_w;
-    rd(n, limit_w);
+    int n, m, q;
+    rd(n, m, q);
 
-    vvl buckets(limit_w + 1);
+    vector<string> s(n);
+    map<string, int> mp;
 
-    F(i, 1, n) {
-        int w;
-        ll v;
-        rd(w, v);
-        buckets[w].pb(v);
+    F(i, 0, n - 1) {
+        rd(s[i]);
+        mp[s[i]] = i + 1;
     }
 
-    vl dp(limit_w + 1, 0);
+    DSU dsu(n);
 
-    F(w, 1, limit_w) {
-        if (buckets[w].empty())
-            continue;
+    F(i, 1, m) {
+        int t;
+        string w1, w2;
+        rd(t, w1, w2);
+        int u = mp[w1];
+        int v = mp[w2];
 
-        prq<ll> pq;
-        for (auto v: buckets[w]) {
-            pq.push(v - 1);
-        }
-
-        int count_limit = limit_w / w;
-
-        F(k, 1, count_limit) {
-            if (pq.empty())
-                break;
-
-            ll gain = pq.top();
-            pq.pop();
-
-            if (gain < 0)
-                break;
-
-            D(j, limit_w, w) { dp[j] = max(dp[j], dp[j - w] + gain); }
-
-            pq.push(gain - 2);
+        if (t == 1) {
+            dsu.unite1(u, v);
+        } else {
+            dsu.unite2(u, v);
         }
     }
 
-    ll ans = 0;
-    F(j, 0, limit_w) ans = max(ans, dp[j]);
-
-    prt(ans);
+    F(i, 1, q) {
+        string w1, w2;
+        rd(w1, w2);
+        int u = mp[w1];
+        int v = mp[w2];
+        prt(dsu.query(u, v));
+    }
 }
 
 int main() {
