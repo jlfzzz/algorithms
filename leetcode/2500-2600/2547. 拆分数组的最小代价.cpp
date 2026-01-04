@@ -39,6 +39,38 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+class Solution {
+public:
+    int minCost(vector<int> &nums, int k) {
+        int n = SZ(nums);
+        vl dp(n + 1, INF);
+        dp[0] = 0;
+
+        F(i, 1, n) {
+            vi cnt(n, 0);
+            int tot = 0;
+
+            D(j, i - 1, 0) {
+                int val = nums[j];
+                cnt[val]++;
+
+                if (cnt[val] == 1) {
+                    tot++;
+                } else if (cnt[val] == 2) {
+                    tot--;
+                }
+
+                int len = i - j;
+                int contrib = len - tot;
+
+                dp[i] = min(dp[i], dp[j] + k + contrib);
+            }
+        }
+
+        return dp[n];
+    }
+};
+
 
 // int main() {
 //     ios::sync_with_stdio(false);

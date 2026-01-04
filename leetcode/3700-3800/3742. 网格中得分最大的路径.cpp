@@ -39,9 +39,43 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+class Solution {
+public:
+    int maxPathScore(vector<vector<int>> &grid, int k) {
+        int m = grid.size();
+        int n = grid[0].size();
 
-// int main() {
-//     ios::sync_with_stdio(false);
-//     cin.tie(nullptr);
-//     Solution sol;
-// }
+        int mx = min(m + n + 10, k);
+        vector dp(m, vector(n, vector(mx + 1, -1)));
+        int t1 = grid[0][0];
+        if (t1 > k) {
+            return -1;
+        }
+        dp[0][0][t1] = t1;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (i == 0 && j == 0) {
+                    continue;
+                }
+                int cur = grid[i][j];
+                int cost = 0;
+                if (grid[i][j] > 0) {
+                    cost = 1;
+                }
+                for (int l = 0; l + cost <= mx; l++) {
+                    if (i > 0 && dp[i - 1][j][l] != -1) {
+                        dp[i][j][l + cost] = max(dp[i][j][l + cost], dp[i - 1][j][l] + cur);
+                    }
+
+                    // cerr << j << endl;
+                    if (j > 0 && dp[i][j - 1][l] != -1) {
+                        dp[i][j][l + cost] = max(dp[i][j][l + cost], dp[i][j - 1][l] + cur);
+                    }
+                }
+            }
+        }
+
+        int ans = ranges::max(dp[m - 1][n - 1]);
+        return ans;
+    }
+};
