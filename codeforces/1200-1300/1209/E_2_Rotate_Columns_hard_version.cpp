@@ -144,98 +144,57 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, d;
-    rd(n, d);
+    int n, m;
+    rd(n, m);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vvi grid(n, vi(m));
+    F(i, 0, n - 1) { rv(grid[i]); }
+
+    vp cols(m);
+    F(j, 0, m - 1) {
+        int mx = 0;
+        F(i, 0, n - 1) { mx = max(mx, grid[i][j]); }
+        cols[j] = {mx, j};
     }
 
-    vi val1(n + 1), val2(n + 1);
-    int m1;
-    rd(m1);
-    F(i, 1, m1) {
-        int t;
-        rd(t);
-        val1[t] = 1;
-    }
+    sort(all(cols), greater<>());
+    int k = min(n, m);
 
-    int m2;
-    rd(m2);
-    F(i, 1, m2) {
-        int t;
-        rd(t);
-        val2[t] = 1;
-    }
+    int u = 1 << n;
+    vi dp(u);
 
-    struct S {
-        int sz1, sz2, d1, d2;
-    };
+    F(i, 0, k - 1) {
+        int idx = cols[i].se;
 
-    int ans1 = 0, ans2 = 0;
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> S {
-        int c1 = val1[u];
-        int c2 = val2[u];
+        vi g(u, 0);
 
-        S nxt;
-        nxt.sz1 = c1;
-        nxt.sz2 = c2;
-        nxt.d1 = nxt.d2 = -inf;
-
-        if (c1) {
-            nxt.d1 = 0;
-        }
-        if (c2) {
-            nxt.d2 = 0;
-        }
-
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            auto [sz1, sz2, d1, d2] = dfs(v, u);
-
-            //  dbg(sz1, sz2, d1, d2, u);
-
-            if (sz1 > 0) {
-                ans1++;
-            } else {
-                if (d2 + 1 > d) {
-                    ans1++;
+        F(shift, 0, n - 1) {
+            F(mask, 0, u - 1) {
+                int cur = 0;
+                F(row, 0, n - 1) {
+                    if (mask >> row & 1) {
+                        cur += grid[(row + shift) % n][idx];
+                    }
                 }
+                g[mask] = max(g[mask], cur);
             }
-
-            if (sz2 > 0) {
-                ans2++;
-            } else {
-                if (d1 + 1 > d) {
-                    ans2++;
-                }
-            }
-
-            nxt.sz1 += sz1;
-            nxt.sz2 += sz2;
-            nxt.d1 = max(nxt.d1, d1 + 1);
-            nxt.d2 = max(nxt.d2, d2 + 1);
         }
 
-        return nxt;
-    };
-    dfs(1, 0);
+        auto ndp = dp;
+        F(mask, 0, u - 1) {
+            for (int sub = mask; sub > 0; sub = (sub - 1) & mask) {
+                ndp[mask] = max(ndp[mask], dp[mask ^ sub] + g[sub]);
+            }
+        }
+        dp = ndp;
+    }
 
-    // dbg(ans1, ans2);
-
-    prt(ans1 + ans1 + ans2 + ans2);
+    prt(dp[u - 1]);
 }
 
 int main() {

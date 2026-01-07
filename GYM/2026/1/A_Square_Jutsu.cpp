@@ -149,93 +149,66 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, d;
-    rd(n, d);
+    int n, q;
+    rd(n, q);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    vvi grid(n + 1, vi(n + 1));
+    F(i, 1, n) {
+        rv(grid[i], 1);
+        grid[i][0] = -1;
     }
 
-    vi val1(n + 1), val2(n + 1);
-    int m1;
-    rd(m1);
-    F(i, 1, m1) {
-        int t;
-        rd(t);
-        val1[t] = 1;
-    }
+    while (q--) {
+        int a, b;
+        rd(a, b);
 
-    int m2;
-    rd(m2);
-    F(i, 1, m2) {
-        int t;
-        rd(t);
-        val2[t] = 1;
-    }
+        dbg(a, b);
 
-    struct S {
-        int sz1, sz2, d1, d2;
-    };
+        int ans = 0;
+        vp bounds(n + 1);
+        F(i, 1, n) {
+            auto &v = grid[i];
 
-    int ans1 = 0, ans2 = 0;
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> S {
-        int c1 = val1[u];
-        int c2 = val2[u];
-
-        S nxt;
-        nxt.sz1 = c1;
-        nxt.sz2 = c2;
-        nxt.d1 = nxt.d2 = -inf;
-
-        if (c1) {
-            nxt.d1 = 0;
-        }
-        if (c2) {
-            nxt.d2 = 0;
+            int l = ranges::lower_bound(v, a) - v.begin();
+            int r = ranges::upper_bound(v, b) - v.begin() - 1;
+            bounds[i] = {l, r};
         }
 
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
+        int lo = 0;
+        int hi = n + 1;
 
-            auto [sz1, sz2, d1, d2] = dfs(v, u);
+        dbg(bounds);
 
-            //  dbg(sz1, sz2, d1, d2, u);
+        while (lo < hi) {
+            int mid = (lo + hi) / 2;
 
-            if (sz1 > 0) {
-                ans1++;
-            } else {
-                if (d2 + 1 > d) {
-                    ans1++;
+            auto check = [&]() {
+                F(i, 1, n) {
+                    if (i + mid - 1 > n) {
+                        break;
+                    }
+
+                    auto [l, r] = bounds[i];
+                    auto [l2, r2] = bounds[i + mid - 1];
+
+                    if (l + mid - 1 <= r2) {
+                        return true;
+                    }
                 }
-            }
 
-            if (sz2 > 0) {
-                ans2++;
+                return false;
+            };
+
+            if (check()) {
+                ans = mid;
+                lo = mid + 1;
             } else {
-                if (d1 + 1 > d) {
-                    ans2++;
-                }
+                hi = mid;
             }
-
-            nxt.sz1 += sz1;
-            nxt.sz2 += sz2;
-            nxt.d1 = max(nxt.d1, d1 + 1);
-            nxt.d2 = max(nxt.d2, d2 + 1);
         }
 
-        return nxt;
-    };
-    dfs(1, 0);
-
-    // dbg(ans1, ans2);
-
-    prt(ans1 + ans1 + ans2 + ans2);
+        prt(ans * ans);
+    }
 }
 
 int main() {

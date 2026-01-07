@@ -146,96 +146,67 @@ constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
 
+class DSU {
+public:
+    vector<int> parent;
+    vector<int> rank;
+    int count;
+
+    explicit DSU(const int n) : count(n) {
+        parent.resize(n);
+        rank.resize(n);
+        ranges::fill(rank, 1);
+        iota(parent.begin(), parent.end(), 0);
+    }
+
+    int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
+        }
+        return parent[x];
+    }
+
+    bool unite(int x, int y) {
+        int root_x = find(x);
+        int root_y = find(y);
+
+        if (root_x == root_y) {
+            return false;
+        }
+
+        if (rank[root_x] == rank[root_y]) {
+            parent[root_x] = root_y;
+            rank[root_y] += 1;
+        } else if (rank[root_x] > rank[root_y]) {
+            parent[root_y] = root_x;
+        } else {
+            parent[root_x] = root_y;
+        }
+        count--;
+        return true;
+    }
+};
+
 void init() {}
 
 void solve() {
-    int n, d;
-    rd(n, d);
+    int n, k;
+    rd(n, k);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
+    DSU dsu(n + 1);
+
+    int ans = 0;
+
+    F(i, 1, k) {
         int u, v;
         rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+
+        if (!dsu.unite(u, v)) {
+            ans++;
+        }
     }
 
-    vi val1(n + 1), val2(n + 1);
-    int m1;
-    rd(m1);
-    F(i, 1, m1) {
-        int t;
-        rd(t);
-        val1[t] = 1;
-    }
-
-    int m2;
-    rd(m2);
-    F(i, 1, m2) {
-        int t;
-        rd(t);
-        val2[t] = 1;
-    }
-
-    struct S {
-        int sz1, sz2, d1, d2;
-    };
-
-    int ans1 = 0, ans2 = 0;
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> S {
-        int c1 = val1[u];
-        int c2 = val2[u];
-
-        S nxt;
-        nxt.sz1 = c1;
-        nxt.sz2 = c2;
-        nxt.d1 = nxt.d2 = -inf;
-
-        if (c1) {
-            nxt.d1 = 0;
-        }
-        if (c2) {
-            nxt.d2 = 0;
-        }
-
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            auto [sz1, sz2, d1, d2] = dfs(v, u);
-
-            //  dbg(sz1, sz2, d1, d2, u);
-
-            if (sz1 > 0) {
-                ans1++;
-            } else {
-                if (d2 + 1 > d) {
-                    ans1++;
-                }
-            }
-
-            if (sz2 > 0) {
-                ans2++;
-            } else {
-                if (d1 + 1 > d) {
-                    ans2++;
-                }
-            }
-
-            nxt.sz1 += sz1;
-            nxt.sz2 += sz2;
-            nxt.d1 = max(nxt.d1, d1 + 1);
-            nxt.d2 = max(nxt.d2, d2 + 1);
-        }
-
-        return nxt;
-    };
-    dfs(1, 0);
-
-    // dbg(ans1, ans2);
-
-    prt(ans1 + ans1 + ans2 + ans2);
+    prt(ans);
 }
 
 int main() {

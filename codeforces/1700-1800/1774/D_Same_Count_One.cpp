@@ -144,98 +144,90 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, d;
-    rd(n, d);
+    int n, m;
+    rd(n, m);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
-
-    vi val1(n + 1), val2(n + 1);
-    int m1;
-    rd(m1);
-    F(i, 1, m1) {
-        int t;
-        rd(t);
-        val1[t] = 1;
-    }
-
-    int m2;
-    rd(m2);
-    F(i, 1, m2) {
-        int t;
-        rd(t);
-        val2[t] = 1;
-    }
-
-    struct S {
-        int sz1, sz2, d1, d2;
-    };
-
-    int ans1 = 0, ans2 = 0;
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> S {
-        int c1 = val1[u];
-        int c2 = val2[u];
-
-        S nxt;
-        nxt.sz1 = c1;
-        nxt.sz2 = c2;
-        nxt.d1 = nxt.d2 = -inf;
-
-        if (c1) {
-            nxt.d1 = 0;
+    int c0 = 0;
+    vvi grid(n, vi(m));
+    F(i, 0, n - 1) {
+        rv(grid[i]);
+        for (int x: grid[i]) {
+            c0 += x;
         }
-        if (c2) {
-            nxt.d2 = 0;
+    }
+
+    if (c0 % n) {
+        prt(-1);
+        return;
+    }
+
+    int T = c0 / n;
+
+    dbg(T);
+    vi sum(n);
+    vector<deque<int>> dq1(m), dq0(m);
+    F(i, 0, n - 1) {
+        int cnt = 0;
+        for (int x: grid[i]) {
+            cnt += x;
         }
 
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
+        sum[i] = cnt - T;
+        if (cnt == T) {
+            sum[i] = 0;
+            continue;
+        }
 
-            auto [sz1, sz2, d1, d2] = dfs(v, u);
-
-            //  dbg(sz1, sz2, d1, d2, u);
-
-            if (sz1 > 0) {
-                ans1++;
-            } else {
-                if (d2 + 1 > d) {
-                    ans1++;
+        if (cnt < T) {
+            F(j, 0, m - 1) {
+                if (grid[i][j] == 0) {
+                    dq0[j].pb(i);
                 }
             }
-
-            if (sz2 > 0) {
-                ans2++;
-            } else {
-                if (d1 + 1 > d) {
-                    ans2++;
+        } else {
+            F(j, 0, m - 1) {
+                if (grid[i][j] == 1) {
+                    dq1[j].pb(i);
                 }
             }
-
-            nxt.sz1 += sz1;
-            nxt.sz2 += sz2;
-            nxt.d1 = max(nxt.d1, d1 + 1);
-            nxt.d2 = max(nxt.d2, d2 + 1);
         }
+    }
 
-        return nxt;
-    };
-    dfs(1, 0);
+    vector<tuple<int, int, int>> ans;
+    F(i, 0, n - 1) {
+        if (sum[i] > 0) {
+            F(j, 0, m - 1) {
+                if (sum[i] == 0)
+                    break;
 
-    // dbg(ans1, ans2);
+                if (grid[i][j] == 1) {
+                    while (!dq0[j].empty() && sum[dq0[j].front()] == 0) {
+                        dq0[j].pop_front();
+                    }
 
-    prt(ans1 + ans1 + ans2 + ans2);
+                    if (dq0[j].empty())
+                        continue;
+
+                    int k = dq0[j].front();
+                    dq0[j].pop_front();
+
+                    sum[i]--;
+                    sum[k]++;
+                    ans.pb(i, k, j);
+                }
+            }
+        }
+    }
+
+    prt(SZ(ans));
+    for (auto [x, y, z]: ans) {
+        prt(x + 1, y + 1, z + 1);
+    }
 }
 
 int main() {

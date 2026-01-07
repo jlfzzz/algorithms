@@ -144,98 +144,101 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, d;
-    rd(n, d);
+    int n;
+    rd(n);
 
-    vvi g(n + 1);
+    vvp g(n + 1);
     F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+        ll u, v, w;
+        rd(u, v, w);
+        g[u].pb(v, w);
+        g[v].pb(u, w);
     }
 
-    vi val1(n + 1), val2(n + 1);
-    int m1;
-    rd(m1);
-    F(i, 1, m1) {
-        int t;
-        rd(t);
-        val1[t] = 1;
-    }
+    vl mx1(n + 1), mx2(n + 1), mx3(n + 1), sons(n + 1);
 
-    int m2;
-    rd(m2);
-    F(i, 1, m2) {
-        int t;
-        rd(t);
-        val2[t] = 1;
-    }
-
-    struct S {
-        int sz1, sz2, d1, d2;
-    };
-
-    int ans1 = 0, ans2 = 0;
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> S {
-        int c1 = val1[u];
-        int c2 = val2[u];
-
-        S nxt;
-        nxt.sz1 = c1;
-        nxt.sz2 = c2;
-        nxt.d1 = nxt.d2 = -inf;
-
-        if (c1) {
-            nxt.d1 = 0;
-        }
-        if (c2) {
-            nxt.d2 = 0;
-        }
-
-        for (int v: g[u]) {
+    auto dfs1 = [&](this auto &&dfs, int u, int fa) -> void {
+        for (auto [v, w]: g[u]) {
             if (v == fa) {
                 continue;
             }
 
-            auto [sz1, sz2, d1, d2] = dfs(v, u);
+            dfs(v, u);
 
-            //  dbg(sz1, sz2, d1, d2, u);
-
-            if (sz1 > 0) {
-                ans1++;
-            } else {
-                if (d2 + 1 > d) {
-                    ans1++;
-                }
+            ll len = w + mx1[v];
+            if (len > mx1[u]) {
+                mx3[u] = mx2[u];
+                mx2[u] = mx1[u];
+                mx1[u] = len;
+            } else if (len > mx2[u]) {
+                mx3[u] = mx2[u];
+                mx2[u] = len;
+            } else if (len > mx3[u]) {
+                mx3[u] = len;
             }
 
-            if (sz2 > 0) {
-                ans2++;
-            } else {
-                if (d1 + 1 > d) {
-                    ans2++;
-                }
+            sons[u] = max(sons[u], sons[v]);
+        }
+        sons[u] = max(sons[u], mx1[u] + mx2[u]);
+    };
+
+    ll ans = 0;
+    auto dfs2 = [&](this auto &&dfs, int u, int fa, ll best, ll up) -> void {
+        ans = max(ans, min(sons[u], best));
+
+        ll best1 = -inf, best2 = -inf;
+        for (auto [v, w]: g[u]) {
+            if (v == fa) {
+                continue;
             }
 
-            nxt.sz1 += sz1;
-            nxt.sz2 += sz2;
-            nxt.d1 = max(nxt.d1, d1 + 1);
-            nxt.d2 = max(nxt.d2, d2 + 1);
+            ll t = sons[v];
+            if (t > best1) {
+                best2 = best1;
+                best1 = t;
+            } else if (t > best2) {
+                best2 = t;
+            }
         }
 
-        return nxt;
+        for (auto [v, w]: g[u]) {
+            if (v == fa) {
+                continue;
+            }
+
+            ll other = mx1[u];
+            if (mx1[v] + w == mx1[u]) {
+                other = mx2[u];
+            }
+
+            ll other2 = best1;
+            if (sons[v] == best1) {
+                other2 = best2;
+            }
+
+            ll other3;
+            if (mx1[v] + w == mx1[u]) {
+                other3 = mx2[u] + mx3[u];
+            } else if (mx1[v] + w == mx2[u]) {
+                other3 = mx1[u] + mx3[u];
+            } else {
+                other3 = mx1[u] + mx2[u];
+            }
+
+            ll nbest = max({best, up + other, other2, other3});
+
+            dfs(v, u, nbest, max(other, up) + w);
+        }
     };
-    dfs(1, 0);
+    dfs1(1, 0);
+    dfs2(1, 0, 0, 0);
 
-    // dbg(ans1, ans2);
-
-    prt(ans1 + ans1 + ans2 + ans2);
+    prt(ans);
 }
 
 int main() {

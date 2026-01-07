@@ -149,93 +149,48 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, d;
-    rd(n, d);
+    string s, t;
+    rd(s, t);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    int n = SZ(s);
 
-    vi val1(n + 1), val2(n + 1);
-    int m1;
-    rd(m1);
-    F(i, 1, m1) {
-        int t;
-        rd(t);
-        val1[t] = 1;
-    }
-
-    int m2;
-    rd(m2);
-    F(i, 1, m2) {
-        int t;
-        rd(t);
-        val2[t] = 1;
-    }
-
-    struct S {
-        int sz1, sz2, d1, d2;
-    };
-
-    int ans1 = 0, ans2 = 0;
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> S {
-        int c1 = val1[u];
-        int c2 = val2[u];
-
-        S nxt;
-        nxt.sz1 = c1;
-        nxt.sz2 = c2;
-        nxt.d1 = nxt.d2 = -inf;
-
-        if (c1) {
-            nxt.d1 = 0;
-        }
-        if (c2) {
-            nxt.d2 = 0;
+    vector<string> ans;
+    while (true) {
+        int f1 = 0;
+        F(i, 0, n - 1) {
+            if (s[i] > t[i]) {
+                f1 = true;
+                s[i] = t[i];
+                ans.pb(s);
+                break;
+            }
         }
 
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            auto [sz1, sz2, d1, d2] = dfs(v, u);
-
-            //  dbg(sz1, sz2, d1, d2, u);
-
-            if (sz1 > 0) {
-                ans1++;
-            } else {
-                if (d2 + 1 > d) {
-                    ans1++;
-                }
-            }
-
-            if (sz2 > 0) {
-                ans2++;
-            } else {
-                if (d1 + 1 > d) {
-                    ans2++;
-                }
-            }
-
-            nxt.sz1 += sz1;
-            nxt.sz2 += sz2;
-            nxt.d1 = max(nxt.d1, d1 + 1);
-            nxt.d2 = max(nxt.d2, d2 + 1);
+        if (f1) {
+            continue;
         }
 
-        return nxt;
-    };
-    dfs(1, 0);
+        f1 = 0;
+        D(i, n - 1, 0) {
+            if (s[i] < t[i]) {
+                f1 = true;
+                s[i] = t[i];
+                ans.pb(s);
+                break;
+            }
+        }
 
-    // dbg(ans1, ans2);
+        if (f1) {
+            continue;
+        }
 
-    prt(ans1 + ans1 + ans2 + ans2);
+        break;
+    }
+
+    prt(SZ(ans));
+    for (auto &s: ans) {
+        prt(s);
+    }
 }
 
 int main() {

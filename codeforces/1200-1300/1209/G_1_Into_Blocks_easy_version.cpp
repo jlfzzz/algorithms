@@ -149,93 +149,51 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, d;
-    rd(n, d);
+    int n, q;
+    rd(n, q);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    vi a(n + 1);
+    rv(a, 1);
 
-    vi val1(n + 1), val2(n + 1);
-    int m1;
-    rd(m1);
-    F(i, 1, m1) {
-        int t;
-        rd(t);
-        val1[t] = 1;
-    }
+    int ans = 0;
+    int mx = ranges::max(a);
+    vi last(n + 1, -1), pos(mx + 1);
+    F(i, 1, n) { pos[a[i]] = i; }
+    F(i, 1, n) { last[i] = pos[a[i]]; }
 
-    int m2;
-    rd(m2);
-    F(i, 1, m2) {
-        int t;
-        rd(t);
-        val2[t] = 1;
-    }
+    int i = 1;
+    while (i <= n) {
+        int L = i;
+        map<int, int> cnt;
+        int j = last[i];
+        while (true) {
+            int R = j;
 
-    struct S {
-        int sz1, sz2, d1, d2;
-    };
-
-    int ans1 = 0, ans2 = 0;
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> S {
-        int c1 = val1[u];
-        int c2 = val2[u];
-
-        S nxt;
-        nxt.sz1 = c1;
-        nxt.sz2 = c2;
-        nxt.d1 = nxt.d2 = -inf;
-
-        if (c1) {
-            nxt.d1 = 0;
-        }
-        if (c2) {
-            nxt.d2 = 0;
-        }
-
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+            F(k, i, j) {
+                R = max(R, last[k]);
+                cnt[a[k]]++;
             }
 
-            auto [sz1, sz2, d1, d2] = dfs(v, u);
-
-            //  dbg(sz1, sz2, d1, d2, u);
-
-            if (sz1 > 0) {
-                ans1++;
-            } else {
-                if (d2 + 1 > d) {
-                    ans1++;
-                }
+            if (R == j) {
+                i = j + 1;
+                j = R;
+                break;
             }
 
-            if (sz2 > 0) {
-                ans2++;
-            } else {
-                if (d1 + 1 > d) {
-                    ans2++;
-                }
-            }
-
-            nxt.sz1 += sz1;
-            nxt.sz2 += sz2;
-            nxt.d1 = max(nxt.d1, d1 + 1);
-            nxt.d2 = max(nxt.d2, d2 + 1);
+            i = j + 1;
+            j = R;
         }
 
-        return nxt;
-    };
-    dfs(1, 0);
+        int mx = 0;
+        for (auto [x, c]: cnt) {
+            mx = max(mx, c);
+        }
 
-    // dbg(ans1, ans2);
+        ans += (j - L + 1) - mx;
+        i = j + 1;
+    }
 
-    prt(ans1 + ans1 + ans2 + ans2);
+    prt(ans);
 }
 
 int main() {

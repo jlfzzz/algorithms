@@ -144,98 +144,78 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, d;
-    rd(n, d);
+    int n;
+    rd(n);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    string s;
+    rd(s);
 
-    vi val1(n + 1), val2(n + 1);
-    int m1;
-    rd(m1);
-    F(i, 1, m1) {
-        int t;
-        rd(t);
-        val1[t] = 1;
-    }
-
-    int m2;
-    rd(m2);
-    F(i, 1, m2) {
-        int t;
-        rd(t);
-        val2[t] = 1;
-    }
-
-    struct S {
-        int sz1, sz2, d1, d2;
-    };
-
-    int ans1 = 0, ans2 = 0;
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> S {
-        int c1 = val1[u];
-        int c2 = val2[u];
-
-        S nxt;
-        nxt.sz1 = c1;
-        nxt.sz2 = c2;
-        nxt.d1 = nxt.d2 = -inf;
-
-        if (c1) {
-            nxt.d1 = 0;
-        }
-        if (c2) {
-            nxt.d2 = 0;
+    F(i, 0, 9) {
+        string s1, s2;
+        vvi suf(n + 5, vi(10));
+        char ch = char('0' + i);
+        D(j, n - 1, 0) {
+            suf[j] = suf[j + 1];
+            suf[j][s[j] - '0']++;
         }
 
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
+        vi idx1, idx2;
 
-            auto [sz1, sz2, d1, d2] = dfs(v, u);
-
-            //  dbg(sz1, sz2, d1, d2, u);
-
-            if (sz1 > 0) {
-                ans1++;
+        F(j, 0, n - 1) {
+            if (s[j] > ch) {
+                s2 += s[j];
+                idx2.pb(j);
+            } else if (s[j] < ch) {
+                s1 += s[j];
+                idx1.pb(i);
             } else {
-                if (d2 + 1 > d) {
-                    ans1++;
+                bool have = false;
+                D(k, i - 1, 0) {
+                    if (suf[j][k]) {
+                        have = true;
+                    }
+                }
+
+                if (have) {
+                    s2 += s[j];
+                    idx2.pb(j);
+                } else {
+                    s1 += s[j];
+                    idx1.pb(j);
                 }
             }
-
-            if (sz2 > 0) {
-                ans2++;
-            } else {
-                if (d1 + 1 > d) {
-                    ans2++;
-                }
-            }
-
-            nxt.sz1 += sz1;
-            nxt.sz2 += sz2;
-            nxt.d1 = max(nxt.d1, d1 + 1);
-            nxt.d2 = max(nxt.d2, d2 + 1);
         }
 
-        return nxt;
-    };
-    dfs(1, 0);
+        auto check = [&](string s) {
+            int pre = -1;
+            int sz = SZ(s);
+            F(l, 0, sz - 1) {
+                if (s[l] < pre) {
+                    return false;
+                }
+                pre = s[l];
+            }
 
-    // dbg(ans1, ans2);
+            return true;
+        };
 
-    prt(ans1 + ans1 + ans2 + ans2);
+        if (check(s1) && check(s2) && check(s1 + s2)) {
+            string ans(n, '1');
+            for (int idx: idx2) {
+                ans[idx] = '2';
+            }
+            prt(ans);
+            // bdbg(s1, s2, s1 + s2);
+            return;
+        }
+    }
+
+    prt("-");
 }
 
 int main() {
