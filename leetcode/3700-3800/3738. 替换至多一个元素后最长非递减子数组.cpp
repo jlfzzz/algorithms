@@ -39,7 +39,41 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+class Solution {
+public:
+    int longestSubarray(vector<int> &nums) {
+        int n = SZ(nums);
+        vi pre(n), suf(n);
+        pre[0] = suf[n - 1] = 1;
+        F(i, 1, n - 1) {
+            if (nums[i] >= nums[i - 1]) {
+                pre[i] = pre[i - 1] + 1;
+            } else {
+                pre[i] = 1;
+            }
+        }
+        D(i, n - 2, 0) {
+            if (nums[i] <= nums[i + 1]) {
+                suf[i] = suf[i + 1] + 1;
+            } else {
+                suf[i] = 1;
+            }
+        }
 
+        int ans = max(ranges::max(pre), ranges::max(suf));
+        if (ans < n) {
+            ans++;
+        }
+
+        F(i, 1, n - 2) {
+            if (nums[i + 1] >= nums[i - 1]) {
+                ans = max(ans, 1 + pre[i - 1] + suf[i + 1]);
+            }
+        }
+
+        return ans;
+    }
+};
 
 // int main() {
 //     ios::sync_with_stdio(false);

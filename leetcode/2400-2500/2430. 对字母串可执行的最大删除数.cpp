@@ -39,7 +39,32 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+class Solution {
+public:
+    int deleteString(string s) {
+        int n = SZ(s);
+        vvi lcp(n + 1, vi(n + 1));
+        D(i, n - 2, 0) {
+            D(j, n - 1, i + 1) {
+                if (s[i] == s[j]) {
+                    lcp[i][j] = lcp[i + 1][j + 1] + 1;
+                }
+            }
+        }
 
+        vi dp(n + 1);
+        F(i, 0, n - 1) {
+            F(j, i + 1, n - 1) {
+                int len = j - i;
+                if (lcp[i][j] >= len) {
+                    dp[j] = max(dp[j], dp[i] + 1);
+                }
+            }
+        }
+
+        return ranges::max(dp) + 1;
+    }
+};
 
 // int main() {
 //     ios::sync_with_stdio(false);

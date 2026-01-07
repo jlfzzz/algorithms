@@ -39,7 +39,27 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+class Solution {
+public:
+    long long numberOfWays(string s) {
+        ll dp01 = 0, dp10 = 0;
+        ll c0 = 0, c1 = 0;
+        ll ans = 0;
 
+        for (char c: s) {
+            if (c == '1') {
+                ans += dp10;
+                dp01 += c0;
+                c1++;
+            } else {
+                ans += dp01;
+                dp10 += c1;
+                c0++;
+            }
+        }
+        return ans;
+    }
+};
 
 // int main() {
 //     ios::sync_with_stdio(false);
