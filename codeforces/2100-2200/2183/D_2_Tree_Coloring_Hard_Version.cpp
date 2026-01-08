@@ -149,75 +149,94 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
+    vvi g(n + 1);
+    F(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
 
-    string s;
-    rd(s);
+    int ans = SZ(g[1]) + 1;
+    F(i, 2, n) { ans = max(ans, SZ(g[i])); }
 
-    struct S {
-        int d;
-        int mask1, mask2;
-    };
+    vi dis(n + 1, -1);
+    vi cnt(n + 1, 0), fa(n + 1), col(n + 1);
+    queue<int> q;
 
-    vector<S> a(m);
+    q.push(1);
+    dis[1] = 0;
+    cnt[0] = 1;
 
-    F(i, 0, m - 1) {
-        auto &ss = a[i];
-        rd(ss.d);
+    int mxD = 0;
 
-        string s1, s2;
-        rd(s1, s2);
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
 
-        F(j, 0, n - 1) {
-            int b1 = s1[j] - '0';
-            int b2 = s2[j] - '0';
-            ss.mask1 |= b1 << j;
-            ss.mask2 |= b2 << j;
+        for (int v: g[u]) {
+            if (dis[v] == -1) {
+                dis[v] = dis[u] + 1;
+                fa[v] = u;
+                cnt[dis[v]]++;
+                mxD = max(mxD, dis[v]);
+                q.push(v);
+            }
         }
     }
 
-    int u = 1 << n;
-    vl dis(u, INF);
-    int start = 0;
-    F(j, 0, n - 1) {
-        int b = s[j] - '0';
-        start |= b << j;
-    }
-    dis[start] = 0;
+    vvi levels(mxD + 1);
+    F(i, 1, n) { levels[dis[i]].pb(i); }
 
-    prq<pii, vp, greater<>> pq;
-    pq.ep(0, start);
+    F(i, 0, mxD) { ans = max(ans, cnt[i]); }
 
-    while (!pq.empty()) {
-        auto [d, mask] = pq.top();
-        pq.pop();
-        if (mask == 0) {
-            prt(d);
-            return;
-        }
+    col[1] = 0;
+    vvi res(ans);
+    res[0].pb(1);
 
-        if (d > dis[mask]) {
+    vi banned(ans, -1);
+
+    F(d, 1, mxD) {
+        auto &vec = levels[d];
+        if (vec.empty())
             continue;
+
+        sort(all(vec), [&](int u, int v) { return col[fa[u]] < col[fa[v]]; });
+
+        int sz = SZ(vec);
+        F(i, 0, sz - 1) {
+            int u = vec[i];
+            int c = col[fa[u]];
+
+            int t = (c - i) % ans;
+            if (t < 0)
+                t += ans;
+
+            banned[t] = d;
         }
 
-        for (auto [t, mask1, mask2]: a) {
-            int nmask = 0;
-            F(i, 0, n - 1) {
-                if ((mask >> i & 1) && !(mask1 >> i & 1)) {
-                    nmask |= 1 << i;
-                }
-            }
-            nmask |= mask2;
+        int shift = 0;
+        while (shift < ans && banned[shift] == d) {
+            shift++;
+        }
 
-            if (d + t < dis[nmask]) {
-                dis[nmask] = d + t;
-                pq.ep(d + t, nmask);
-            }
+        F(i, 0, sz - 1) {
+            int u = vec[i];
+            int c = (i + shift) % ans;
+            col[u] = c;
+            res[c].pb(u);
         }
     }
 
-    prt(-1);
+    prt(ans);
+    for (auto &row: res) {
+        cout << SZ(row);
+        for (int u: row)
+            cout << " " << u;
+        cout << "\n";
+    }
 }
 
 int main() {

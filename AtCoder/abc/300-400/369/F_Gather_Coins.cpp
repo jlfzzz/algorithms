@@ -144,80 +144,136 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
+
+template<typename T = long long>
+class BIT {
+    vector<T> tree;
+
+public:
+    BIT(int n) : tree(n + 1) {}
+
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
+        }
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+
+    // 点更新取 max
+    void updateMax(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            if (val > tree[i]) {
+                tree[i] = val;
+            }
+        }
+    }
+
+    T preMax(int i) const {
+        T res = numeric_limits<T>::min();
+        for (; i > 0; i &= i - 1) {
+            res = max(res, tree[i]);
+        }
+        return res;
+    }
+};
+
 void solve() {
-    int n, m;
-    rd(n, m);
+    int h, w, n;
+    rd(h, w, n);
 
-    string s;
-    rd(s);
+    vector<vector<pair<int, int>>> a(h + 1);
 
-    struct S {
-        int d;
-        int mask1, mask2;
+    vector<pair<int, int>> coin_coords(n + 1);
+
+    F(i, 1, n) {
+        int r, c;
+        rd(r, c);
+        a[r].pb(c, i);
+        coin_coords[i] = {r, c};
+    }
+    for (auto &v: a) {
+        ranges::sort(v);
+    }
+
+    BIT<pair<int, int>> bit(w + 5);
+
+    vi pre(n + 1, 0);
+    vi val(n + 1, 0);
+
+    int max_coins = 0;
+    int last_id = 0;
+
+    F(r, 1, h) {
+        for (auto &[c, id]: a[r]) {
+            pair<int, int> res = bit.preMax(c);
+
+            if (res.fi < 0)
+                res = {0, 0};
+
+            val[id] = res.fi + 1;
+            pre[id] = res.se;
+
+            if (val[id] > max_coins) {
+                max_coins = val[id];
+                last_id = id;
+            }
+
+            bit.updateMax(c, {val[id], id});
+        }
+    }
+
+    prt(max_coins);
+
+    vector<int> path_ids;
+    int curr = last_id;
+    while (curr != 0) {
+        path_ids.pb(curr);
+        curr = pre[curr];
+    }
+    reverse(all(path_ids));
+
+    string ans = "";
+    int cur_r = 1, cur_c = 1;
+
+    auto move_to = [&](int tr, int tc) {
+        while (cur_r < tr) {
+            ans += 'D';
+            cur_r++;
+        }
+        while (cur_c < tc) {
+            ans += 'R';
+            cur_c++;
+        }
     };
 
-    vector<S> a(m);
-
-    F(i, 0, m - 1) {
-        auto &ss = a[i];
-        rd(ss.d);
-
-        string s1, s2;
-        rd(s1, s2);
-
-        F(j, 0, n - 1) {
-            int b1 = s1[j] - '0';
-            int b2 = s2[j] - '0';
-            ss.mask1 |= b1 << j;
-            ss.mask2 |= b2 << j;
-        }
+    for (int id: path_ids) {
+        move_to(coin_coords[id].fi, coin_coords[id].se);
     }
 
-    int u = 1 << n;
-    vl dis(u, INF);
-    int start = 0;
-    F(j, 0, n - 1) {
-        int b = s[j] - '0';
-        start |= b << j;
-    }
-    dis[start] = 0;
+    move_to(h, w);
 
-    prq<pii, vp, greater<>> pq;
-    pq.ep(0, start);
-
-    while (!pq.empty()) {
-        auto [d, mask] = pq.top();
-        pq.pop();
-        if (mask == 0) {
-            prt(d);
-            return;
-        }
-
-        if (d > dis[mask]) {
-            continue;
-        }
-
-        for (auto [t, mask1, mask2]: a) {
-            int nmask = 0;
-            F(i, 0, n - 1) {
-                if ((mask >> i & 1) && !(mask1 >> i & 1)) {
-                    nmask |= 1 << i;
-                }
-            }
-            nmask |= mask2;
-
-            if (d + t < dis[nmask]) {
-                dis[nmask] = d + t;
-                pq.ep(d + t, nmask);
-            }
-        }
-    }
-
-    prt(-1);
+    prt(ans);
 }
 
 int main() {

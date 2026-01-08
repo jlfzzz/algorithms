@@ -144,80 +144,47 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-    string s;
-    rd(s);
+    vi a(n);
+    rv(a);
 
-    struct S {
-        int d;
-        int mask1, mask2;
-    };
+    ll ans = 0;
+    int l = 0;
 
-    vector<S> a(m);
+    int d = -inf;
+    F(i, 0, n - 1) {
+        dbg(i, ans);
 
-    F(i, 0, m - 1) {
-        auto &ss = a[i];
-        rd(ss.d);
-
-        string s1, s2;
-        rd(s1, s2);
-
-        F(j, 0, n - 1) {
-            int b1 = s1[j] - '0';
-            int b2 = s2[j] - '0';
-            ss.mask1 |= b1 << j;
-            ss.mask2 |= b2 << j;
-        }
-    }
-
-    int u = 1 << n;
-    vl dis(u, INF);
-    int start = 0;
-    F(j, 0, n - 1) {
-        int b = s[j] - '0';
-        start |= b << j;
-    }
-    dis[start] = 0;
-
-    prq<pii, vp, greater<>> pq;
-    pq.ep(0, start);
-
-    while (!pq.empty()) {
-        auto [d, mask] = pq.top();
-        pq.pop();
-        if (mask == 0) {
-            prt(d);
-            return;
-        }
-
-        if (d > dis[mask]) {
+        if (i == l) {
+            dbg(i, l, d);
+            ans++;
+            continue;
+        } else if (i == l + 1) {
+            dbg(i, l, d);
+            d = a[i] - a[i - 1];
+            ans += 2;
             continue;
         }
 
-        for (auto [t, mask1, mask2]: a) {
-            int nmask = 0;
-            F(i, 0, n - 1) {
-                if ((mask >> i & 1) && !(mask1 >> i & 1)) {
-                    nmask |= 1 << i;
-                }
-            }
-            nmask |= mask2;
-
-            if (d + t < dis[nmask]) {
-                dis[nmask] = d + t;
-                pq.ep(d + t, nmask);
-            }
+        int cur = a[i] - a[i - 1];
+        if (cur == d) {
+            dbg(i, l, d);
+            ans += i - l + 1;
+        } else {
+            l = i - 1;
+            d = cur;
+            ans += 2;
         }
     }
 
-    prt(-1);
+    prt(ans);
 }
 
 int main() {

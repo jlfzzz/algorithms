@@ -19,14 +19,7 @@ MOD = int(1e9 + 7)
 
 
 def main():
-    arr2 = [1, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17]
-    arr = [1, 2, 4, 5, 6, 7, 8, 9]
-    sum = 0
-    for i in range(len(arr) - 1):
-        sum += 1 / lcm(arr[i], arr[i + 1])
-    sum += 1 / lcm(arr[-1], arr[0])
-
-    print(sum)
+    print(factorial(7))
 
 
 if __name__ == "__main__":

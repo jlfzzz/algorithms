@@ -144,80 +144,78 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
+
+ll dis[405][405];
 
 void solve() {
     int n, m;
     rd(n, m);
 
-    string s;
-    rd(s);
-
-    struct S {
-        int d;
-        int mask1, mask2;
+    memset(dis, 0x3f, sizeof(dis));
+    struct E {
+        ll u, v, w;
     };
+    vector<E> edges(m + 1);
+    F(i, 1, m) {
+        ll u, v, w;
+        rd(u, v, w);
 
-    vector<S> a(m);
+        edges[i] = {u, v, w};
 
-    F(i, 0, m - 1) {
-        auto &ss = a[i];
-        rd(ss.d);
-
-        string s1, s2;
-        rd(s1, s2);
-
-        F(j, 0, n - 1) {
-            int b1 = s1[j] - '0';
-            int b2 = s2[j] - '0';
-            ss.mask1 |= b1 << j;
-            ss.mask2 |= b2 << j;
+        if (w < dis[u][v]) {
+            dis[u][v] = dis[v][u] = w;
         }
     }
 
-    int u = 1 << n;
-    vl dis(u, INF);
-    int start = 0;
-    F(j, 0, n - 1) {
-        int b = s[j] - '0';
-        start |= b << j;
+    F(i, 1, n) { dis[i][i] = 0; }
+    F(k, 1, n) {
+        F(i, 1, n) {
+            F(j, 1, n) { dis[i][j] = min(dis[i][j], dis[i][k] + dis[k][j]); }
+        }
     }
-    dis[start] = 0;
 
-    prq<pii, vp, greater<>> pq;
-    pq.ep(0, start);
+    int q;
+    rd(q);
 
-    while (!pq.empty()) {
-        auto [d, mask] = pq.top();
-        pq.pop();
-        if (mask == 0) {
-            prt(d);
-            return;
-        }
+    while (q--) {
+        int k;
+        rd(k);
 
-        if (d > dis[mask]) {
-            continue;
-        }
+        vi temp(k);
+        rv(temp);
 
-        for (auto [t, mask1, mask2]: a) {
-            int nmask = 0;
-            F(i, 0, n - 1) {
-                if ((mask >> i & 1) && !(mask1 >> i & 1)) {
-                    nmask |= 1 << i;
+        ll ans = INF;
+        vi vis(k);
+        auto dfs = [&](auto &&dfs, int pre, int count, ll sum) -> void {
+            if (sum >= ans)
+                return;
+
+            if (count == k) {
+                ans = min(ans, sum + dis[pre][n]);
+                return;
+            }
+
+            F(j, 0, k - 1) {
+                if (!vis[j]) {
+                    vis[j] = 1;
+                    auto [u, v, w] = edges[temp[j]];
+
+                    dfs(dfs, v, count + 1, sum + dis[pre][u] + w);
+
+                    dfs(dfs, u, count + 1, sum + dis[pre][v] + w);
+
+                    vis[j] = 0;
                 }
             }
-            nmask |= mask2;
+        };
 
-            if (d + t < dis[nmask]) {
-                dis[nmask] = d + t;
-                pq.ep(d + t, nmask);
-            }
-        }
+        dfs(dfs, 1, 0, 0);
+
+        prt(ans);
     }
-
-    prt(-1);
 }
 
 int main() {

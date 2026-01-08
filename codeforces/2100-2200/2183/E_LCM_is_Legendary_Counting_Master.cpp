@@ -142,82 +142,88 @@ namespace utils {
 
 using namespace utils;
 
-constexpr int N = 1e6 + 5;
-
 int Multitest = 1;
 
-void init() {}
+constexpr int N = 3005;
+vi divs[N];
+
+void init() {
+    for (int i = 1; i < N; ++i) {
+        for (int j = i; j < N; j += i) {
+            divs[j].push_back(i);
+        }
+    }
+}
 
 void solve() {
     int n, m;
     rd(n, m);
 
-    string s;
-    rd(s);
+    vi a(n);
+    rv(a);
 
-    struct S {
-        int d;
-        int mask1, mask2;
+    auto Add = [&](ll &x, ll y) {
+        x += MOD + y;
+        x %= MOD;
     };
 
-    vector<S> a(m);
-
-    F(i, 0, m - 1) {
-        auto &ss = a[i];
-        rd(ss.d);
-
-        string s1, s2;
-        rd(s1, s2);
-
-        F(j, 0, n - 1) {
-            int b1 = s1[j] - '0';
-            int b2 = s2[j] - '0';
-            ss.mask1 |= b1 << j;
-            ss.mask2 |= b2 << j;
-        }
+    if (a[0] != 0 && a[0] != 1) {
+        prt(0);
+        return;
     }
 
-    int u = 1 << n;
-    vl dis(u, INF);
-    int start = 0;
-    F(j, 0, n - 1) {
-        int b = s[j] - '0';
-        start |= b << j;
-    }
-    dis[start] = 0;
+    vl dp(m + 1, 0);
+    dp[1] = 1;
 
-    prq<pii, vp, greater<>> pq;
-    pq.ep(0, start);
+    F(i, 1, n - 1) {
+        vl ndp(m + 1, 0);
 
-    while (!pq.empty()) {
-        auto [d, mask] = pq.top();
-        pq.pop();
-        if (mask == 0) {
-            prt(d);
-            return;
-        }
+        F(j, 1, m) {
+            if (dp[j] == 0)
+                continue;
 
-        if (d > dis[mask]) {
-            continue;
-        }
+            for (int d: divs[j]) {
+                int nxt = j + d;
+                if (nxt > m)
+                    continue;
 
-        for (auto [t, mask1, mask2]: a) {
-            int nmask = 0;
-            F(i, 0, n - 1) {
-                if ((mask >> i & 1) && !(mask1 >> i & 1)) {
-                    nmask |= 1 << i;
+                if (a[i] == 0 || a[i] == nxt) {
+                    Add(ndp[nxt], dp[j]);
                 }
             }
-            nmask |= mask2;
-
-            if (d + t < dis[nmask]) {
-                dis[nmask] = d + t;
-                pq.ep(d + t, nmask);
-            }
         }
+        dp.swap(ndp);
     }
 
-    prt(-1);
+    ll ans = 0;
+    F(j, 1, m) { Add(ans, dp[j]); }
+    prt(ans);
+
+    // auto lcm = [&](ll x, ll y) { return x * y / gcd(x, y); };
+
+    // auto dfs = [&](this auto &&dfs, vl &path, ll pre, int d) -> void {
+    //     if (d == 8) {
+    //         db tot = 0;
+    //         F(i, 0, 6) {
+    //             ll l = lcm(path[i], path[i + 1]);
+    //             tot += 1.0 / (db) l;
+    //         }
+
+    //         tot += 1.0 / (db) lcm(path.back(), path[0]);
+    //         if (abs(tot - 1) <= 1e-9) {
+    //             dbg(path);
+    //         }
+    //         return;
+    //     }
+
+    //     F(nxt, pre + 1, 21) {
+    //         path.pb(nxt);
+    //         dfs(path, nxt, d + 1);
+    //         path.pob();
+    //     }
+    // };
+    // vl t;
+    // dfs(t, 0, 0);
 }
 
 int main() {

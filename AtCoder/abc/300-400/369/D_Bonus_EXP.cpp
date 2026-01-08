@@ -144,80 +144,28 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
+    int n;
+    rd(n);
 
-    string s;
-    rd(s);
+    vl a(n + 1);
+    rv(a, 1);
 
-    struct S {
-        int d;
-        int mask1, mask2;
-    };
+    ll f2 = -INF, f1 = 0;
+    F(i, 1, n) {
+        ll cur = a[i];
 
-    vector<S> a(m);
+        ll nf2 = max(f2, f1 + cur);
+        ll nf1 = max(f1, f2 + cur + cur);
 
-    F(i, 0, m - 1) {
-        auto &ss = a[i];
-        rd(ss.d);
-
-        string s1, s2;
-        rd(s1, s2);
-
-        F(j, 0, n - 1) {
-            int b1 = s1[j] - '0';
-            int b2 = s2[j] - '0';
-            ss.mask1 |= b1 << j;
-            ss.mask2 |= b2 << j;
-        }
+        f1 = nf1, f2 = nf2;
     }
 
-    int u = 1 << n;
-    vl dis(u, INF);
-    int start = 0;
-    F(j, 0, n - 1) {
-        int b = s[j] - '0';
-        start |= b << j;
-    }
-    dis[start] = 0;
-
-    prq<pii, vp, greater<>> pq;
-    pq.ep(0, start);
-
-    while (!pq.empty()) {
-        auto [d, mask] = pq.top();
-        pq.pop();
-        if (mask == 0) {
-            prt(d);
-            return;
-        }
-
-        if (d > dis[mask]) {
-            continue;
-        }
-
-        for (auto [t, mask1, mask2]: a) {
-            int nmask = 0;
-            F(i, 0, n - 1) {
-                if ((mask >> i & 1) && !(mask1 >> i & 1)) {
-                    nmask |= 1 << i;
-                }
-            }
-            nmask |= mask2;
-
-            if (d + t < dis[nmask]) {
-                dis[nmask] = d + t;
-                pq.ep(d + t, nmask);
-            }
-        }
-    }
-
-    prt(-1);
+    prt(max(f1, f2));
 }
 
 int main() {
