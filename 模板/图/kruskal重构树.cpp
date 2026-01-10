@@ -3,9 +3,10 @@ using namespace std;
 
 const int MAXN = 200005; // 重构树有 2N-1 个点
 const int LOGN = 20;
+using ll = long long;
 
 struct Edge {
-    int u, v, w;
+    ll u, v, w;
 
     // 升序
     bool operator<(const Edge &other) const { return w < other.w; }
@@ -16,12 +17,12 @@ int val[MAXN * 2]; // 点权：1~n为0(或原点权)，n+1~cnt为边权
 int fa[MAXN * 2][LOGN]; // 倍增数组
 int dep[MAXN * 2]; // 深度
 int p[MAXN * 2]; // 并查集数组
+int sz[MAXN * 2];
 int cnt;
 
 int find(int x) { return p[x] == x ? x : p[x] = find(p[x]); }
 
 void build_kruskal_tree(int n, int m) {
-    // 1. 初始化
     for (int i = 1; i <= n * 2; i++) {
         p[i] = i;
         adj[i].clear();
@@ -41,6 +42,7 @@ void build_kruskal_tree(int n, int m) {
         if (root_u != root_v) {
             cnt++;
             val[cnt] = w;
+            sz[cnt] = sz[root_u] + sz[root_v];
 
             p[root_u] = p[root_v] = cnt;
 

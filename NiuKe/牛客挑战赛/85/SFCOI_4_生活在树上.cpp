@@ -144,131 +144,125 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-const int MAXN = 200005; // 重构树有 2N-1 个点
-const int LOGN = 20;
-
-struct Edge {
-    ll u, v, w;
-
-    // 升序
-    bool operator<(const Edge &other) const { return w < other.w; }
-} edges[MAXN];
-
-vector<int> adj[MAXN * 2];
-int val[MAXN * 2]; // 点权：1~n为0(或原点权)，n+1~cnt为边权
-int fa[MAXN * 2][LOGN]; // 倍增数组
-int dep[MAXN * 2]; // 深度
-int p[MAXN * 2]; // 并查集数组
-int cnt;
-
-int sz[MAXN * 2];
-ll ans = 1;
-ll s;
-
-ll qpow(ll base, ll exp) {
-    ll res = 1;
-    base %= MOD;
-    while (exp > 0) {
-        if (exp % 2 == 1)
-            res = (res * base) % MOD;
-        base = (base * base) % MOD;
-        exp /= 2;
-    }
-    return res;
-}
-
-int find(int x) { return p[x] == x ? x : p[x] = find(p[x]); }
-
-void build_kruskal_tree(int n, int m) {
-    for (int i = 1; i <= n * 2; i++) {
-        p[i] = i;
-        adj[i].clear();
-    }
-
-    F(i, 1, n) { sz[i] = 1; }
-    cnt = n;
-
-    sort(edges + 1, edges + 1 + m);
-
-    for (int i = 1; i <= m; i++) {
-        int u = edges[i].u;
-        int v = edges[i].v;
-        int w = edges[i].w;
-
-        int root_u = find(u);
-        int root_v = find(v);
-
-        if (root_u != root_v) {
-            ll tot = (ll) sz[root_u] * sz[root_v] - 1;
-            ll cc = s - w + 1;
-            ans = (ans * qpow(cc, tot)) % MOD;
-
-            cnt++;
-            val[cnt] = w;
-            sz[cnt] = sz[root_u] + sz[root_v];
-
-            p[root_u] = p[root_v] = cnt;
-
-            adj[cnt].push_back(root_u);
-            adj[cnt].push_back(root_v);
-        }
-    }
-}
-
-void dfs(int u, int d) {
-    dep[u] = d;
-    for (int i = 1; i < LOGN; i++) {
-        fa[u][i] = fa[fa[u][i - 1]][i - 1];
-    }
-    for (int v: adj[u]) {
-        fa[v][0] = u;
-        dfs(v, d + 1);
-    }
-}
-
-void init_lca() {
-    for (int i = cnt; i >= 1; --i) {
-        if (!dep[i])
-            dfs(i, 1);
-    }
-}
-
-int get_lca(int u, int v) {
-    if (dep[u] < dep[v])
-        swap(u, v);
-    for (int i = LOGN - 1; i >= 0; i--) {
-        if (dep[fa[u][i]] >= dep[v])
-            u = fa[u][i];
-    }
-    if (u == v)
-        return u;
-    for (int i = LOGN - 1; i >= 0; i--) {
-        if (fa[u][i] != fa[v][i]) {
-            u = fa[u][i];
-            v = fa[v][i];
-        }
-    }
-    return fa[u][0];
-}
-
 int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    ll n;
-    rd(n, s);
+    int n;
+    long long k;
+    rd(n, k);
+    vl a(n + 1);
+    rv(a, 1);
 
-    ans = 1;
-
-    F(i, 1, n - 1) {
-        ll u, v, w;
-        rd(u, v, w);
-        edges[i] = {u, v, w};
+    if (k == 0) {
+        if (n == 1) {
+            prt("YES");
+            prt(0, 0);
+        } else {
+            prt("NO");
+        }
+        return;
     }
 
-    build_kruskal_tree(n, n - 1);
-    prt(ans);
+    long long common = a[1];
+    F(i, 2, n) common &= a[i];
+    F(i, 1, n) a[i] ^= common;
+
+    int hb = -1;
+    D(i, 62, 0) if ((k >> i) & 1) {
+        hb = i;
+        break;
+    }
+
+    if (hb != -1 && a[n] >= (1LL << (hb + 1))) {
+        prt("NO");
+        return;
+    }
+
+    int split = -1;
+    F(i, 1, n) {
+        if ((a[i] >> hb) & 1) {
+            split = i;
+            break;
+        }
+    }
+
+    vi l_child(n + 1, 0), r_child(n + 1, 0);
+
+    auto build_chain = [&](int start, int end, int dir) {
+        // dir 0: 向左连 (递减) start -> start-1 ... -> end
+        // dir 1: 向右连 (递增) start -> start+1 ... -> end
+        if (start == 0 || end == 0)
+            return;
+        if (dir == 0) {
+            D(i, start, end + 1) l_child[i] = i - 1;
+        } else {
+            F(i, start, end - 1) r_child[i] = i + 1;
+        }
+    };
+
+    if (split == -1 || split == 1) {
+        prt("YES");
+        build_chain(1, n, 1);
+        F(i, 1, n) prt(l_child[i], r_child[i]);
+        return;
+    }
+
+    {
+        int root = split - 1;
+        int target = -1;
+        F(v, split, n) {
+            if ((a[root] ^ a[v]) <= k) {
+                target = v;
+                break;
+            }
+        }
+        if (target != -1) {
+            prt("YES");
+            build_chain(root, 1, 0);
+
+            r_child[root] = target;
+
+            if (target > split) {
+                l_child[target] = split;
+                build_chain(split, target - 1, 1);
+            }
+            build_chain(target, n, 1);
+
+            F(i, 1, n) prt(l_child[i], r_child[i]);
+            return;
+        }
+    }
+
+    {
+        int root = split;
+        int target = -1;
+        F(u, 1, split - 1) {
+            if ((a[root] ^ a[u]) <= k) {
+                target = u;
+                break;
+            }
+        }
+        if (target != -1) {
+            prt("YES");
+            build_chain(root, n, 1);
+
+            l_child[root] = target;
+
+            build_chain(target, 1, 0);
+
+            if (target < split - 1) {
+                r_child[target] = target + 1;
+                build_chain(target + 1, split - 1, 1);
+            }
+
+            F(i, 1, n) prt(l_child[i], r_child[i]);
+            return;
+        }
+    }
+
+    prt("NO");
 }
 
 int main() {
