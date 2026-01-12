@@ -144,34 +144,109 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, d;
+    rd(n, d);
 
-    if (n == 2) {
-        prt(2);
-        return;
-    } else if (n == 3) {
-        prt(3);
-        return;
+    vi ys, xs(9e6);
+    const int offset = 4e6;
+    ll tot_x = 0;
+
+    int min_x = inf, max_x = -inf;
+
+    F(i, 1, n) {
+        int x, y;
+        rd(x, y);
+        ys.pb(y);
+        xs[x + offset]++;
+        tot_x += x;
+        min_x = min(min_x, x);
+        max_x = max(max_x, x);
     }
 
-    int t = n % 4;
-    int ans;
-    if (t == 0) {
-        ans = 0;
-    } else if (t == 1) {
-        ans = 1;
-    } else if (t == 2) {
-        ans = 0;
-    } else {
-        ans = 1;
-    }
+    ranges::sort(ys);
+    vl pref(n);
+    pref[0] = ys[0];
+    F(i, 1, n - 1) { pref[i] = pref[i - 1] + ys[i]; }
 
+    auto calc_y_cost = [&](ll y_val) -> ll {
+        int idx = lower_bound(all(ys), y_val) - ys.begin();
+        ll sum_left = (idx > 0 ? pref[idx - 1] : 0);
+        ll cost_left = (ll) idx * y_val - sum_left;
+        ll sum_right = pref[n - 1] - sum_left;
+        ll cost_right = sum_right - (ll) (n - idx) * y_val;
+        return cost_left + cost_right;
+    };
+
+    ll pre = 0;
+    ll cnt = 0;
+    vl suf(9e6 + 56);
+
+    D(i, 4e6, -4e6) { suf[i + offset] = suf[i + offset + 1] + xs[i + offset]; }
+
+    ll ans = 0;
+    int SEARCH_L = max(-4000000, min_x - d - 5);
+    int SEARCH_R = min(4000000, max_x + d + 5);
+
+    F(i, -4e6, 4e6) {
+        pre += (ll) xs[i + offset] * i;
+        cnt += xs[i + offset];
+
+        if (i < SEARCH_L || i > SEARCH_R)
+            continue;
+
+        ll dx = cnt * i - pre + (tot_x - pre) - (n - cnt) * (ll) i;
+
+        if (dx > d)
+            continue;
+
+        ll rem = d - dx;
+        ll mid_y = ys[n / 2];
+        if (calc_y_cost(mid_y) > rem)
+            continue;
+
+        ll L, R;
+        ll valid_L = mid_y;
+
+        ll range_bound = rem; 
+
+        L = mid_y - range_bound - 5;
+        if (L < -2e6)
+            L = -2e6; 
+        R = mid_y;
+
+        while (L <= R) {
+            ll mid = L + (R - L) / 2;
+            if (calc_y_cost(mid) <= rem) {
+                valid_L = mid;
+                R = mid - 1;
+            } else {
+                L = mid + 1;
+            }
+        }
+
+        ll valid_R = mid_y;
+        L = mid_y;
+        R = mid_y + range_bound + 5;
+        if (R > 2e6)
+            R = 2e6;
+
+        while (L <= R) {
+            ll mid = L + (R - L) / 2;
+            if (calc_y_cost(mid) <= rem) {
+                valid_R = mid;
+                L = mid + 1;
+            } else {
+                R = mid - 1;
+            }
+        }
+
+        ans += (valid_R - valid_L + 1);
+    }
     prt(ans);
 }
 

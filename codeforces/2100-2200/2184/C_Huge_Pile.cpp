@@ -149,30 +149,28 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, k;
+    rd(n, k);
 
-    if (n == 2) {
-        prt(2);
-        return;
-    } else if (n == 3) {
-        prt(3);
+    if (n == k) {
+        prt(0);
         return;
     }
 
-    int t = n % 4;
-    int ans;
-    if (t == 0) {
-        ans = 0;
-    } else if (t == 1) {
-        ans = 1;
-    } else if (t == 2) {
-        ans = 0;
-    } else {
-        ans = 1;
+    F(d, 1, 30) {
+        int p2 = 1 << d;
+
+        int t1 = n / p2;
+        int t0 = (n + p2 - 1) / p2;
+
+        if (t1 == k || t0 == k) {
+            prt(d);
+            return;
+        }
+
     }
 
-    prt(ans);
+    prt(-1);
 }
 
 int main() {

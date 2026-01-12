@@ -144,35 +144,36 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, k;
+    cin >> n >> k;
+    vector<pair<long long, long long>> a(n);
+    for (auto &p: a)
+        cin >> p.first >> p.second;
 
-    if (n == 2) {
-        prt(2);
-        return;
-    } else if (n == 3) {
-        prt(3);
-        return;
+    sort(a.begin(), a.end(), [&](auto &x, auto &y) {
+        auto [a1, b1] = x;
+        auto [a2, b2] = y;
+        return a1 * b2 + b1 < a2 * b1 + b2;
+    });
+
+    const long long NEG = -(1LL << 60);
+    vector<long long> dp(k + 1, NEG);
+    dp[0] = 1;
+
+    for (auto [A, B]: a) {
+        for (int t = k - 1; t >= 0; --t) {
+            if (dp[t] == NEG)
+                continue;
+            dp[t + 1] = max(dp[t + 1], A * dp[t] + B);
+        }
     }
 
-    int t = n % 4;
-    int ans;
-    if (t == 0) {
-        ans = 0;
-    } else if (t == 1) {
-        ans = 1;
-    } else if (t == 2) {
-        ans = 0;
-    } else {
-        ans = 1;
-    }
-
-    prt(ans);
+    cout << dp[k] << "\n";
 }
 
 int main() {

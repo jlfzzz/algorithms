@@ -149,30 +149,26 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll s, k, m;
+    rd(s, k, m);
 
-    if (n == 2) {
-        prt(2);
-        return;
-    } else if (n == 3) {
-        prt(3);
-        return;
-    }
-
-    int t = n % 4;
-    int ans;
-    if (t == 0) {
-        ans = 0;
-    } else if (t == 1) {
-        ans = 1;
-    } else if (t == 2) {
-        ans = 0;
+    if (k >= s) {
+        ll rem = m % k;
+        if (rem >= s) {
+            prt(0);
+        } else {
+            prt(s - rem);
+        }
     } else {
-        ans = 1;
-    }
+        ll cnt = m / k;
+        ll rem = m % k;
 
-    prt(ans);
+        if (cnt % 2 == 0) {
+            prt(s - rem);
+        } else {
+            prt(k - rem);
+        }
+    }
 }
 
 int main() {
