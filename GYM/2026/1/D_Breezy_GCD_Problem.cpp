@@ -144,67 +144,86 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
-const int U = 1 << 20;
-ll f[20][U + 5], g[20][U + 5];
-
-// f是counter,g是sum.
-// g[p][mask]代表p位必须0,低(p-1)位的sum
 void solve() {
-    int n, q;
-    rd(n, q);
+    int n;
+    rd(n);
 
-    vl a(n);
-    rv(a);
+    vp a(n);
+    F(i, 0, n - 1) { rd(a[i].fi); }
+    F(i, 0, n - 1) { rd(a[i].se); }
 
-    ll need = 0;
-    for (ll x: a) {
-        need += (1LL << 20) - x;
+    int all2 = 1;
+    F(i, 0, n - 1) {
+        int d = a[i].se - a[i].fi + 1;
+        if (d < 2) {
+            all2 = 0;
+            break;
+        }
     }
 
-    F(i, 0, 19) {
-        for (ll x: a) {
-            if (!(x >> i & 1)) {
-                f[i][x]++;
-                g[i][x] += x & ((1 << i) - 1);
+    if (all2) {
+        prt("YES");
+        vi ans;
+        for (auto [l, r]: a) {
+            int t = l;
+            if (t & 1) {
+                t++;
             }
+            ans.pb(t);
         }
 
-        F(j, 0, 19) {
-            F(mask, 0, U - 1) {
-                if (mask >> j & 1) {
-                    f[i][mask ^ (1 << j)] += f[i][mask];
-                    g[i][mask ^ (1 << j)] += g[i][mask];
+        prv(ans);
+        return;
+    }
+
+    set<int> temp;
+    for (auto [l, r]: a) {
+        if (l == r) {
+            for (int i = 2; i * i <= l; i++) {
+                if (l % i == 0) {
+                    temp.ins(i);
+                    while (l % i == 0) {
+                        l /= i;
+                    }
                 }
             }
+
+            if (l > 1) {
+                temp.ins(l);
+            }
+
+            break;
         }
     }
 
-    while (q--) {
-        ll k;
-        rd(k);
+    for (int p: temp) {
+        int ok = 1;
+        for (auto [l, r]: a) {
+            int t = r / p * p;
+            if (t >= l && t <= r) {
 
-        if (k >= need) {
-            ll ans = (1 << 20) + (k - need) / n;
-            prt(ans);
-            continue;
-        }
-
-        ll ans = 0, cnt = 0;
-        D(p, 19, 0) {
-            ll cost = cnt * (1 << p) + f[p][ans] * (1ll << p) - g[p][ans];
-            if (k >= cost) {
-                k -= cost;
-                cnt += f[p][ans];
-                ans |= 1 << p;
+            } else {
+                ok = 0;
             }
         }
 
-        prt(ans);
+        if (ok) {
+            prt("YES");
+            vi ans;
+            for (auto [l, r]: a) {
+                int t = r / p * p;
+                ans.pb(t);
+            }
+            prv(ans);
+            return;
+        }
     }
+
+    prt("NO");
 }
 
 int main() {

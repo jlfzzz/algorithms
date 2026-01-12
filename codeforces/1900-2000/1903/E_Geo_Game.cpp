@@ -5,10 +5,14 @@ using ll = long long;
 #define db long double
 #define pb emplace_back
 #define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
 #define all(x) (x).begin(), (x).end()
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
+#define us unsigned
 #define vi vector<int>
 #define vp vector<pii>
 #define vl vector<long long>
@@ -20,8 +24,8 @@ using pii = pair<ll, ll>;
 #define prq priority_queue
 #define fi first
 #define se second
-constexpr int MOD = int(1e9 + 7);
-constexpr int MOD2 = int(998244353);
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
@@ -130,7 +134,7 @@ namespace utils {
     }
 } // namespace utils
 
-#ifdef LOCAL
+#ifdef WOAIHUTAO
 #define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
 #else
 #define dbg(...) ((void) 0)
@@ -148,72 +152,103 @@ void solve() {
     int n;
     rd(n);
 
-    ll sx, sy;
+    int sx, sy;
     rd(sx, sy);
 
-    set<int> st0, st1;
+    set<int> odd, even;
+    vi type(n + 1);
+
     F(i, 1, n) {
-        ll x, y;
+        int x, y;
         rd(x, y);
-        ll sum = x + y + sx + sy;
-        if (sum & 1) {
-            st1.insert(i);
+
+        if ((x & 1) == (y & 1)) {
+            even.ins(i);
+            type[i] = 0;
         } else {
-            st0.insert(i);
+            odd.ins(i);
+            type[i] = 1;
         }
     }
 
-    if (SZ(st0) >= SZ(st1)) {
-        cout << "First" << endl;
+    bool flag = ((sx + sy) % 2 == 0);
 
-        F(move, 1, n) {
-            if (move & 1) {
-                int id;
-                if (!st1.empty()) {
-                    id = *st1.begin();
-                    st1.erase(id);
+    bool flag2;
+    if (flag)
+        flag2 = (SZ(even) >= SZ(odd));
+    else
+        flag2 = (SZ(odd) >= SZ(even));
+
+    if (flag2) {
+        cout << "First" << endl;
+        F(i, 1, n) {
+            if (i & 1) {
+                if (flag) {
+                    if (!odd.empty()) {
+                        auto it = odd.begin();
+                        cout << *it << endl;
+                        odd.erase(it);
+                    } else {
+                        auto it = even.begin();
+                        cout << *it << endl;
+                        even.erase(it);
+                    }
                 } else {
-                    id = *st0.begin();
-                    st0.erase(id);
+                    if (!even.empty()) {
+                        auto it = even.begin();
+                        cout << *it << endl;
+                        even.erase(it);
+                    } else {
+                        auto it = odd.begin();
+                        cout << *it << endl;
+                        odd.erase(it);
+                    }
                 }
-                cout << id << endl;
             } else {
                 int id;
                 rd(id);
-                if (st0.count(id))
-                    st0.erase(id);
+                if (type[id] == 0)
+                    even.erase(id);
                 else
-                    st1.erase(id);
+                    odd.erase(id);
             }
         }
     } else {
         cout << "Second" << endl;
-
-        F(move, 1, n) {
-            if (move & 1) {
-                int id;
-                rd(id);
-                if (id == -1)
-                    return;
-                if (st0.count(id))
-                    st0.erase(id);
-                else
-                    st1.erase(id);
+        F(i, 1, n) {
+            if (i % 2 == 0) {
+                if (flag) {
+                    if (!even.empty()) {
+                        auto it = even.begin();
+                        cout << *it << endl;
+                        even.erase(it);
+                    } else {
+                        auto it = odd.begin();
+                        cout << *it << endl;
+                        odd.erase(it);
+                    }
+                } else {
+                    if (!odd.empty()) {
+                        auto it = odd.begin();
+                        cout << *it << endl;
+                        odd.erase(it);
+                    } else {
+                        auto it = even.begin();
+                        cout << *it << endl;
+                        even.erase(it);
+                    }
+                }
             } else {
                 int id;
-                if (!st0.empty()) {
-                    id = *st0.begin();
-                    st0.erase(id);
-                } else {
-                    id = *st1.begin();
-                    st1.erase(id);
-                }
-                cout << id << endl;
+                rd(id);
+                if (type[id] == 0)
+                    even.erase(id);
+                else
+                    odd.erase(id);
             }
         }
     }
 }
-
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

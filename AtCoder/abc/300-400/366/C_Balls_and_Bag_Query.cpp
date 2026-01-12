@@ -148,62 +148,29 @@ int Multitest = 0;
 
 void init() {}
 
-const int U = 1 << 20;
-ll f[20][U + 5], g[20][U + 5];
-
-// f是counter,g是sum.
-// g[p][mask]代表p位必须0,低(p-1)位的sum
 void solve() {
-    int n, q;
-    rd(n, q);
+    int q;
+    rd(q);
 
-    vl a(n);
-    rv(a);
-
-    ll need = 0;
-    for (ll x: a) {
-        need += (1LL << 20) - x;
-    }
-
-    F(i, 0, 19) {
-        for (ll x: a) {
-            if (!(x >> i & 1)) {
-                f[i][x]++;
-                g[i][x] += x & ((1 << i) - 1);
-            }
-        }
-
-        F(j, 0, 19) {
-            F(mask, 0, U - 1) {
-                if (mask >> j & 1) {
-                    f[i][mask ^ (1 << j)] += f[i][mask];
-                    g[i][mask ^ (1 << j)] += g[i][mask];
-                }
-            }
-        }
-    }
-
+    map<int, int> cnt;
     while (q--) {
-        ll k;
-        rd(k);
+        int op;
+        rd(op);
 
-        if (k >= need) {
-            ll ans = (1 << 20) + (k - need) / n;
-            prt(ans);
-            continue;
-        }
-
-        ll ans = 0, cnt = 0;
-        D(p, 19, 0) {
-            ll cost = cnt * (1 << p) + f[p][ans] * (1ll << p) - g[p][ans];
-            if (k >= cost) {
-                k -= cost;
-                cnt += f[p][ans];
-                ans |= 1 << p;
+        if (op == 1) {
+            int x;
+            rd(x);
+            cnt[x]++;
+        } else if (op == 2) {
+            int x;
+            rd(x);
+            cnt[x]--;
+            if (cnt[x] == 0) {
+                cnt.erase(x);
             }
+        } else {
+            prt(SZ(cnt));
         }
-
-        prt(ans);
     }
 }
 

@@ -148,60 +148,31 @@ int Multitest = 0;
 
 void init() {}
 
-const int U = 1 << 20;
-ll f[20][U + 5], g[20][U + 5];
-
-// f是counter,g是sum.
-// g[p][mask]代表p位必须0,低(p-1)位的sum
 void solve() {
-    int n, q;
-    rd(n, q);
+    int n;
+    rd(n);
 
-    vl a(n);
-    rv(a);
+    vector<vector<vector<ll>>> s(n + 1, vector<vector<ll>>(n + 1, vector<ll>(n + 1, 0)));
 
-    ll need = 0;
-    for (ll x: a) {
-        need += (1LL << 20) - x;
-    }
-
-    F(i, 0, 19) {
-        for (ll x: a) {
-            if (!(x >> i & 1)) {
-                f[i][x]++;
-                g[i][x] += x & ((1 << i) - 1);
-            }
-        }
-
-        F(j, 0, 19) {
-            F(mask, 0, U - 1) {
-                if (mask >> j & 1) {
-                    f[i][mask ^ (1 << j)] += f[i][mask];
-                    g[i][mask ^ (1 << j)] += g[i][mask];
-                }
+    F(i, 1, n) {
+        F(j, 1, n) {
+            F(k, 1, n) {
+                ll val;
+                rd(val);
+                s[i][j][k] = val + s[i - 1][j][k] + s[i][j - 1][k] + s[i][j][k - 1] - s[i - 1][j - 1][k] -
+                             s[i - 1][j][k - 1] - s[i][j - 1][k - 1] + s[i - 1][j - 1][k - 1];
             }
         }
     }
 
+    int q;
+    rd(q);
     while (q--) {
-        ll k;
-        rd(k);
+        int lx, rx, ly, ry, lz, rz;
+        rd(lx, rx, ly, ry, lz, rz);
 
-        if (k >= need) {
-            ll ans = (1 << 20) + (k - need) / n;
-            prt(ans);
-            continue;
-        }
-
-        ll ans = 0, cnt = 0;
-        D(p, 19, 0) {
-            ll cost = cnt * (1 << p) + f[p][ans] * (1ll << p) - g[p][ans];
-            if (k >= cost) {
-                k -= cost;
-                cnt += f[p][ans];
-                ans |= 1 << p;
-            }
-        }
+        ll ans = s[rx][ry][rz] - s[lx - 1][ry][rz] - s[rx][ly - 1][rz] - s[rx][ry][lz - 1] + s[lx - 1][ly - 1][rz] +
+                 s[lx - 1][ry][lz - 1] + s[rx][ly - 1][lz - 1] - s[lx - 1][ly - 1][lz - 1];
 
         prt(ans);
     }

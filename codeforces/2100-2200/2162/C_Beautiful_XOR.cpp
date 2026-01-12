@@ -144,68 +144,33 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
-const int U = 1 << 20;
-ll f[20][U + 5], g[20][U + 5];
-
-// f是counter,g是sum.
-// g[p][mask]代表p位必须0,低(p-1)位的sum
 void solve() {
-    int n, q;
-    rd(n, q);
+    int a, b;
+    rd(a, b);
 
-    vl a(n);
-    rv(a);
+    int len1 = bit_width((us) a);
+    int len2 = bit_width((us) b);
 
-    ll need = 0;
-    for (ll x: a) {
-        need += (1LL << 20) - x;
+    if (len2 > len1) {
+        prt(-1);
+        return;
     }
 
-    F(i, 0, 19) {
-        for (ll x: a) {
-            if (!(x >> i & 1)) {
-                f[i][x]++;
-                g[i][x] += x & ((1 << i) - 1);
-            }
-        }
+    ll t = 1ll << len1;
+    t--;
 
-        F(j, 0, 19) {
-            F(mask, 0, U - 1) {
-                if (mask >> j & 1) {
-                    f[i][mask ^ (1 << j)] += f[i][mask];
-                    g[i][mask ^ (1 << j)] += g[i][mask];
-                }
-            }
-        }
-    }
+    vi ans;
+    ans.pb(t ^ a);
+    ans.pb(t ^ b);
 
-    while (q--) {
-        ll k;
-        rd(k);
-
-        if (k >= need) {
-            ll ans = (1 << 20) + (k - need) / n;
-            prt(ans);
-            continue;
-        }
-
-        ll ans = 0, cnt = 0;
-        D(p, 19, 0) {
-            ll cost = cnt * (1 << p) + f[p][ans] * (1ll << p) - g[p][ans];
-            if (k >= cost) {
-                k -= cost;
-                cnt += f[p][ans];
-                ans |= 1 << p;
-            }
-        }
-
-        prt(ans);
-    }
+    prt(2);
+    prv(ans);
 }
+
 
 int main() {
     ios::sync_with_stdio(false);
