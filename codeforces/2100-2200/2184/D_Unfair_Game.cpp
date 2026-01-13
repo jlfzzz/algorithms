@@ -140,6 +140,8 @@ namespace utils {
 #define dbg(...) ((void) 0)
 #endif
 
+using namespace utils;
+
 namespace atcoder {
 
     namespace internal {
@@ -675,7 +677,7 @@ namespace atcoder {
 
 } // namespace atcoder
 
-using Z = atcoder::static_modint<MOD2>;
+using Z = atcoder::static_modint<MOD>;
 
 Z q_pow(Z base, long long exp) {
     Z result(1);
@@ -749,91 +751,36 @@ struct Comb {
         return fac(n) * invfac(n - m);
     }
 } comb(N);
-using namespace utils;
 
 int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    int n, k;
+    rd(n, k);
 
-    int n = SZ(s);
-    vi cnt(26);
-    int cnt2 = 0;
-    for (char ch: s) {
-        if (ch == '?') {
-            cnt2++;
+    int m = bit_width((us) n);
+    ll ans = 0;
+
+    F(i, 0, m - 2) {
+        int c1 = k - i - 1;
+
+        if (c1 < 0)
             continue;
-        }
 
-        cnt[ch - 'a']++;
-    }
-
-    vector<Z> dp(cnt2 + 1);
-    dp[0] = 1;
-
-    Z ans = comb.fac(n) * comb.fac(cnt2) / q_pow(26, cnt2);
-    F(i, 0, 25) {
-        vector<Z> ndp(cnt2 + 1);
-        int have = cnt[i];
-
-        F(j, 0, cnt2) {
-            Z coef = comb.invfac(j) * comb.invfac(have + j);
-            F(k, 0, cnt2 - j) {
-                ndp[j + k] += dp[k] * coef;
-            }
-        }
-
-        dp.swap(ndp);
-    }
-
-    ans *= dp[cnt2];
-    prt(ans.val());
-}
-
-
-void solve2() {
-    string s;
-    rd(s);
-
-    vi cnt(26);
-    int m = 0;
-
-    for (char ch: s) {
-        if (ch == '?') {
-            m++;
+        if (c1 >= i) {
+            ans += (1 << i);
         } else {
-            cnt[ch - 'a']++;
+            F(j, 0, c1) { ans += comb.C(i, j).val(); }
         }
     }
 
-    vector<Z> poly = {1};
-    F(i, 0, 25) {
-        vector<Z> cur(m + 1);
-        F(j, 0, m) { cur[j] = comb.invfac(j) * comb.invfac(cnt[i] + j); }
-
-        auto Mul = [&](vector<Z> &a, vector<Z> &b) {
-            int n2 = SZ(a);
-            int m2 = SZ(b);
-            vector<Z> res(min(n2 + m2 - 1, m + 1));
-            int sz = SZ(res);
-
-            F(i, 0, n2 - 1) {
-                int mx = min(m2 - 1, sz - 1 - i);
-                F(j, 0, mx) { res[i + j] += a[i] * b[j]; }
-            }
-
-            return res;
-        };
-
-        poly = Mul(poly, cur);
+    if (m <= k) {
+        ans++;
     }
 
-    Z ans = poly[m] * comb.fac(SZ(s)) * comb.fac(m) / q_pow(26, m);
-
-    prt(ans.val());
+    prt(n - ans);
 }
 
 int main() {

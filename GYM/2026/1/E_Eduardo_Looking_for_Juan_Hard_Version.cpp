@@ -144,15 +144,47 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-void init() {}
+const int LOG = 21;
+int pref[N], vals[N], depth[N];
+int fa[LOG][N];
+vi primes;
+bool prime[71];
+int masks[71];
+
+void init() {
+    F(i, 2, 70) prime[i] = true;
+    F(p, 2, 70) {
+        if (prime[p]) {
+            primes.push_back(p);
+            for (int i = p * p; i <= 70; i += p)
+                prime[i] = false;
+        }
+    }
+    F(i, 1, 70) {
+        int x = i;
+        int m = 0;
+        F(j, 0, SZ(primes) - 1) {
+            int c = 0;
+            while (x % primes[j] == 0) {
+                x /= primes[j];
+                c++;
+            }
+            if (c % 2 != 0)
+                m |= (1 << j);
+        }
+        masks[i] = m;
+    }
+}
+
+int dp[21][1 << 20];
 
 void solve() {
-    int n;
-    rd(n);
+    int n, l;
+    rd(n, l);
 
-    vl a(n + 1);
+    vi a(n + 1);
     rv(a, 1);
 
     vvi g(n + 1);
@@ -163,35 +195,87 @@ void solve() {
         g[v].pb(u);
     }
 
+    memset(dp, 0x3f, sizeof(dp));
+    dp[1][0] = 1;
+    int u = 1 << 19;
+    F(mask, 1, u - 1) {
+        F(i, 0, 18) {
+            if (mask >> i & 1) {
+                int t = mask ^ (1 << i);
+                int p = primes[i];
 
-    vvl dp(101, vl(n + 1));
+                F(j, 1, 19) {
+                    int cur = dp[j][t];
+                    if (cur == inf)
+                        continue;
 
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        F(i, 1, 100) { dp[i][u] = 1ll * i * a[u]; }
-
-        if (u != 1 && SZ(g[u]) == 1) {
-            return;
-        }
-
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+                    int prod = cur * p;
+                    if (prod <= l) {
+                        dp[j][mask] = min(dp[j][mask], (int) prod);
+                    } else {
+                        if (j + 1 <= 19) {
+                            dp[j + 1][mask] = min(dp[j + 1][mask], p);
+                        }
+                    }
+                }
             }
+        }
+    }
 
-            dfs(v, u);
+    F(i, 1, n) { vals[i] = masks[a[i]]; }
 
-            vl pre(105, INF), suf(105, INF);
-            F(i, 1, 100) { pre[i] = min(pre[i - 1], dp[i][v]); }
-            D(i, 100, 1) { suf[i] = min(suf[i + 1], dp[i][v]); }
-            F(i, 1, 100) { dp[i][u] += min(pre[i - 1], suf[i + 1]); }
+    auto dfs = [&](this auto &&dfs, int u, int pa, int pre) -> void {
+        fa[0][u] = pa;
+        pref[u] = pre ^ vals[u];
+        F(i, 1, LOG - 1) { fa[i][u] = fa[i - 1][fa[i - 1][u]]; }
+        for (int v: g[u]) {
+            if (v == pa)
+                continue;
+            depth[v] = depth[u] + 1;
+            dfs(v, u, pref[u]);
         }
     };
-    dfs(1, 0);
 
-    ll ans = INF;
-    F(i, 1, 100) { ans = min(ans, dp[i][1]); }
+    dfs(1, 0, 0);
 
-    prt(ans);
+    int q;
+    rd(q);
+    while (q--) {
+        int u, v;
+        rd(u, v);
+        int oldu = u, oldv = v;
+        if (depth[u] < depth[v])
+            swap(u, v);
+        int d = depth[u] - depth[v];
+        F(i, 0, LOG - 1) {
+            if ((d >> i) & 1)
+                u = fa[i][u];
+        }
+        int lca = u;
+        if (u != v) {
+            D(i, LOG - 1, 0) {
+                if (fa[i][u] != fa[i][v]) {
+                    u = fa[i][u];
+                    v = fa[i][v];
+                }
+            }
+            lca = fa[0][u];
+        }
+
+        int ans = pref[oldu] ^ pref[oldv] ^ vals[lca];
+
+        if (ans == 0) {
+            prt(0);
+            continue;
+        }
+
+        F(i, 1, 19) {
+            if (dp[i][ans] != inf) {
+                prt(i);
+                break;
+            }
+        }
+    }
 }
 
 int main() {

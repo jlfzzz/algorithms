@@ -144,7 +144,7 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
@@ -152,44 +152,48 @@ void solve() {
     int n;
     rd(n);
 
-    vl a(n + 1);
-    rv(a, 1);
+    vvi a(n, vi(n));
+    F(i, 0, n - 1) { rv(a[i]); }
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    vi group(n);
+    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+    // F(i, 0, n - 1) group[i] = rng() % 2;
 
+    while (true) {
+        bool changed = false;
 
-    vvl dp(101, vl(n + 1));
+        F(i, 0, n - 1) {
+            ll sum_in = 0;
+            ll sum_out = 0;
 
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        F(i, 1, 100) { dp[i][u] = 1ll * i * a[u]; }
-
-        if (u != 1 && SZ(g[u]) == 1) {
-            return;
-        }
-
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
+            F(j, 0, n - 1) {
+                if (i == j)
+                    continue;
+                if (group[i] == group[j]) {
+                    sum_in += a[i][j];
+                } else {
+                    sum_out += a[i][j];
+                }
             }
 
-            dfs(v, u);
-
-            vl pre(105, INF), suf(105, INF);
-            F(i, 1, 100) { pre[i] = min(pre[i - 1], dp[i][v]); }
-            D(i, 100, 1) { suf[i] = min(suf[i + 1], dp[i][v]); }
-            F(i, 1, 100) { dp[i][u] += min(pre[i - 1], suf[i + 1]); }
+            if (sum_in < sum_out) {
+                group[i] ^= 1;
+                changed = true;
+            }
         }
-    };
-    dfs(1, 0);
 
-    ll ans = INF;
-    F(i, 1, 100) { ans = min(ans, dp[i][1]); }
+        if (!changed)
+            break;
+    }
+
+    string ans;
+    F(i, 0, n - 1) {
+        if (group[i] == 1)
+            ans += "X";
+        else {
+            ans += 'Y';
+        }
+    }
 
     prt(ans);
 }

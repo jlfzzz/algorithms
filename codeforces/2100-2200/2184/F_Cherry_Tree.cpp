@@ -152,9 +152,6 @@ void solve() {
     int n;
     rd(n);
 
-    vl a(n + 1);
-    rv(a, 1);
-
     vvi g(n + 1);
     F(i, 1, n - 1) {
         int u, v;
@@ -163,35 +160,40 @@ void solve() {
         g[v].pb(u);
     }
 
-
-    vvl dp(101, vl(n + 1));
-
+    vvi dp(n + 1, vi(3));
     auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        F(i, 1, 100) { dp[i][u] = 1ll * i * a[u]; }
-
-        if (u != 1 && SZ(g[u]) == 1) {
-            return;
-        }
+        vi ndp(3, 0);
+        ndp[0] = 1;
+        bool leaf = true;
 
         for (int v: g[u]) {
-            if (v == fa) {
+            if (v == fa)
                 continue;
-            }
-
+            leaf = false;
             dfs(v, u);
 
-            vl pre(105, INF), suf(105, INF);
-            F(i, 1, 100) { pre[i] = min(pre[i - 1], dp[i][v]); }
-            D(i, 100, 1) { suf[i] = min(suf[i + 1], dp[i][v]); }
-            F(i, 1, 100) { dp[i][u] += min(pre[i - 1], suf[i + 1]); }
+            vi nxt(3);
+            F(i, 0, 2) {
+                F(j, 0, 2) {
+                    if (ndp[i] && dp[v][j]) {
+                        nxt[(i + j) % 3] = 1;
+                    }
+                }
+            }
+            ndp = nxt;
+        }
+
+        if (leaf) {
+            dp[u][1] = 1;
+        } else {
+            dp[u] = ndp;
+            dp[u][1] = 1;
         }
     };
+
     dfs(1, 0);
 
-    ll ans = INF;
-    F(i, 1, 100) { ans = min(ans, dp[i][1]); }
-
-    prt(ans);
+    prt(dp[1][0] ? "YES" : "NO");
 }
 
 int main() {

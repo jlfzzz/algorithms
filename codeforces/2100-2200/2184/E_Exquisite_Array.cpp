@@ -151,47 +151,46 @@ void init() {}
 void solve() {
     int n;
     rd(n);
+    vi p(n);
+    rv(p);
 
-    vl a(n + 1);
-    rv(a, 1);
+    vi d(n - 1);
+    F(i, 0, n - 2) { d[i] = abs(p[i] - p[i + 1]); }
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+    int m = n - 1;
+    vi L(m), R(m);
+    vi stk;
+
+    F(i, 0, m - 1) {
+        while (!stk.empty() && d[stk.back()] >= d[i]) {
+            stk.pop_back();
+        }
+        L[i] = stk.empty() ? -1 : stk.back();
+        stk.pb(i);
+    }
+
+    stk.clear();
+    D(i, m - 1, 0) {
+        while (!stk.empty() && d[stk.back()] > d[i]) {
+            stk.pop_back();
+        }
+        R[i] = stk.empty() ? m : stk.back();
+        stk.pb(i);
+    }
+
+    vl diff(n + 2);
+
+    F(i, 0, m - 1) {
+        ll tot = (ll) (i - L[i]) * (R[i] - i);
+        diff[1] += tot;
+        diff[d[i] + 1] -= tot;
     }
 
 
-    vvl dp(101, vl(n + 1));
+    F(i, 1, n - 1) { diff[i] += diff[i - 1]; }
 
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        F(i, 1, 100) { dp[i][u] = 1ll * i * a[u]; }
-
-        if (u != 1 && SZ(g[u]) == 1) {
-            return;
-        }
-
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            dfs(v, u);
-
-            vl pre(105, INF), suf(105, INF);
-            F(i, 1, 100) { pre[i] = min(pre[i - 1], dp[i][v]); }
-            D(i, 100, 1) { suf[i] = min(suf[i + 1], dp[i][v]); }
-            F(i, 1, 100) { dp[i][u] += min(pre[i - 1], suf[i + 1]); }
-        }
-    };
-    dfs(1, 0);
-
-    ll ans = INF;
-    F(i, 1, 100) { ans = min(ans, dp[i][1]); }
-
-    prt(ans);
+    F(i, 1, n - 1) { cout << diff[i] << " "; }
+    cout << '\n';
 }
 
 int main() {

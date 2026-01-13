@@ -144,54 +144,89 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    int n, m;
+    rd(n, m);
 
-    vl a(n + 1);
-    rv(a, 1);
-
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
+    vector<ull> a(n, 0);
+    F(i, 1, m) {
         int u, v;
         rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
+        --u;
+        --v;
+        a[u] |= (1ULL << v);
+        a[v] |= (1ULL << u);
     }
 
+    int r = 0;
+    vi pivot(n, -1);
+    vector<bool> is_pivot_col(n, false);
 
-    vvl dp(101, vl(n + 1));
+    F(c, 0, n - 1) {
+        if (r >= n)
+            break;
+        int sel = -1;
+        F(i, r, n - 1) {
+            if ((a[i] >> c) & 1) {
+                sel = i;
+                break;
+            }
+        }
+        if (sel == -1)
+            continue;
 
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        F(i, 1, 100) { dp[i][u] = 1ll * i * a[u]; }
+        swap(a[sel], a[r]);
+        F(i, 0, n - 1) {
+            if (i != r && ((a[i] >> c) & 1)) {
+                a[i] ^= a[r];
+            }
+        }
+        pivot[r] = c;
+        is_pivot_col[c] = true;
+        r++;
+    }
 
-        if (u != 1 && SZ(g[u]) == 1) {
+    vector<ull> basis;
+    F(c, 0, n - 1) {
+        if (!is_pivot_col[c]) {
+            ull vec = (1ULL << c);
+            F(i, 0, r - 1) {
+                if ((a[i] >> c) & 1) {
+                    vec |= (1ULL << pivot[i]);
+                }
+            }
+            basis.pb(vec); 
+        }
+    }
+
+    if (basis.empty()) {
+        prt("No");
+        return;
+    }
+
+    vector<ull> x(n, 0);
+    int basis_cnt = SZ(basis);
+    F(k, 0, min(basis_cnt, 60) - 1) {
+        F(i, 0, n - 1) {
+            if ((basis[k] >> i) & 1) {
+                x[i] |= (1ULL << k);
+            }
+        }
+    }
+
+    F(i, 0, n - 1) {
+        if (x[i] == 0) {
+            prt("No");
             return;
         }
+    }
 
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            dfs(v, u);
-
-            vl pre(105, INF), suf(105, INF);
-            F(i, 1, 100) { pre[i] = min(pre[i - 1], dp[i][v]); }
-            D(i, 100, 1) { suf[i] = min(suf[i + 1], dp[i][v]); }
-            F(i, 1, 100) { dp[i][u] += min(pre[i - 1], suf[i + 1]); }
-        }
-    };
-    dfs(1, 0);
-
-    ll ans = INF;
-    F(i, 1, 100) { ans = min(ans, dp[i][1]); }
-
-    prt(ans);
+    prt("Yes");
+    prv(x); 
 }
 
 int main() {

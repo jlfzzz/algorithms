@@ -19,7 +19,16 @@ MOD = int(1e9 + 7)
 
 
 def main():
-    print(factorial(7))
+    # print(bin(23))
+
+    # lst = [7, 18, 21, 22, 23]
+    # for x in lst:
+    #     print(bin(x))
+
+    print(bin(14))
+    lst = [4, 10, 12, 14]
+    for x in lst:
+        print(bin(x))
 
 
 if __name__ == "__main__":
