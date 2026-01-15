@@ -148,34 +148,102 @@ int Multitest = 0;
 
 void init() {}
 
-int last[N], st[N];
-int big[N];
+vi pos[N];
 const int B = 500;
 ll dp[B][N];
+int ids[N];
+ll sum[N];
 
 void solve() {
     int n, m;
     rd(n, m);
 
-    vp a(m);
-    rv(a);
+    vp a(m + 1);
+    rv(a, 1);
 
-    for (auto [t, id]: a) {
-        big[id]++;
+    F(i, 1, m) { pos[a[i].se].pb(i); }
+
+    int tot = 0;
+    F(i, 1, n) {
+        if (SZ(pos[i]) < B) {
+            continue;
+        }
+
+        ids[i] = tot;
+        sum[0] = 0;
+        bool inside = false;
+
+        F(j, 1, m) {
+            sum[j] = sum[j - 1];
+
+            if (inside) {
+                sum[j] += (a[j].fi - a[j - 1].fi);
+            }
+
+            if (a[j].se == i) {
+                inside = !inside;
+            }
+        }
+
+        F(j, 1, n) {
+            ll overlap = 0;
+            for (size_t k = 0; k < pos[j].size(); k += 2) {
+                int idx_in = pos[j][k];
+                int idx_out = pos[j][k + 1];
+
+                overlap += sum[idx_out] - sum[idx_in];
+            }
+            dp[tot][j] = overlap;
+        }
+
+        tot++;
     }
 
-    ranges::sort(a);
+    int q;
+    rd(q);
 
-    vp b;
+    while (q--) {
+        int x, y;
+        rd(x, y);
 
-    for (auto [t, id]: a) {
-        if (st[id] == 0) {
-            st[id] = 1;
-            last[id] = t;
-        } else {
-            st[id] = 0;
-            b.pb(t - last[id] + 1, id);
+        if (SZ(pos[x]) < SZ(pos[y])) {
+            swap(x, y);
         }
+
+        if (SZ(pos[x]) >= B) {
+            prt(dp[ids[x]][y]);
+            continue;
+        }
+
+        auto &v1 = pos[x];
+        auto &v2 = pos[y];
+
+        int p1 = 0;
+        int p2 = 0;
+        int sz1 = SZ(v1);
+        int sz2 = SZ(v2);
+
+        ll ans = 0;
+        while (p1 < sz1 && p2 < sz2) {
+            ll l1 = a[v1[p1]].fi;
+            ll r1 = a[v1[p1 + 1]].fi;
+            ll l2 = a[v2[p2]].fi;
+            ll r2 = a[v2[p2 + 1]].fi;
+
+            ll L = max(l1, l2);
+            ll R = min(r1, r2);
+
+            if (L < R) {
+                ans += R - L;
+            }
+
+            if (r1 < r2) {
+                p1 += 2;
+            } else {
+                p2 += 2;
+            }
+        }
+        prt(ans);
     }
 }
 

@@ -12,6 +12,7 @@ using ll = long long;
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
+#define us unsigned
 #define vi vector<int>
 #define vp vector<pii>
 #define vl vector<long long>
@@ -147,64 +148,58 @@ int Multitest = 0;
 
 void init() {}
 
-ll cost0[32], cost1[32];
-
-void dfs(const vector<int> &a, int bit) {
-    if (bit < 0 || a.empty())
-        return;
-
-    vector<int> z, o;
-    ll inv0 = 0;
-    ll inv1 = 0;
-
-    ll cnt0 = 0;
-    ll cnt1 = 0;
-
-    for (int x: a) {
-        if ((x >> bit) & 1) {
-            inv1 += cnt0;
-
-            cnt1++;
-            o.pb(x);
-        } else {
-            inv0 += cnt1;
-
-            cnt0++;
-            z.pb(x);
-        }
-    }
-
-    cost0[bit] += inv0;
-    cost1[bit] += inv1;
-
-    dfs(z, bit - 1);
-    dfs(o, bit - 1);
-}
-
 void solve() {
     int n;
     rd(n);
+
     vi a(n);
     rv(a);
 
-    memset(cost0, 0, sizeof(cost0));
-    memset(cost1, 0, sizeof(cost1));
 
-    dfs(a, 29);
+    vl choose0(31, 0), choose1(31, 0);
+    auto dfs = [&](this auto &&dfs, int i, vi &arr) -> void {
+        if (i < 0 || arr.empty())
+            return;
 
-    ll ans = 0;
-    int x = 0;
+        vi nxt0, nxt1;
+        int c0 = 0, c1 = 0;
+        ll s0 = 0, s1 = 0;
+
+        for (int x: arr) {
+            int b = (x >> i) & 1;
+            if (b) {
+                s1 += c0;
+                c1++;
+                nxt1.pb(x);
+            } else {
+                s0 += c1;
+                c0++;
+                nxt0.pb(x);
+            }
+        }
+
+        choose0[i] += s0;
+        choose1[i] += s1;
+
+        dfs(i - 1, nxt0);
+        dfs(i - 1, nxt1);
+    };
+
+    dfs(29, a);
+
+    ll mn = 0;
+    int ans = 0;
 
     D(i, 29, 0) {
-        if (cost0[i] <= cost1[i]) {
-            ans += cost0[i];
+        if (choose0[i] <= choose1[i]) {
+            mn += choose0[i];
         } else {
-            ans += cost1[i];
-            x |= (1 << i);
+            mn += choose1[i];
+            ans |= (1 << i);
         }
     }
 
-    prt(ans, x);
+    prt(mn, ans);
 }
 
 int main() {

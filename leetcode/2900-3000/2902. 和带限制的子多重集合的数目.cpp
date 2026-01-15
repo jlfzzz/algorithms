@@ -1,83 +1,80 @@
-#include "bits/stdc++.h"
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
 using namespace std;
+using namespace __gnu_pbds;
+using ordered_set = tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+using ordered_map = tree<int, int, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+using ordered_multiset =
+    tree<pair<long long, long long>, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update>;
+
+constexpr int N = int(5e5 + 5);
+int INIT = [] { return 0; }();
+
 using ll = long long;
-constexpr int MOD = 1'000'000'007;
-constexpr int DIR[4][2] =  {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD = int(1e9 + 7);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 class Solution {
 public:
     int countSubMultisets(vector<int> &nums, int l, int r) {
-        const int MOD = 1e9 + 7;
         int total = 0;
-        unordered_map<int, int> cnt;
-        for (int x: nums) {
+        for (int x: nums)
             total += x;
-            cnt[x]++;
-        }
-        if (l > total) {
-            return 0;
-        }
 
         r = min(r, total);
-        vector<int> f(r + 1);
-        f[0] = cnt[0] + 1;
-        cnt.erase(0);
 
-        int sum = 0;
+        unordered_map<int, int> cnt;
+        for (int x: nums)
+            cnt[x]++;
+
+        vi dp(r + 1, 0);
+        dp[0] = 1;
+
         for (auto [x, c]: cnt) {
-            auto new_f = f;
-            sum = min(sum + x * c, r); // 到目前为止，能选的元素和至多为 sum
-            for (int j = x; j <= sum; j++) { // 把循环上界从 r 改成 sum 可以快不少
-                new_f[j] = (new_f[j] + new_f[j - x]) % MOD;
-                if (j >= (c + 1) * x) {
-                    new_f[j] = (new_f[j] - f[j - (c + 1) * x] + MOD) % MOD; // 避免减法产生负数
-                }
+            if (x == 0) {
+                continue;
             }
-            f = move(new_f);
+
+            F(j, x, r) { dp[j] = (dp[j] + dp[j - x]) % MOD; }
+
+            int step = (c + 1) * x;
+            D(j, r, step) { dp[j] = (dp[j] - dp[j - step] + MOD) % MOD; }
         }
 
-        int ans = 0;
-        for (int i = l; i <= r; i++) {
-            ans = (ans + f[i]) % MOD;
-        }
-        return ans;
+        ll ans = 0;
+        F(i, l, r) { ans = (ans + dp[i]) % MOD; }
+
+        return (ans * (cnt[0] + 1) % MOD);
     }
 };
 
-class Solution {
-public:
-    int countSubMultisets(vector<int> &nums, int l, int r) {
-        const int MOD = 1e9 + 7;
-        int total = 0;
-        unordered_map<int, int> cnt;
-        for (int x : nums) {
-            total += x;
-            cnt[x]++;
-        }
-        if (l > total) {
-            return 0;
-        }
-
-        r = min(r, total);
-        vector<int> f(r + 1);
-        f[0] = cnt[0] + 1;
-        cnt.erase(0);
-
-        int sum = 0;
-        for (auto [x, c] : cnt) {
-            sum = min(sum + x * c, r);
-            for (int j = x; j <= sum; j++) {
-                f[j] = (f[j] + f[j - x]) % MOD; // 原地计算同余前缀和
-            }
-            for (int j = sum; j >= x * (c + 1); j--) {
-                f[j] = (f[j] - f[j - x * (c + 1)] + MOD) % MOD; // 两个同余前缀和的差
-            }
-        }
-
-        int ans = 0;
-        for (int i = l; i <= r; i++) {
-            ans = (ans + f[i]) % MOD;
-        }
-        return ans;
-    }
-};
+// int main() {
+//     ios::sync_with_stdio(false);
+//     cin.tie(nullptr);
+//     Solution sol;
+// }
