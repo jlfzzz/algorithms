@@ -142,7 +142,9 @@ namespace utils {
 
 using namespace utils;
 
-int Multitest = 1;
+constexpr int N = 1e6 + 5;
+
+int Multitest = 0;
 
 void init() {}
 
@@ -150,41 +152,31 @@ void solve() {
     int n;
     rd(n);
 
-    if (n == 1) {
-        prt(1);
-        prt(1);
-        return;
+    vl a(n + 1);
+    rv(a, 1);
+
+    vvi pref(30, vi(2));
+    F(j, 0, 29) { pref[j][0] = 1; }
+
+    ll total_xor_sum = 0;
+    ll sum_a = 0;
+    int cur_p = 0;
+
+    F(i, 1, n) {
+        cur_p ^= a[i];
+        sum_a += a[i];
+        F(j, 0, 29) {
+            int b = (cur_p >> j) & 1;
+            int target = b ^ 1;
+            total_xor_sum += (1ll << j) * pref[j][target];
+        }
+        F(j, 0, 29) {
+            int b = (cur_p >> j) & 1;
+            pref[j][b]++;
+        }
     }
 
-    if (n == 2) {
-        prt(2);
-        prt(1, 2);
-        return;
-    }
-
-    if (n == 3) {
-        prt(2);
-        prt(1, 2, 2);
-        return;
-    }
-
-    if (n == 4) {
-        prt(3);
-        prt(1, 2, 2, 3);
-        return;
-    }
-
-    if (n == 5) {
-        prt(3);
-        prt(1, 2, 2, 3, 3);
-        return;
-    }
-
-    prt(4);
-
-    vi ans(n + 1);
-    F(i, 1, n) { ans[i] = ((i - 1) % 4) + 1; }
-    prv(ans, 1);
+    prt(total_xor_sum - sum_a);
 }
 
 int main() {

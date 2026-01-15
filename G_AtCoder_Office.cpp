@@ -142,49 +142,41 @@ namespace utils {
 
 using namespace utils;
 
-int Multitest = 1;
+constexpr int N = 2e5 + 5;
+
+int Multitest = 0;
 
 void init() {}
 
+int last[N], st[N];
+int big[N];
+const int B = 500;
+ll dp[B][N];
+
 void solve() {
-    int n;
-    rd(n);
+    int n, m;
+    rd(n, m);
 
-    if (n == 1) {
-        prt(1);
-        prt(1);
-        return;
+    vp a(m);
+    rv(a);
+
+    for (auto [t, id]: a) {
+        big[id]++;
     }
 
-    if (n == 2) {
-        prt(2);
-        prt(1, 2);
-        return;
+    ranges::sort(a);
+
+    vp b;
+
+    for (auto [t, id]: a) {
+        if (st[id] == 0) {
+            st[id] = 1;
+            last[id] = t;
+        } else {
+            st[id] = 0;
+            b.pb(t - last[id] + 1, id);
+        }
     }
-
-    if (n == 3) {
-        prt(2);
-        prt(1, 2, 2);
-        return;
-    }
-
-    if (n == 4) {
-        prt(3);
-        prt(1, 2, 2, 3);
-        return;
-    }
-
-    if (n == 5) {
-        prt(3);
-        prt(1, 2, 2, 3, 3);
-        return;
-    }
-
-    prt(4);
-
-    vi ans(n + 1);
-    F(i, 1, n) { ans[i] = ((i - 1) % 4) + 1; }
-    prv(ans, 1);
 }
 
 int main() {

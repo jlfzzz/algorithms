@@ -142,7 +142,9 @@ namespace utils {
 
 using namespace utils;
 
-int Multitest = 1;
+constexpr int N = 1e6 + 5;
+
+int Multitest = 0;
 
 void init() {}
 
@@ -150,41 +152,44 @@ void solve() {
     int n;
     rd(n);
 
-    if (n == 1) {
-        prt(1);
-        prt(1);
-        return;
+    string s;
+    rd(s);
+
+    map<char, int> mp;
+    mp['R'] = 0;
+    mp['P'] = 1;
+    mp['S'] = 2;
+
+    vvi dp(n + 1, vi(3, -inf));
+
+    F(i, 1, n) {
+        int cur = mp[s[i - 1]];
+        int lose_move = (cur - 1 + 3) % 3;
+        int win_move = (cur + 1) % 3;
+
+        F(j, 0, 2) {
+            if (j == lose_move)
+                continue;
+
+            int d = (j == win_move ? 1 : 0);
+
+            if (i == 1) {
+                dp[i][j] = d;
+            } else {
+                int pre_max = -inf;
+                F(k, 0, 2) {
+                    if (j != k) {
+                        pre_max = max(pre_max, dp[i - 1][k]);
+                    }
+                }
+                if (pre_max != -inf) {
+                    dp[i][j] = pre_max + d;
+                }
+            }
+        }
     }
 
-    if (n == 2) {
-        prt(2);
-        prt(1, 2);
-        return;
-    }
-
-    if (n == 3) {
-        prt(2);
-        prt(1, 2, 2);
-        return;
-    }
-
-    if (n == 4) {
-        prt(3);
-        prt(1, 2, 2, 3);
-        return;
-    }
-
-    if (n == 5) {
-        prt(3);
-        prt(1, 2, 2, 3, 3);
-        return;
-    }
-
-    prt(4);
-
-    vi ans(n + 1);
-    F(i, 1, n) { ans[i] = ((i - 1) % 4) + 1; }
-    prv(ans, 1);
+    prt(max({dp[n][0], dp[n][1], dp[n][2]}));
 }
 
 int main() {

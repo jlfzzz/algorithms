@@ -149,74 +149,114 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    int n, m;
-    rd(n, m);
-    vvi g(n + 1);
-    F(i, 1, m) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    int v;
+    rd(v);
 
-    vi color(n + 1, 0);
-    vi n1, n2;
-    bool flag = true;
+    vi a(3);
+    rv(a);
 
-    auto dfs = [&](this auto &&dfs, int u, int c) -> void {
-        color[u] = c;
-        if (c == 1)
-            n1.pb(u);
-        else
-            n2.pb(u);
+    vi b(3);
+    rv(b);
 
-        for (int v: g[u]) {
-            if (!color[v]) {
-                dfs(v, 3 - c);
-            } else if (color[v] == c) {
-                flag = false;
-            }
-        }
+    struct S {
+        ll x, y, z, val, st;
     };
 
-    F(i, 1, n) {
-        if (!color[i])
-            dfs(i, 1);
-    }
+    vector<S> items;
+    F(nx, 0, b[0]) {
+        F(ny, 0, b[1]) {
+            if (nx + ny > 180)
+                break;
+            F(nz, 0, b[2]) {
+                if (nx + ny + nz > 180)
+                    break;
+                if (nx + ny + nz == 0)
+                    continue;
+                ll weight = (ll) nx * a[0] + (ll) ny * a[1] + (ll) nz * a[2];
 
-    if (!flag) {
-        prt("Alice");
-        cout.flush();
-        F(i, 1, n) {
-            prt(1, 2);
-            cout.flush();
-            int v, c;
-            rd(v, c);
-        }
-    } else {
-        prt("Bob");
-        cout.flush();
-        int c1 = 0, c2 = 0;
-        F(i, 1, n) {
-            int a, b;
-            rd(a, b);
+                if (weight >= 100) {
+                    bool minimal = true;
+                    if (nx > 0 && (nx - 1) * a[0] + ny * a[1] + nz * a[2] >= 100)
+                        minimal = false;
+                    if (ny > 0 && nx * a[0] + (ny - 1) * a[1] + nz * a[2] >= 100)
+                        minimal = false;
+                    if (nz > 0 && nx * a[0] + ny * a[1] + (nz - 1) * a[2] >= 100)
+                        minimal = false;
+                    if (minimal) {
+                        ll prof = (ll) v * 100 - weight * 5;
+                        if (prof > 0)
+                            items.pb(S{(ll) nx, (ll) ny, (ll) nz, prof, 0});
+                    }
+                }
 
-            if (c1 < SZ(n1) && (a == 1 || b == 1)) {
-                prt(n1[c1++], 1);
-            } else if (c2 < SZ(n2) && (a == 2 || b == 2)) {
-                prt(n2[c2++], 2);
-            } else {
-                if (c1 < SZ(n1)) {
-                    int col3 = (a == 2 ? b : a);
-                    prt(n1[c1++], col3);
-                } else {
-                    int col3 = (a == 1 ? b : a);
-                    prt(n2[c2++], col3);
+                // 检查是否为极小组合 (st=1)
+                ll target_win = max(100LL, 20LL * v + 1);
+                if (weight >= target_win) {
+                    bool minimal = true;
+                    if (nx > 0 && (nx - 1) * a[0] + ny * a[1] + nz * a[2] >= target_win)
+                        minimal = false;
+                    if (ny > 0 && nx * a[0] + (ny - 1) * a[1] + nz * a[2] >= target_win)
+                        minimal = false;
+                    if (nz > 0 && nx * a[0] + ny * a[1] + (nz - 1) * a[2] >= target_win)
+                        minimal = false;
+                    if (minimal) {
+                        ll prof = (ll) v * 100 - weight * 5;
+                        items.pb(S{(ll) nx, (ll) ny, (ll) nz, prof, 1});
+                    }
                 }
             }
-            cout.flush();
         }
     }
+
+    // 2. 四维 DP 刷表更新
+    // dp[x][y][z][0]: 尚未包含中奖盒
+    // dp[x][y][z][1]: 已包含至少一个中奖盒
+    static ll dp[181][181][181][2];
+    F(i, 0, b[0]) F(j, 0, b[1]) F(k, 0, b[2]) dp[i][j][k][0] = dp[i][j][k][1] = -INF;
+
+    dp[0][0][0][0] = 0;
+
+    for (auto &it: items) {
+        if (it.st == 0) {
+            // 普通盒：完全背包更新 (正向刷表)
+            F(i, 0, b[0] - it.x) {
+                F(j, 0, b[1] - it.y) {
+                    if (i + j + it.x + it.y > 180)
+                        break;
+                    F(k, 0, b[2] - it.z) {
+                        if (i + j + k + it.x + it.y + it.z > 180)
+                            break;
+                        if (dp[i][j][k][0] > -INF)
+                            dp[i + it.x][j + it.y][k + it.z][0] =
+                                max(dp[i + it.x][j + it.y][k + it.z][0], dp[i][j][k][0] + it.val);
+                        if (dp[i][j][k][1] > -INF)
+                            dp[i + it.x][j + it.y][k + it.z][1] =
+                                max(dp[i + it.x][j + it.y][k + it.z][1], dp[i][j][k][1] + it.val);
+                    }
+                }
+            }
+        } else {
+            // 中奖盒：状态 0 转移至 1 (为了保证至少一个，逆向更新或仅更新0->1)
+            D(i, b[0] - it.x, 0) {
+                D(j, b[1] - it.y, 0) {
+                    if (i + j + it.x + it.y > 180)
+                        continue;
+                    D(k, b[2] - it.z, 0) {
+                        if (i + j + k + it.x + it.y + it.z > 180)
+                            continue;
+                        if (dp[i][j][k][0] > -INF)
+                            dp[i + it.x][j + it.y][k + it.z][1] =
+                                max(dp[i + it.x][j + it.y][k + it.z][1], dp[i][j][k][0] + it.val);
+                    }
+                }
+            }
+        }
+    }
+
+    // 3. 统计结果
+    ll ans = 0;
+    F(i, 0, b[0]) F(j, 0, b[1]) F(k, 0, b[2]) ans = max(ans, dp[i][j][k][1]);
+    prt(ans);
 }
 
 int main() {

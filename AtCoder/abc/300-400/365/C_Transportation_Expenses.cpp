@@ -142,51 +142,45 @@ namespace utils {
 
 using namespace utils;
 
-int Multitest = 1;
+constexpr int N = 1e6 + 5;
+
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n;
-    rd(n);
+    ll n, m;
+    if (!(cin >> n >> m))
+        return;
 
-    if (n == 1) {
-        prt(1);
-        prt(1);
+    vl a(n);
+    rv(a); 
+
+    ll total_sum = 0;
+    F(i, 0, n - 1) { total_sum += a[i]; }
+
+    if (total_sum <= m) {
+        prt("infinite");
         return;
     }
 
-    if (n == 2) {
-        prt(2);
-        prt(1, 2);
-        return;
+    ll low = 0, high = 1000000000, ans = 0;
+    while (low <= high) {
+        ll mid = low + (high - low) / 2;
+        ll current_subsidy = 0;
+
+        F(i, 0, n - 1) { current_subsidy += min((ll) mid, a[i]); }
+
+        if (current_subsidy <= m) {
+            ans = mid;
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
     }
 
-    if (n == 3) {
-        prt(2);
-        prt(1, 2, 2);
-        return;
-    }
-
-    if (n == 4) {
-        prt(3);
-        prt(1, 2, 2, 3);
-        return;
-    }
-
-    if (n == 5) {
-        prt(3);
-        prt(1, 2, 2, 3, 3);
-        return;
-    }
-
-    prt(4);
-
-    vi ans(n + 1);
-    F(i, 1, n) { ans[i] = ((i - 1) % 4) + 1; }
-    prv(ans, 1);
+    prt(ans); 
 }
-
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

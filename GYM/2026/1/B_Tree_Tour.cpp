@@ -142,6 +142,8 @@ namespace utils {
 
 using namespace utils;
 
+constexpr int N = 1e6 + 5;
+
 int Multitest = 1;
 
 void init() {}
@@ -150,41 +152,66 @@ void solve() {
     int n;
     rd(n);
 
-    if (n == 1) {
-        prt(1);
-        prt(1);
+    vvi g(n + 1);
+    vi deg3;
+    F(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+
+    F(i, 1, n) {
+        if (SZ(g[i]) >= 4) {
+            prt("NO");
+            return;
+        }
+        if (SZ(g[i]) == 3) {
+            deg3.pb(i);
+        }
+    }
+
+    if (deg3.empty()) {
+        prt("YES");
         return;
     }
 
-    if (n == 2) {
-        prt(2);
-        prt(1, 2);
-        return;
-    }
+    int root = deg3[0];
+    int ans = 1;
+    vi has3(n + 1, 0);
 
-    if (n == 3) {
-        prt(2);
-        prt(1, 2, 2);
-        return;
-    }
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        int cnt3 = 0;
+        if (SZ(g[u]) == 3)
+            has3[u] = 1;
 
-    if (n == 4) {
-        prt(3);
-        prt(1, 2, 2, 3);
-        return;
-    }
+        for (int v: g[u]) {
+            if (v == fa)
+                continue;
+            dfs(v, u);
+            if (has3[v]) {
+                cnt3++;
+                has3[u] = 1;
+            }
+        }
 
-    if (n == 5) {
-        prt(3);
-        prt(1, 2, 2, 3, 3);
-        return;
-    }
+        if (!ans)
+            return;
 
-    prt(4);
+        if (SZ(g[u]) == 3) {
+            if (u == root) {
+                if (cnt3 > 2)
+                    ans = 0;
+            } else {
+                if (cnt3 > 1)
+                    ans = 0;
+            }
+        }
+    };
 
-    vi ans(n + 1);
-    F(i, 1, n) { ans[i] = ((i - 1) % 4) + 1; }
-    prv(ans, 1);
+    dfs(root, 0);
+
+    prt(ans ? "YES" : "NO");
 }
 
 int main() {
