@@ -18,9 +18,11 @@
 
 using namespace std;
 
+// 支持 string 和 vector<T>
 class KMP {
 public:
-    static vector<int> buildLPS(const string& s) {
+    template<typename T>
+    static vector<int> buildLPS(const T &s) {
         int n = s.size();
         vector<int> next(n, 0);
         int i = 1;
@@ -38,18 +40,19 @@ public:
         return next;
     }
 
-    // KMP搜索函数 - 返回所有匹配位置
-    static vector<int> search(const string& text, const string& pattern) {
+    template<typename T>
+    static vector<int> search(const T &text, const T &pattern) {
         vector<int> result;
-        int n = text.length();
-        int m = pattern.length();
+        int n = text.size();
+        int m = pattern.size();
 
-        if (m == 0) return result;
+        if (m == 0)
+            return result;
         vector<int> lps = buildLPS(pattern);
 
-        int i = 0;  // text的索引
+        int i = 0; // text的索引
         int j = 0; // pattern的索引
-        
+
         while (i < n) {
             while (j > 0 && text[i] != pattern[j]) {
                 j = lps[j - 1];

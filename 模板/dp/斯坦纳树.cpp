@@ -1,207 +1,160 @@
-#include <bits/stdc++.h>
+#include <algorithm>
+#include <iostream>
+#include <queue>
+#include <vector>
 using namespace std;
-using ll = long long;
-#define i128 __int128_t
-#define db long double
-#define pb emplace_back
-#define pf emplace_front
-#define pob pop_back
-#define ep emplace
-#define ins insert
-#define all(x) (x).begin(), (x).end()
-#define all2(x, i) (x).begin() + (i), (x).end()
-using pii = pair<ll, ll>;
-#define ull unsigned long long
-#define vi vector<int>
-#define vp vector<pii>
-#define vl vector<long long>
-#define vvi vector<vector<int>>
-#define vvp vector<vector<pii>>
-#define vvl vector<vector<long long>>
-#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
-#define SZ(a) ((int) (a).size())
-#define prq priority_queue
-#define fi first
-#define se second
-constexpr int MOD2 = int(1e9 + 7);
-constexpr int MOD = int(998244353);
-constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
-constexpr int inf = 0x3f3f3f3f;
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
-namespace utils {
-    template<typename A, typename B>
-    ostream &operator<<(ostream &os, const pair<A, B> &p) {
-        return os << '(' << p.first << ", " << p.second << ')';
-    }
+const long long INF = 1e18;
 
-    template<typename Tuple, size_t... Is>
-    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
-        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
-    }
-
-    template<typename... Args>
-    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
-        os << '(';
-        print_tuple(os, t, index_sequence_for<Args...>{});
-        return os << ')';
-    }
-
-    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
-    ostream &operator<<(ostream &os, const T &v) {
-        os << '{';
-        bool first = true;
-        for (auto &x: v) {
-            if (!first)
-                os << ", ";
-            first = false;
-            os << x;
-        }
-        return os << '}';
-    }
-
-    void debug_out() { cerr << endl; }
-
-    template<typename Head, typename... Tail>
-    void debug_out(Head H, Tail... T) {
-        cerr << H;
-        if (sizeof...(T))
-            cerr << " ";
-        debug_out(T...);
-    }
-
-    template<typename T>
-    void prt(const T &x) {
-        cout << x << '\n';
-    }
-
-    template<typename T, typename... Args>
-    void prt(const T &first, const Args &...rest) {
-        cout << first;
-        ((cout << ' ' << rest), ...);
-        cout << '\n';
-    }
-
-    template<typename T>
-    void prv(const vector<T> &v) {
-        for (size_t i = 0; i < v.size(); i++) {
-            if (i)
-                cout << " ";
-            cout << v[i];
-        }
-        cout << "\n";
-    }
-
-    template<typename T>
-    void prv(const vector<T> &v, int start_index) {
-        for (int i = start_index; i < (int) v.size(); i++) {
-            if (i > start_index)
-                cout << " ";
-            cout << v[i];
-        }
-        cout << "\n";
-    }
-
-    template<typename T>
-    void rd(T &x) {
-        cin >> x;
-    }
-
-    template<typename T, typename... Args>
-    void rd(T &x, Args &...args) {
-        cin >> x;
-        rd(args...);
-    }
-
-    template<typename A, typename B>
-    void rd(pair<A, B> &p) {
-        cin >> p.first >> p.second;
-    }
-
-    template<typename T>
-    void rv(vector<T> &v) {
-        for (auto &x: v) {
-            rd(x);
-        }
-    }
-
-    template<typename T>
-    void rv(vector<T> &v, int start_index) {
-        for (int i = start_index; i < (int) v.size(); i++) {
-            rd(v[i]);
-        }
-    }
-} // namespace utils
-
-#ifdef WOAIHUTAO
-#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
-#else
-#define dbg(...) ((void) 0)
-#endif
-
-using namespace utils;
-
-constexpr int N = 1e6 + 5;
-
-int Multitest = 0;
-
-void init() {}
-
-void solve() {
+// ==========================================
+// solve1: Floyd 版本 (适合 N 较小，稠密图)
+// 时间复杂度: O(N^3 + 3^K * N + 2^K * N^2)
+// ==========================================
+void solve1() {
     int n, k;
-    rd(n, k);
+    cin >> n >> k;
 
-    vvl adj(n, vl(n));
-    F(i, 0, n - 1) {
-        F(j, 0, n - 1) { rd(adj[i][j]); }
+    vector<vector<long long>> adj(n, vector<long long>(n));
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            cin >> adj[i][j];
+            if (i != j && adj[i][j] == 0)
+                adj[i][j] = INF;
+        }
     }
 
-    vvl dis(n, vl(n));
-    F(i, 0, n - 1) {
-        F(j, 0, n - 1) { dis[i][j] = adj[i][j]; }
-    }
+    vector<vector<long long>> dis = adj;
 
-    F(p, 0, n - 1) {
-        F(i, 0, n - 1) {
-            F(j, 0, n - 1) {
-                if (dis[i][p] + dis[p][j] < dis[i][j]) {
-                    dis[i][j] = dis[i][p] + dis[p][j];
+    for (int p = 0; p < n; ++p) {
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (dis[i][p] != INF && dis[p][j] != INF) {
+                    if (dis[i][p] + dis[p][j] < dis[i][j]) {
+                        dis[i][j] = dis[i][p] + dis[p][j];
+                    }
                 }
             }
         }
     }
 
     int limit = 1 << k;
-    vvl dp(limit, vl(n, INF));
+    vector<vector<long long>> dp(limit, vector<long long>(n, INF));
 
-    F(i, 0, k - 1) { dp[1 << i][i] = 0; }
+    for (int i = 0; i < k; ++i) {
+        dp[1 << i][i] = 0;
+    }
 
-    F(mask, 1, limit - 1) {
+    for (int mask = 1; mask < limit; ++mask) {
+        // (A) 子集枚举 (分裂合并)
         if ((mask & (mask - 1)) != 0) {
-            F(i, 0, n - 1) {
+            for (int i = 0; i < n; ++i) {
                 for (int sub = (mask - 1) & mask; sub > 0; sub = (sub - 1) & mask) {
-                    dp[mask][i] = min(dp[mask][i], dp[sub][i] + dp[mask ^ sub][i]);
+                    if (dp[sub][i] != INF && dp[mask ^ sub][i] != INF) {
+                        dp[mask][i] = min(dp[mask][i], dp[sub][i] + dp[mask ^ sub][i]);
+                    }
                 }
             }
         }
 
-        F(i, 0, n - 1) {
+        // (B) 换根 (同层松弛) - 利用 Floyd 距离直接更新
+        for (int i = 0; i < n; ++i) {
             if (dp[mask][i] == INF)
                 continue;
-            F(j, 0, n - 1) { dp[mask][j] = min(dp[mask][j], dp[mask][i] + dis[i][j]); }
+            for (int j = 0; j < n; ++j) {
+                if (dis[i][j] != INF) {
+                    dp[mask][j] = min(dp[mask][j], dp[mask][i] + dis[i][j]);
+                }
+            }
         }
+    }
+
+    // 答案是连通了所有关键点 (mask = limit - 1)，根在任意位置的最小值
+    long long ans = INF;
+    for (int i = 0; i < n; ++i) {
+        ans = min(ans, dp[limit - 1][i]);
+    }
+}
+
+// ==========================================
+// solve2: Dijkstra 版本 (适合 N 较大，稀疏图)
+// 时间复杂度: O(3^K * N + 2^K * M * logM)
+// ==========================================
+void solve2() {
+    int n, m, k;
+    cin >> n >> m >> k;
+
+    vector<vector<pair<int, int>>> adj(n);
+    for (int i = 0; i < m; ++i) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    int limit = 1 << k;
+    vector<vector<long long>> dp(limit, vector<long long>(n, INF));
+
+    for (int i = 0; i < k; ++i) {
+        dp[1 << i][i] = 0;
+    }
+
+    priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> pq;
+
+    for (int mask = 1; mask < limit; ++mask) {
+        // (A) 子集枚举 (分裂合并)
+        if ((mask & (mask - 1)) != 0) {
+            for (int i = 0; i < n; ++i) {
+                for (int sub = (mask - 1) & mask; sub > 0; sub = (sub - 1) & mask) {
+                    if (dp[sub][i] != INF && dp[mask ^ sub][i] != INF) {
+                        dp[mask][i] = min(dp[mask][i], dp[sub][i] + dp[mask ^ sub][i]);
+                    }
+                }
+            }
+        }
+
+        // (B) 换根 (同层松弛) - 使用 Dijkstra
+        // 将当前 mask 下所有已知的代价作为源点推入队列
+        for (int i = 0; i < n; ++i) {
+            if (dp[mask][i] != INF) {
+                pq.push({dp[mask][i], i});
+            }
+        }
+
+        while (!pq.empty()) {
+            pair<long long, int> top = pq.top();
+            pq.pop();
+            long long d = top.first;
+            int u = top.second;
+
+            if (d > dp[mask][u])
+                continue;
+
+            for (auto &edge: adj[u]) {
+                int v = edge.first;
+                int weight = edge.second;
+                if (dp[mask][v] > dp[mask][u] + weight) {
+                    dp[mask][v] = dp[mask][u] + weight;
+                    pq.push({dp[mask][v], v});
+                }
+            }
+        }
+    }
+
+    long long ans = INF;
+    for (int i = 0; i < n; ++i) {
+        ans = min(ans, dp[limit - 1][i]);
     }
 }
 
 int main() {
+    // 开启 IO 加速
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    init();
-    int T = 1;
-    if (Multitest) {
-        rd(T);
-    }
-    while (T--) {
-        solve();
-    }
+
+    // 根据需要选择调用哪个 solve
+    // 一般题目只会用一种，这里为了演示逻辑
+    // solve1();
+    solve2();
+
+    return 0;
 }

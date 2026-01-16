@@ -39,6 +39,38 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+class Solution {
+public:
+    int maximizeSquareArea(int m, int n, vector<int> &hFences, vector<int> &vFences) {
+        hFences.push_back(1);
+        hFences.push_back(m);
+        vFences.push_back(1);
+        vFences.push_back(n);
+        ranges::sort(hFences);
+        ranges::sort(vFences);
+
+        int sz1 = SZ(hFences);
+        unordered_map<int, int> cnt1, cnt2;
+        F(i, 0, sz1 - 1) {
+            F(j, i + 1, sz1 - 1) { cnt1[hFences[j] - hFences[i]]++; }
+        }
+
+        int sz2 = SZ(vFences);
+        F(i, 0, sz2 - 1) {
+            F(j, i + 1, sz2 - 1) { cnt2[vFences[j] - vFences[i]]++; }
+        }
+
+        ll ans = -1;
+        for (auto [x, c]: cnt1) {
+            if (cnt2.contains(x)) {
+                ans = max(ans, 1ll * x * x);
+            }
+        }
+
+        return ans % MOD;
+    }
+};
+
 // int main() {
 //     ios::sync_with_stdio(false);
 //     cin.tie(nullptr);

@@ -39,6 +39,26 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+class Solution {
+public:
+    long long maximumSum(vector<int> &nums) {
+        int n = SZ(nums);
+        ll ans = 0;
+  
+        F(i, 1, n) {
+            ll res = 0;
+            for (int j = 1;; ++j) {
+                ll idx = (ll) i * j * j;
+                if (idx > n)
+                    break;
+                res += nums[idx - 1];
+            }
+            ans = max(ans, res);
+        }
+        return ans;
+    }
+};
+
 // int main() {
 //     ios::sync_with_stdio(false);
 //     cin.tie(nullptr);
