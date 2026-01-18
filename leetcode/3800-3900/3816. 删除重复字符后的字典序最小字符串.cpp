@@ -41,40 +41,40 @@ constexpr int inf = 0x3f3f3f3f;
 
 class Solution {
 public:
-    vector<int> minimumFlips(int n, vector<vector<int>> &edges, string start, string target) {
-        vvp g(n);
-        F(i, 0, n - 2) {
-            g[edges[i][0]].pb(edges[i][1], i);
-            g[edges[i][1]].pb(edges[i][0], i);
+    string lexSmallestAfterDeletion(string s) {
+        vi cnt(26);
+        for (char c: s) {
+            cnt[c - 'a']++;
         }
 
-        vi ans;
-        auto dfs = [&](this auto &&dfs, int u, int fa) -> int {
-            int cur = (start[u] != target[u]);
-            int sons = 0;
+        string ans;
+        vi stk(26);
 
-            for (auto &[v, idx]: g[u]) {
-                if (v == fa)
-                    continue;
-
-                int t = dfs(v, u);
-                if (t == 1) {
-                    ans.pb(idx);
-                    sons ^= 1;
+        for (char c: s) {
+            cnt[c - 'a']--;
+            while (!ans.empty() && ans.back() > c) {
+                int j = ans.back() - 'a';
+                if (cnt[j] > 0 || stk[j] > 1) {
+                    stk[j]--;
+                    ans.pop_back();
+                } else {
+                    break;
                 }
             }
 
-            return cur ^ sons;
-        };
-
-        if (dfs(0, -1)) {
-            return {-1};
+            ans += c;
+            stk[c - 'a']++;
         }
 
-        ranges::sort(ans);
+        while (!ans.empty() && stk[ans.back() - 'a'] > 1) {
+            stk[ans.back() - 'a']--;
+            ans.pop_back();
+        }
+
         return ans;
     }
 };
+
 
 // int main() {
 //     ios::sync_with_stdio(false);
