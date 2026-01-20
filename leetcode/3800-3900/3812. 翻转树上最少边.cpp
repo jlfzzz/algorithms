@@ -39,6 +39,42 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+class Solution {
+public:
+    vector<int> minimumFlips(int n, vector<vector<int>> &edges, string start, string target) {
+        vvp g(n);
+        F(i, 0, n - 2) {
+            g[edges[i][0]].pb(edges[i][1], i);
+            g[edges[i][1]].pb(edges[i][0], i);
+        }
+
+        vi ans;
+        auto dfs = [&](this auto &&dfs, int u, int fa) -> int {
+            int cur = (start[u] != target[u]);
+            int sons = 0;
+
+            for (auto &[v, idx]: g[u]) {
+                if (v == fa)
+                    continue;
+
+                int t = dfs(v, u);
+                if (t == 1) {
+                    ans.pb(idx);
+                    sons ^= 1;
+                }
+            }
+
+            return cur ^ sons;
+        };
+
+        if (dfs(0, -1)) {
+            return {-1};
+        }
+
+        ranges::sort(ans);
+        return ans;
+    }
+};
 
 // int main() {
 //     ios::sync_with_stdio(false);

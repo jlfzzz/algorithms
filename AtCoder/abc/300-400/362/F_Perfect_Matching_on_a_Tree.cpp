@@ -144,12 +144,64 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
+
 void solve() {
-    
+    int n;
+    rd(n);
+    vector<vi> adj(n + 1);
+    for (int i = 0; i < n - 1; i++) {
+        int u, v;
+        rd(u, v);
+        adj[u].pb(v);
+        adj[v].pb(u);
+    }
+
+    int centroid = -1;
+    vi sz(n + 1);
+
+    auto get_centroid = [&](auto &&self, int u, int p) -> void {
+        sz[u] = 1;
+        bool is_centroid = true;
+        for (int v: adj[u]) {
+            if (v == p)
+                continue;
+            self(self, v, u);
+            sz[u] += sz[v];
+            if (sz[v] > n / 2)
+                is_centroid = false;
+        }
+        if (n - sz[u] > n / 2)
+            is_centroid = false;
+        if (is_centroid)
+            centroid = u;
+    };
+
+    get_centroid(get_centroid, 1, -1);
+
+    vi nodes;
+    auto dfs = [&](auto &&self, int u, int p) -> void {
+        nodes.pb(u);
+        for (int v: adj[u]) {
+            if (v == p)
+                continue;
+            self(self, v, u);
+        }
+    };
+
+    dfs(dfs, centroid, -1);
+
+    if (n % 2 != 0) {
+        nodes.erase(nodes.begin());
+    }
+
+    int k = SZ(nodes) / 2;
+    for (int i = 0; i < k; i++) {
+        prt(nodes[i], nodes[i + k]);
+    }
 }
 
 int main() {
