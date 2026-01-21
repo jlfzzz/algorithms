@@ -142,146 +142,45 @@ namespace utils {
 
 using namespace utils;
 
-struct Node {
-    int ch[2];
-    int cnt;
-};
-
-struct Trie {
-    static constexpr int MAXN = 100000 + 5;
-    static constexpr int MAXNODE = MAXN * 32;
-    Node d[MAXNODE]{};
-    int tot{};
-
-    Trie() { clear(); }
-
-    void clear() {
-        tot = 1;
-        d[1].ch[0] = d[1].ch[1] = 0;
-        d[1].cnt = 0;
-    }
-
-    void insert(int x) {
-        int u = 1;
-        d[u].cnt++;
-        for (int i = 30; i >= 0; i--) {
-            int bit = (x >> i) & 1;
-            if (!d[u].ch[bit]) {
-                ++tot;
-                d[tot].ch[0] = d[tot].ch[1] = 0;
-                d[tot].cnt = 0;
-                d[u].ch[bit] = tot;
-            }
-            u = d[u].ch[bit];
-            d[u].cnt++;
-        }
-    }
-
-    void erase(int x) {
-        int u = 1;
-        d[u].cnt--;
-        for (int i = 30; i >= 0; i--) {
-            int bit = (x >> i) & 1;
-            u = d[u].ch[bit];
-            d[u].cnt--;
-        }
-    }
-
-    int getMin(int x) const {
-        if (d[1].cnt == 0) {
-            return (1 << 30);
-        }
-        int u = 1;
-        int res = 0;
-        for (int i = 30; i >= 0; i--) {
-            int bit = (x >> i) & 1;
-            int same = d[u].ch[bit];
-            int diff = d[u].ch[bit ^ 1];
-            if (same && d[same].cnt > 0) {
-                u = same;
-            } else if (diff && d[diff].cnt > 0) {
-                res |= (1 << i);
-                u = diff;
-            } else {
-                break;
-            }
-        }
-        return res;
-    }
-
-    int getMax(int x) const {
-        if (d[1].cnt == 0) {
-            return 0;
-        }
-        int u = 1;
-        int res = 0;
-        for (int i = 30; i >= 0; i--) {
-            int bit = (x >> i) & 1;
-            int diff = d[u].ch[bit ^ 1];
-            int same = d[u].ch[bit];
-            if (diff && d[diff].cnt > 0) {
-                res |= (1 << i);
-                u = diff;
-            } else if (same && d[same].cnt > 0) {
-                u = same;
-            } else {
-                break;
-            }
-        }
-        return res;
-    }
-};
-
-Trie trie;
-
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int l, r;
-    rd(l, r);
+    int n;
+    ll t;
+    rd(n, t);
+    string s;
+    rd(s);
+    vl x(n);
+    rv(x);
 
-    int n = r - l + 1;
-    vi a(r - l + 1);
-    rv(a);
+    vector<pair<ll, int>> ants(n);
+    F(i, 0, n - 1) { ants[i] = {x[i], s[i] - '0'}; }
 
-    trie.clear();
-    for (int x: a) {
-        trie.insert(x);
-    }
+    sort(all(ants));
 
-    F(i, 0, 3 * r) {
-        if (trie.getMax(i) == r && trie.getMin(i) == l) {
-            prt(i);
-           return;
+    vl r_pos;
+    ll ans = 0;
+
+    for (const auto &p: ants) {
+        ll pos = p.fi;
+        int dir = p.se;
+
+        if (dir == 1) {
+            r_pos.pb(pos);
+        } else {
+            ll limit = pos - 2 * t;
+
+            auto it = lower_bound(all(r_pos), limit);
+
+            ans += (r_pos.end() - it);
         }
     }
 
-
-    // F(i, 0, 10 * r) {
-    //     auto b = a;
-    //     for (int &x: b) {
-    //         x ^= i;
-    //     }
-
-    //     ranges::sort(b);
-    //     if (b[0] == l && b[n - 1] == r) {
-    //         dbg(b, i);
-    //     }
-    // }
-
-    // set<int> st;
-    // for (int x: a) {
-    //     int y = x ^ (r);
-    //     if (st.contains(y)) {
-    //         prt(y);
-    //         return;
-    //     }
-    //     st.insert(x);
-    // }
+    prt(ans);
 }
 
 int main() {
