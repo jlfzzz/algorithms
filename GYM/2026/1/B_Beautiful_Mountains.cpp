@@ -151,80 +151,77 @@ void init() {}
 void solve() {
     int n;
     rd(n);
+    vi a(n);
+    rv(a);
 
-    vvi g(n + 1);
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        g[u].pb(v);
-        g[v].pb(u);
-    }
+    vi inc(n, 1), dec(n, 1);
+    int pos;
 
-    if (n == 2) {
-        prt(2, 2);
-        prt(1, 1);
-        return;
-    }
-    vp dp0(n + 1), dp1(n + 1);
-
-    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
-        dp1[u] = {1, -SZ(g[u])};
-        dp0[u] = {0, -1};
-
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            dfs(v, u);
-
-            dp1[u].fi += dp0[v].fi;
-            dp1[u].se += dp0[v].se;
-
-            pii best = max(dp0[v], dp1[v]);
-            dp0[u].fi += best.fi;
-            dp0[u].se += best.se;
-        }
-    };
-
-    vi ans(n + 1);
-    auto dfs2 = [&](this auto &&dfs, int u, int fa, int choose) -> void {
-        if (choose) {
-            ans[u] = SZ(g[u]);
-        } else {
-            ans[u] = 1;
-        }
-
-        for (int v: g[u]) {
-            if (v == fa) {
-                continue;
-            }
-
-            if (choose) {
-                dfs(v, u, 0);
+    pos = -1;
+    D(i, n - 1, 0) {
+        if (a[i] != -1) {
+            if (pos != -1) {
+                if (a[i] > a[pos])
+                    inc[i] = pos - i;
+                else if (i + 1 < n)
+                    inc[i] = inc[i + 1] + 1;
             } else {
-                if (dp0[v] > dp1[v]) {
-                    dfs(v, u, 0);
-                } else {
-                    dfs(v, u, 1);
-                }
+                if (i + 1 < n)
+                    inc[i] = inc[i + 1] + 1;
             }
+            pos = i;
+        } else {
+            if (i + 1 < n)
+                inc[i] = inc[i + 1] + 1;
         }
-    };
-
-    dfs(1, 0);
-
-    pii pr;
-    if (dp1[1] > dp0[1]) {
-        pr = dp1[1];
-        dfs2(1, 0, 1);
-    } else {
-        pr = dp0[1];
-        dfs2(1, 0, 0);
     }
 
-    prt(pr.fi, -pr.se);
-    prv(ans, 1);
+    pos = -1;
+    F(i, 0, n - 1) {
+        if (a[i] != -1) {
+            if (pos != -1) {
+                if (a[pos] < a[i])
+                    dec[i] = i - pos;
+                else if (i > 0)
+                    dec[i] = dec[i - 1] + 1;
+            } else {
+                if (i > 0)
+                    dec[i] = dec[i - 1] + 1;
+            }
+            pos = i;
+        } else {
+            if (i > 0)
+                dec[i] = dec[i - 1] + 1;
+        }
+    }
+
+    bool ans = false;
+    F(len, 3, n) {
+        int rem = n % len;
+        if (rem != 0 && rem < 3)
+            continue;
+
+        bool ok = true;
+        for (int l = 0; l < n; l += len) {
+            int r = min(l + len - 1, n - 1);
+            int k = r - l + 1;
+
+            if (k < 3 || inc[l] < 2 || dec[r] < 2 || inc[l] + dec[r] < k + 1) {
+                ok = false;
+                break;
+            }
+        }
+
+        if (ok) {
+            ans = true;
+            break;
+        }
+    }
+
+    if (ans)
+        prt("Y");
+    else
+        prt("N");
 }
 
 int main() {
