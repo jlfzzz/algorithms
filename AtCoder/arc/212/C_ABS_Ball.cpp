@@ -756,31 +756,21 @@ int Multitest = 0;
 
 void init() {}
 
+// $\mathrm{Ans} = [x^N]\Bigl(2^{M}(1+x)^{-M}x^{M}(1-x)^{-3M}\Bigr)$
+
 void solve() {
     int n, m;
     rd(n, m);
 
-    if (n < m) {
-        cout << 0 << "\n";
-        return;
-    }
-
-    int k = n - m;
     Z ans = 0;
-
-    for (int i = 0; i <= k; i++) {
-        Z term = comb.C(m + i - 1, i) * comb.C(3 * m + k - i - 1, k - i);
-
-        if (i % 2 == 1) {
-            ans -= term;
-        } else {
-            ans += term;
-        }
+    F(i, 0, max(n, m)) {
+        int j = n - i - m;
+        ans += ((i % 2 == 0) ? 1 : -1) * comb.C(m + i - 1, i) * comb.C(3 * m + j - 1, j);
     }
 
-    ans *= Z(2).pow(m);
+    ans *= q_pow(2, m);
 
-    cout << ans.val() << "\n";
+    prt(ans.val());
 }
 
 int main() {
