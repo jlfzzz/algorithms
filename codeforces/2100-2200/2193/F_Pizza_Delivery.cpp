@@ -144,27 +144,60 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, i, k;
-    rd(n, i, k);
+    int n;
+    ll ax, ay, bx, by;
+    rd(n, ax, ay, bx, by);
+    vl x(n), y(n);
+    rv(x);
+    rv(y);
 
-    db ans = (db) i * powl((db) (i - 1) / n, k);
-
-    db pre = powl((db) (i - 1) / n, k);
-    F(j, i, n) {
-        db cur = powl((db) j / n, k);
-
-        db p = cur - pre;
-        ans += (db) ((db) (1 + j) / 2) * p;
-
-        pre = cur;
+    map<ll, pii> mp;
+    F(i, 0, n - 1) {
+        if (!mp.count(x[i])) {
+            mp[x[i]] = {y[i], y[i]};
+        } else {
+            mp[x[i]].fi = min(mp[x[i]].fi, y[i]);
+            mp[x[i]].se = max(mp[x[i]].se, y[i]);
+        }
     }
 
-    cout << fixed << setprecision(20) << ans << endl;
+    mp[ax] = {ay, ay};
+    mp[bx] = {by, by};
+
+    vp items;
+    for (auto &[k, v]: mp) {
+        items.pb(v);
+    }
+
+    ll dp0 = 0;
+    ll dp1 = 0;
+
+    F(i, 1, SZ(items) - 1) {
+        ll pre1 = items[i - 1].fi;
+        ll pre2 = items[i - 1].se;
+        ll cur1 = items[i].fi;
+        ll cur2 = items[i].se;
+        ll diff = cur2 - cur1;
+
+        ll d0 = dp0 + abs(pre1 - cur2);
+        ll d1 = dp1 + abs(pre2 - cur2);
+        ll n0 = min(d0, d1) + diff;
+
+        d0 = dp0 + abs(pre1 - cur1);
+        d1 = dp1 + abs(pre2 - cur1);
+        ll n1 = min(d0, d1) + diff;
+
+        dp0 = n0;
+        dp1 = n1;
+    }
+
+    ll ans = dp0 + (bx - ax);
+    prt(ans);
 }
 
 int main() {

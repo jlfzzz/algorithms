@@ -395,77 +395,212 @@ namespace atcoder {
 } // namespace atcoder
 
 struct S {
-    long long mx;
-    int cnt_up;
-    int len;
+    int mx;
 };
 
 struct F {
-    long long add;
-    bool set0;
-    bool flip;
+    int lazy;
 };
 
-S op(S a, S b) { return {max(a.mx, b.mx), a.cnt_up + b.cnt_up, a.len + b.len}; }
+S op(S a, S b) { return {max(a.mx, b.mx)}; }
 
-S e() { return {0, 0, 0}; }
+S e() { return {-inf}; }
 
-S mapping(F f, S s) {
-    if (f.set0) {
-        s.mx = 0;
+S mapping(F f, S x) { return x; }
+
+F composition(F f, F g) { return f; }
+
+F id() { return {0}; }
+
+struct Node {
+    ll val = 0;
+};
+
+class PST {
+private:
+    int n, ts;
+    std::vector<int> lc, rc;
+    std::vector<Node> tree;
+
+    void newnode(int pre, int cur) {
+        lc[cur] = lc[pre];
+        rc[cur] = rc[pre];
+        tree[cur] = tree[pre];
     }
 
-    if (f.flip) {
-        s.cnt_up = s.len - s.cnt_up;
+    Node merge(const Node &left, const Node &right) { return Node{left.val + right.val}; }
+
+    int _build(const std::vector<int> &arr, int l, int r) {
+        int cur = ++ts;
+        if (l == r) {
+            tree[cur] = Node{arr[l]};
+            return cur;
+        }
+        int m = (l + r) / 2;
+        lc[cur] = _build(arr, l, m);
+        rc[cur] = _build(arr, m + 1, r);
+        tree[cur] = merge(tree[lc[cur]], tree[rc[cur]]);
+        return cur;
     }
 
-    if (s.cnt_up > 0) {
-        s.mx += f.add;
+    int _update(int pre, int l, int r, int pos, ll val) {
+        int cur = ++ts;
+        newnode(pre, cur);
+        if (l == r) {
+            tree[cur].val += val;
+            return cur;
+        }
+        int m = (l + r) / 2;
+        if (pos <= m)
+            lc[cur] = _update(lc[pre], l, m, pos, val);
+        else
+            rc[cur] = _update(rc[pre], m + 1, r, pos, val);
+
+        tree[cur] = merge(tree[lc[cur]], tree[rc[cur]]);
+        return cur;
     }
 
-    return s;
-}
-
-F composition(F new_op, F old_op) {
-    if (new_op.set0) {
-        return {new_op.add, true, static_cast<bool>(old_op.flip ^ new_op.flip)};
-    } else {
-        return {old_op.add + new_op.add, old_op.set0, old_op.flip};
+    ll _query(int cur, int l, int r, int ql, int qr) {
+        if (ql > r || qr < l)
+            return 0;
+        if (ql <= l && r <= qr)
+            return tree[cur].val;
+        int m = (l + r) / 2;
+        return _query(lc[cur], l, m, ql, qr) + _query(rc[cur], m + 1, r, ql, qr);
     }
-}
 
-F id() { return {0, false, false}; }
+    int _kth(int cur, int pre, int l, int r, int k) {
+        if (l == r)
+            return l;
+        int cnt = tree[lc[cur]].val - tree[lc[pre]].val;
+        int m = (l + r) / 2;
+        if (k <= cnt)
+            return _kth(lc[cur], lc[pre], l, m, k);
+        else
+            return _kth(rc[cur], rc[pre], m + 1, r, k - cnt);
+    }
 
-constexpr int N = 2e5 + 5;
-int Multitest = 0;
+public:
+    PST(int n) : n(n), ts(0), lc(40 * n + 5), rc(40 * n + 5), tree(40 * n + 5) {}
+
+    int build(const std::vector<int> &arr) { return _build(arr, 1, n); }
+
+    int update(int pre_version, int pos, ll val) { return _update(pre_version, 1, n, pos, val); }
+
+    ll query(int version, int l, int r) {
+        if (l > r) {
+            return 0;
+        }
+
+        return _query(version, 1, n, l, r);
+    }
+
+    int kth(int cur_version, int pre_version, int k) { return _kth(cur_version, pre_version, 1, n, k); }
+};
+
+constexpr int N = 1e6 + 5;
+
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, q;
-    rd(n, q);
+    int n;
+    rd(n);
 
-    vector<S> init_v(n, {0, 1, 1});
-    atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(init_v);
+    vvi g(n + 1);
+    U(i, 1, n - 1) {
+        int u, v;
+        rd(u, v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
 
-    while (q--) {
-        int t;
-        rd(t);
-        if (t == 1) {
-            int l, r, x;
-            rd(l, r, x);
-            seg.apply(l - 1, r, {x, false, false});
-        } else if (t == 2) {
-            int l, r;
-            rd(l, r);
-            seg.apply(l - 1, r, {0, true, true});
-        } else {
-            int l, r;
-            rd(l, r);
-            prt(seg.prod(l - 1, r).mx);
+    int ts = 0;
+    vi tin(n + 1), tout(n + 1), maxD(n + 1), dep(n + 1), sz(n + 1, 1);
+    vvi layers(n + 1);
+
+    auto dfs = [&](this auto &&dfs, int u, int fa, int depth) -> void {
+        tin[u] = ++ts;
+        dep[u] = depth;
+        maxD[u] = depth;
+        layers[depth].pb(u);
+
+        for (int v: g[u]) {
+            if (v != fa) {
+                dfs(v, u, depth + 1);
+                maxD[u] = max(maxD[u], maxD[v]);
+                sz[u] += sz[v];
+            }
+        }
+        tout[u] = ts;
+    };
+
+    dfs(1, 0, 0);
+
+    vl prefcnt(n + 2), prefsum(n + 2);
+    U(d, 0, n) {
+        prefcnt[d] = layers[d].size();
+        prefsum[d] = 1ll * layers[d].size() * d;
+        if (d > 0) {
+            prefcnt[d] += prefcnt[d - 1];
+            prefsum[d] += prefsum[d - 1];
         }
     }
+
+    vector<S> tree_arr(n + 10, {-inf});
+    U(i, 1, n) { tree_arr[tin[i]] = {dep[i]}; }
+    atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(tree_arr);
+
+    PST pstcnt(n), pstsum(n);
+    vi root1(n + 2), root2(n + 2);
+
+    int rootcnt = 0, rootsum = 0;
+    U(d, 0, n) {
+        for (int u: layers[d]) {
+            rootcnt = pstcnt.update(rootcnt, tin[u], 1);
+            rootsum = pstsum.update(rootsum, tin[u], d);
+        }
+        root1[d] = rootcnt;
+        root2[d] = rootsum;
+    }
+
+    ll ans = 0;
+    U(i, 2, n) {
+        int maxother = max(seg.prod(1, tin[i]).mx, seg.prod(tout[i] + 1, n + 5).mx);
+
+        int maxmy = maxD[i];
+        int d2 = maxmy - dep[i];
+
+        int lim = maxother - 1 - d2;
+
+        ll le1 = 0, le2 = 0;
+        ll sum1 = 0, sum2 = 0;
+
+        if (lim >= 0) {
+            int d = lim;
+            le1 = prefcnt[d];
+            le2 = pstcnt.query(root1[d], tin[i], tout[i]);
+
+            sum1 = prefsum[d];
+            sum2 = pstsum.query(root2[d], tin[i], tout[i]);
+        }
+
+        ll le = le1 - le2;
+        ans += le * maxother;
+
+        ll gt1 = (prefcnt[n] - sz[i]) - le;
+
+        ll less = sum1 - sum2;
+        ll total = prefsum[n] - pstsum.query(root2[n], tin[i], tout[i]);
+
+        ll gt = total - less;
+        ans += gt + gt1 * (1 + d2);
+    }
+
+    prt(ans);
 }
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

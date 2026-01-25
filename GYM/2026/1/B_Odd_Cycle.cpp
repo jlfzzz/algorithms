@@ -144,27 +144,96 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, i, k;
-    rd(n, i, k);
-
-    db ans = (db) i * powl((db) (i - 1) / n, k);
-
-    db pre = powl((db) (i - 1) / n, k);
-    F(j, i, n) {
-        db cur = powl((db) j / n, k);
-
-        db p = cur - pre;
-        ans += (db) ((db) (1 + j) / 2) * p;
-
-        pre = cur;
+    int n, m;
+    cin >> n >> m;
+    vector<vector<int>> g(n + 1);
+    F(i, 1, m) {
+        int a, b;
+        cin >> a >> b;
+        g[a].push_back(b);
     }
 
-    cout << fixed << setprecision(20) << ans << endl;
+    int cnt = 0;
+    int timestamp = 0;
+    vector<int> dfn(n + 1), low(n + 1), in_stack(n + 1), comp(n + 1);
+    vector<vector<int>> comps;
+    stack<int> stk;
+
+    auto tarjan = [&](this auto &&tarjan, int u) -> void {
+        dfn[u] = low[u] = ++timestamp;
+        stk.push(u);
+        in_stack[u] = true;
+
+        for (int v: g[u]) {
+            if (!dfn[v]) {
+                tarjan(v);
+                low[u] = min(low[u], low[v]);
+            } else if (in_stack[v]) {
+                low[u] = min(low[u], dfn[v]);
+            }
+        }
+
+        if (low[u] == dfn[u]) {
+            vector<int> scc;
+            while (true) {
+                int x = stk.top();
+                stk.pop();
+                in_stack[x] = false;
+                comp[x] = comps.size() + 1;
+                scc.push_back(x);
+                if (x == u)
+                    break;
+            }
+            comps.emplace_back(scc);
+        }
+    };
+
+    for (int i = 1; i <= n; i++) {
+        if (!dfn[i]) {
+            tarjan(i);
+        }
+    }
+
+    vi vis2(n + 1), col(n + 1);
+    string ans(n + 1, '0');
+    F(i, 1, n) {
+        if (vis2[i]) {
+            continue;
+        }
+        int odd = 0;
+        auto dfs = [&](this auto &&dfs, int u, int c) -> void {
+            vis2[u] = 1;
+            col[u] = c;
+            for (int v: g[u]) {
+                if (comp[v] != comp[u])
+                    continue;
+
+                if (vis2[v]) {
+                    if (col[v] == c) {
+                        odd = 1;
+                    }
+                } else {
+                    dfs(v, c ^ 1);
+                }
+            }
+        };
+
+        dfs(i, 0);
+
+        if (odd) {
+            for (int v: comps[comp[i] - 1]) {
+                ans[v] = '1';
+            }
+        }
+    }
+
+    ans = ans.substr(1);
+    prt(ans);
 }
 
 int main() {

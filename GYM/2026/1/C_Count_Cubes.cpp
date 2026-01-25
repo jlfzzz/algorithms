@@ -8,8 +8,8 @@ using ll = long long;
 #define pob pop_back
 #define ep emplace
 #define ins insert
-#define all(x) (x).begin(), (x).end()
-#define all2(x, i) (x).begin() + (i), (x).end()
+#define all(x) (x).f(), (x).end()
+#define all2(x, i) (x).f() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
 #define us unsigned
@@ -48,7 +48,7 @@ namespace utils {
         return os << ')';
     }
 
-    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
+    template<typename T, typename = decltype(f(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
     ostream &operator<<(ostream &os, const T &v) {
         os << '{';
         bool first = true;
@@ -144,27 +144,81 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, i, k;
-    rd(n, i, k);
+    int a, b, c;
+    rd(a, b, c);
 
-    db ans = (db) i * powl((db) (i - 1) / n, k);
+    vector<string> sx(c), sy(c);
+    rv(sx);
+    rv(sy);
 
-    db pre = powl((db) (i - 1) / n, k);
-    F(j, i, n) {
-        db cur = powl((db) j / n, k);
+    vi hx(b), hy(a);
 
-        db p = cur - pre;
-        ans += (db) ((db) (1 + j) / 2) * p;
-
-        pre = cur;
+    F(j, 0, b - 1) {
+        bool f = false;
+        F(i, 0, c - 1) {
+            if (sx[i][j] == '1') {
+                if (!f) {
+                    f = true;
+                    hx[j] = c - i;
+                }
+            } else {
+                if (f) {
+                    prt("-1");
+                    return;
+                }
+            }
+        }
     }
 
-    cout << fixed << setprecision(20) << ans << endl;
+    F(j, 0, a - 1) {
+        bool f = false;
+        F(i, 0, c - 1) {
+            if (sy[i][j] == '1') {
+                if (!f) {
+                    f = true;
+                    hy[j] = c - i;
+                }
+            } else {
+                if (f) {
+                    prt("-1");
+                    return;
+                }
+            }
+        }
+    }
+
+    int mx1 = ranges::max(hx);
+    int mx2 = ranges::max(hy);
+
+    if (mx1 != mx2) {
+        prt("-1");
+        return;
+    }
+
+    vl cntx(c + 1), cnty(c + 1);
+    for (int h: hx) {
+        cntx[h]++;
+    }
+
+    for (int h: hy) {
+        cnty[h]++;
+    }
+
+
+    ll ans1 = 0;
+    F(h, 1, c) { ans1 += 1ll * max(cntx[h], cnty[h]) * h; }
+
+    ll ans2 = 0;
+    F(y, 0, b - 1) {
+        F(x, 0, a - 1) { ans2 += min(hx[y], hy[x]); }
+    }
+
+    prt(ans1, ans2);
 }
 
 int main() {

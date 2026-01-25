@@ -149,22 +149,68 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, i, k;
-    rd(n, i, k);
+    string s;
+    rd(s);
 
-    db ans = (db) i * powl((db) (i - 1) / n, k);
+    int n = SZ(s);
+    vi nxt0(n + 1, 1e8), nxt2(n + 1, 1e7);
+    D(i, n - 1, 0) {
+        nxt0[i] = nxt0[i + 1];
+        nxt2[i] = nxt2[i + 1];
 
-    db pre = powl((db) (i - 1) / n, k);
-    F(j, i, n) {
-        db cur = powl((db) j / n, k);
-
-        db p = cur - pre;
-        ans += (db) ((db) (1 + j) / 2) * p;
-
-        pre = cur;
+        if (s[i] == '0') {
+            nxt0[i] = i;
+        } else if (s[i] == '2') {
+            nxt2[i] = i;
+        }
     }
 
-    cout << fixed << setprecision(20) << ans << endl;
+    int l = 0, r = n - 1;
+    vi del(n);
+    while (l < r) {
+        while (l < r && s[l] != '1') {
+            l++;
+        }
+
+        if (l >= r) {
+            break;
+        }
+
+        while (l < r && s[r] != '1') {
+            r--;
+        }
+
+        if (l >= r) {
+            break;
+        }
+
+        if (l + 1 == r) {
+            break;
+        }
+
+        int p0 = nxt0[l];
+        int p2 = nxt2[l];
+
+        if (p0 < p2 && p0 < r) {
+            del[l] = 1;
+            del[r] = 2;
+            l++, r--;
+        } else {
+            l++;
+        }
+    }
+
+    
+    string ans;
+    F(i, 0, n - 1) {
+        if (!del[i]) {
+            ans += s[i];
+        } else if (del[i] == 2) {
+            ans += '2';
+        }
+    }
+
+    prt(ans);
 }
 
 int main() {

@@ -149,22 +149,16 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, i, k;
-    rd(n, i, k);
-
-    db ans = (db) i * powl((db) (i - 1) / n, k);
-
-    db pre = powl((db) (i - 1) / n, k);
-    F(j, i, n) {
-        db cur = powl((db) j / n, k);
-
-        db p = cur - pre;
-        ans += (db) ((db) (1 + j) / 2) * p;
-
-        pre = cur;
+    vector<tuple<int, int, int>> a(3);
+    F(i, 0, 2) {
+        rd(get<0>(a[i]));
+        rd(get<1>(a[i]));
+        get<2>(a[i]) = i;
     }
 
-    cout << fixed << setprecision(20) << ans << endl;
+    ranges::sort(a);
+
+    prt(get<2>(a[1]) + 1);
 }
 
 int main() {

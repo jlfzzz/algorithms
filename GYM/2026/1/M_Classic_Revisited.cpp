@@ -395,77 +395,112 @@ namespace atcoder {
 } // namespace atcoder
 
 struct S {
-    long long mx;
-    int cnt_up;
-    int len;
+    int mx;
+    int idx;
 };
 
 struct F {
-    long long add;
-    bool set0;
-    bool flip;
+    int lazy;
 };
 
-S op(S a, S b) { return {max(a.mx, b.mx), a.cnt_up + b.cnt_up, a.len + b.len}; }
-
-S e() { return {0, 0, 0}; }
-
-S mapping(F f, S s) {
-    if (f.set0) {
-        s.mx = 0;
-    }
-
-    if (f.flip) {
-        s.cnt_up = s.len - s.cnt_up;
-    }
-
-    if (s.cnt_up > 0) {
-        s.mx += f.add;
-    }
-
-    return s;
+S op(S a, S b) {
+    if (a.mx > b.mx)
+        return a;
+    if (b.mx > a.mx)
+        return b;
+    return a.idx < b.idx ? a : b;
 }
 
-F composition(F new_op, F old_op) {
-    if (new_op.set0) {
-        return {new_op.add, true, static_cast<bool>(old_op.flip ^ new_op.flip)};
-    } else {
-        return {old_op.add + new_op.add, old_op.set0, old_op.flip};
-    }
-}
+S e() { return {-inf, inf}; }
 
-F id() { return {0, false, false}; }
+S mapping(F f, S x) { return x; }
 
-constexpr int N = 2e5 + 5;
+F composition(F f, F g) { return f; }
+
+F id() { return {0}; }
+
+constexpr int N = 1e6 + 5;
+
 int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    int n, q;
-    rd(n, q);
+    int n;
+    rd(n);
 
-    vector<S> init_v(n, {0, 1, 1});
-    atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(init_v);
+    vi a(n);
+    rv(a);
 
-    while (q--) {
-        int t;
-        rd(t);
-        if (t == 1) {
-            int l, r, x;
-            rd(l, r, x);
-            seg.apply(l - 1, r, {x, false, false});
-        } else if (t == 2) {
-            int l, r;
-            rd(l, r);
-            seg.apply(l - 1, r, {0, true, true});
-        } else {
-            int l, r;
-            rd(l, r);
-            prt(seg.prod(l - 1, r).mx);
+    vvi pos(ranges::max(a) + 1);
+
+    U(i, 0, n - 1) { pos[a[i]].pb(i); }
+
+    vector<S> tree_arr(n);
+    U(i, 0, n - 1) tree_arr[i] = {0, i};
+    atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(tree_arr);
+
+    vi ans1, ans2;
+    int mxLen = 0;
+    int idx = -1;
+    U(r, 0, n - 1) {
+        int x = a[r];
+
+        vector<pair<int, pii>> temp;
+
+        for (int l: pos[x]) {
+            if (l >= r)
+                break;
+
+            S res = {0, -1};
+            if (l + 1 < r) {
+                res = seg.prod(l + 1, r);
+            }
+
+            int cur = res.mx + 2;
+            int nxt = res.idx;
+
+            if (cur > seg.get(l).mx) {
+                int nxt2 = SZ(ans1);
+                ans1.pb(l);
+                ans2.pb(nxt);
+
+                temp.pb(pair<int, pii>{l, {cur, nxt2}});
+
+                if (cur > mxLen) {
+                    mxLen = cur;
+                    idx = nxt2;
+                }
+            }
+        }
+
+        for (auto &pr: temp) {
+            int l = pr.fi;
+            ll len = pr.se.fi;
+            int nxt = pr.se.se;
+
+            seg.set(l, {(int) len, nxt});
         }
     }
+
+    prt(mxLen);
+
+    vi res;
+    int cur = idx;
+    int half = mxLen / 2;
+
+    U(i, 1, half) {
+        res.pb(a[ans1[cur]]);
+        cur = ans2[cur];
+    }
+
+    vi res2 = res;
+    reverse(all(res));
+    res2.insert(res2.end(), all(res));
+
+    prv(res2);
 }
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

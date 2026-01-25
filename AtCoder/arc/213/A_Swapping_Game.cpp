@@ -149,22 +149,55 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, i, k;
-    rd(n, i, k);
+    int n, l;
+    rd(n, l);
+    vp a(n + 1);
 
-    db ans = (db) i * powl((db) (i - 1) / n, k);
+    vvi p(n + 1, vi(l));
+    iota(all(p[0]), 1);
 
-    db pre = powl((db) (i - 1) / n, k);
-    F(j, i, n) {
-        db cur = powl((db) j / n, k);
+    vl dp(n + 1, -INF);
+    dp[0] = 0;
 
-        db p = cur - pre;
-        ans += (db) ((db) (1 + j) / 2) * p;
+    auto calc = [&](vi &s, vi &t) {
+        vi pos(20);
+        F(k, 0, l - 1) { pos[s[k]] = k; }
+        int res = 0;
+        F(x, 0, l - 1) {
+            F(y, x + 1, l - 1) {
+                if (pos[t[x]] > pos[t[y]]) {
+                    res++;
+                }
+            }
+        }
+        return res;
+    };
 
-        pre = cur;
+    const int LIM = 45;
+    ll mx = -INF;
+
+    F(i, 1, n) {
+        rd(a[i].fi);
+        rv(p[i]);
+
+        int j = i - LIM - 1;
+        if (j >= 0)
+            mx = max(mx, dp[j]);
+
+        if (mx != -INF) {
+            dp[i] = max(dp[i], mx + a[i].fi);
+        }
+
+        int lim = max(0, i - LIM);
+        D(j, i - 1, lim) {
+            if (calc(p[j], p[i]) <= i - j) {
+                dp[i] = max(dp[i], dp[j] + a[i].fi);
+            }
+        }
     }
 
-    cout << fixed << setprecision(20) << ans << endl;
+    ll ans = ranges::max(dp);
+    prt(ans);
 }
 
 int main() {

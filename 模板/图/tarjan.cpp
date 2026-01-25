@@ -17,7 +17,7 @@ void solve1() {
     int n, m;
     cin >> n >> m;
     vector<vector<int>> g(n + 1);
-    For(i, m) {
+    for (int i = 0; i < m; i++) {
         int a, b;
         cin >> a >> b;
         g[a].push_back(b);

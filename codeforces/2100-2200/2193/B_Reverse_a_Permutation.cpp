@@ -144,27 +144,35 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 0;
+int Multitest = 1;
 
 void init() {}
 
 void solve() {
-    int n, i, k;
-    rd(n, i, k);
+    int n;
+    rd(n);
 
-    db ans = (db) i * powl((db) (i - 1) / n, k);
+    vi a(n);
+    rv(a);
 
-    db pre = powl((db) (i - 1) / n, k);
-    F(j, i, n) {
-        db cur = powl((db) j / n, k);
+    vi pos(n + 1);
+    F(i, 0, n - 1) { pos[a[i]] = i; }
 
-        db p = cur - pre;
-        ans += (db) ((db) (1 + j) / 2) * p;
+    F(i, 0, n - 1) {
+        int target = n - i;
 
-        pre = cur;
+        if (a[i] == target) {
+            continue;
+        }
+
+        int idx = pos[target];
+
+        reverse(a.begin() + i, a.begin() + idx + 1);
+
+        break;
     }
 
-    cout << fixed << setprecision(20) << ans << endl;
+    prv(a);
 }
 
 int main() {

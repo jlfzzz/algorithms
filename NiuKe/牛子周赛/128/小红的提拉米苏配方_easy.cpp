@@ -149,22 +149,63 @@ int Multitest = 0;
 void init() {}
 
 void solve() {
-    int n, i, k;
-    rd(n, i, k);
+    string s;
+    rd(s);
 
-    db ans = (db) i * powl((db) (i - 1) / n, k);
+    int n = SZ(s);
+    int l = 0, r = n - 1;
+    int c1 = count(all(s), '1');
+    int skip = c1 & 1;
+    vi del(n);
+    while (l < r) {
+        while (l < r && s[l] != '1') {
+            l++;
+        }
 
-    db pre = powl((db) (i - 1) / n, k);
-    F(j, i, n) {
-        db cur = powl((db) j / n, k);
+        if (l >= r) {
+            break;
+        }
 
-        db p = cur - pre;
-        ans += (db) ((db) (1 + j) / 2) * p;
+        while (l < r && s[r] != '1') {
+            r--;
+        }
 
-        pre = cur;
+        if (l >= r) {
+            break;
+        }
+
+        if (l + 1 == r) {
+            del[l] = 1;
+            del[r] = 2;
+            break;
+        }
+
+        if (s[l + 1] == '0') {
+            del[l] = 1;
+            del[r] = 2;
+            l++, r--;
+        } else {
+            if (s[l + 1] == '2' && skip) {
+                skip = 0;
+                l++;
+            } else {
+                del[l] = 1;
+                del[r] = 2;
+                l++, r--;
+            }
+        }
     }
 
-    cout << fixed << setprecision(20) << ans << endl;
+    string ans;
+    F(i, 0, n - 1) {
+        if (!del[i]) {
+            ans += s[i];
+        } else if (del[i] == 2) {
+            ans += '2';
+        }
+    }
+
+    prt(ans);
 }
 
 int main() {
