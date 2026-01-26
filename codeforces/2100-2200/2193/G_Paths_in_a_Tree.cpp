@@ -160,159 +160,39 @@ void solve() {
         g[v].pb(u);
     }
 
-    vi mx1(n + 1), son(n + 1), depth(n + 1);
-    vi pa(n + 1);
+    vi b(n);
+    int ts = 0;
 
-    auto dfs1 = [&](this auto &&dfs, int u, int fa, int d) -> void {
-        depth[u] = d;
-        pa[u] = fa;
-        mx1[u] = u;
-        son[u] = 0;
+    auto dfs = [&](this auto &&dfs, int u, int fa) -> void {
+        b[ts++] = u;
         for (auto &v: g[u]) {
             if (v == fa) {
                 continue;
             }
 
-            dfs(v, u, d + 1);
-            if (depth[mx1[v]] > depth[mx1[u]]) {
-                mx1[u] = mx1[v];
-                son[u] = v;
-            }
+            dfs(v, u);
         }
     };
 
-    dfs1(1, 0, 1);
+    dfs(1, 0);
 
-    prq<pii> pq;
-    pq.push({depth[mx1[1]] - depth[1], 1});
-    int rem = n;
-
-    auto Get = [&](int u, int v) {
-        vi p1, p2;
-        int x = u;
-        while (x) {
-            p1.pb(x);
-            x = pa[x];
-        }
-        x = v;
-        while (x) {
-            p2.pb(x);
-            x = pa[x];
-        }
-        reverse(all(p1));
-        reverse(all(p2));
-        int lca = 0;
-        int len = min(SZ(p1), SZ(p2));
-        F(i, 0, len - 1) {
-            if (p1[i] == p2[i]) {
-                lca = p1[i];
-            } else {
-                break;
-            }
-        }
-        vi res;
-        x = u;
-        while (x != lca) {
-            res.pb(x);
-            x = pa[x];
-        }
-        res.pb(lca);
-        vi temp;
-        x = v;
-        while (x != lca) {
-            temp.pb(x);
-            x = pa[x];
-        }
-        reverse(all(temp));
-        res.insert(res.end(), all(temp));
-        return res;
-    };
-
-    auto calc = [&](int u, int v) {
-        vi p = Get(u, v);
-        int l = 0, r = SZ(p) - 1;
-        while (l < r) {
-            int mid = (l + r) >> 1;
-            cout << "? " << p[0] << " " << p[mid] << endl;
-            int res;
-            rd(res);
-            if (res == 1) {
-                r = mid;
-            } else {
-                l = mid + 1;
-            }
-        }
-        cout << "! " << p[l] << endl;
-    };
-
-    while (!pq.empty()) {
-        if (SZ(pq) == 1) {
-            auto [h, u] = pq.top();
-            pq.pop();
-            int v = mx1[u];
-            int len = depth[v] - depth[u] + 1;
-
-            if (len == rem) {
-                calc(u, v);
-                return;
-            }
-
-            cout << "? " << u << " " << v << endl;
-            int res;
-            rd(res);
-            if (res == 1) {
-                calc(u, v);
-                return;
-            } else {
-                rem -= len;
-                int curr = u;
-                while (true) {
-                    for (auto &nxt: g[curr]) {
-                        if (nxt != pa[curr] && nxt != son[curr]) {
-                            pq.push({depth[mx1[nxt]] - depth[nxt], nxt});
-                        }
-                    }
-                    if (curr == v)
-                        break;
-                    curr = son[curr];
-                }
-            }
+    for (int i = 0; i < n; i += 2) {
+        if (i == n - 1) {
+            cout << "! " << b[i] << endl;
         } else {
-            auto [h1, u] = pq.top();
-            pq.pop();
-            auto [h2, v] = pq.top();
-            pq.pop();
+            cout << "? " << b[i] << " " << b[i + 1] << endl;
+            int t;
+            rd(t);
 
-            int l1 = mx1[u], l2 = mx1[v];
-            cout << "? " << l1 << " " << l2 << endl;
-            int res;
-            rd(res);
-
-            if (res == 1) {
-                calc(l1, l2);
+            if (t) {
+                cout << "? " << b[i] << " " << b[i] << endl;
+                rd(t);
+                if (t) {
+                    cout << "! " << b[i] << endl;
+                } else {
+                    cout << "! " << b[i + 1] << endl;
+                }
                 return;
-            } else {
-                // 排除两条重链
-                rem -= (depth[l1] - depth[u] + 1);
-                rem -= (depth[l2] - depth[v] + 1);
-
-                auto add = [&](int root, int leaf) {
-                    int curr = root;
-                    while (true) {
-                        for (auto &nxt: g[curr]) {
-                            if (nxt != pa[curr] && nxt != son[curr]) {
-                                pq.push({depth[mx1[nxt]] - depth[nxt], nxt});
-                            }
-                        }
-                        if (curr == leaf) {
-                            break;
-                        }
-
-                        curr = son[curr];
-                    }
-                };
-                add(u, l1);
-                add(v, l2);
             }
         }
     }
