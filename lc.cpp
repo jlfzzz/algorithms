@@ -39,39 +39,6 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
-class Solution {
-public:
-    ll comb(int n, int k) {
-        if (k < 0 || k > n)
-            return 0;
-        if (k == 0 || k == n)
-            return 1;
-        ll res = 1;
-        F(i, 1, k) { res = res * (n - i + 1) / i; }
-        return res;
-    }
-
-    long long nthSmallest(long long n, int k) {
-        auto dfs = [&](this auto &&dfs, ll n, ll k) -> ll {
-            if (k == 0) {
-                return 0;
-            }
-            int i = 0;
-            while (true) {
-                ll cnt = comb(i, k - 1);
-
-                if (n > cnt) {
-                    n -= cnt;
-                    i++;
-                } else {
-                    return (1ll << i) + dfs(n, k - 1);
-                }
-            }
-        };
-
-        return dfs(n, k);
-    }
-};
 
 // int main() {
 //     ios::sync_with_stdio(false);
