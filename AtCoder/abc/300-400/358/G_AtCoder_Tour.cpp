@@ -144,64 +144,66 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-map<ll, pii> mp;
-
-void init() {
-    F(i, 0, 35) {
-        F(j, 0, 35) {
-            if (i == j) {
-                continue;
-            }
-
-            ll val = (1LL << i) - (1LL << j);
-            mp[val] = {i, j};
-        }
-    }
-}
+void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vl a(n);
-    rv(a);
+    int H, W;
+    ll K;
+    rd(H, W, K);
+    int Si, Sj;
+    rd(Si, Sj);
+    --Si;
+    --Sj;
 
-    ll sum = 0;
-    F(i, 0, n - 1) sum += a[i];
+    vvl A(H, vl(W));
+    F(i, 0, H - 1) rv(A[i]);
 
-    if (sum % n != 0) {
-        prt("No");
-        return;
-    }
+    vvl dp(H, vl(W, -INF));
 
-    ll target = sum / n;
-    vl cnt(40);
+    dp[Si][Sj] = 0;
 
-    F(i, 0, n - 1) {
-        ll diff = target - a[i];
+    ll ans = 0;
 
-        if (diff == 0)
-            continue;
+    int limit = min((ll) H * W, K);
 
-        if (mp.find(diff) == mp.end()) {
-            prt("No");
-            return;
+    int dr[] = {0, 0, 0, 1, -1};
+    int dc[] = {0, 1, -1, 0, 0};
+
+    F(k, 1, limit) {
+        vvl next_dp(H, vl(W, -INF));
+
+        F(r, 0, H - 1) {
+            F(c, 0, W - 1) {
+                if (dp[r][c] == -INF)
+                    continue;
+
+                F(d, 0, 4) {
+                    int nr = r + dr[d];
+                    int nc = c + dc[d];
+
+                    if (nr >= 0 && nr < H && nc >= 0 && nc < W) {
+                        ll val = dp[r][c] + A[nr][nc];
+                        if (val > next_dp[nr][nc]) {
+                            next_dp[nr][nc] = val;
+                        }
+                    }
+                }
+            }
         }
+        dp = move(next_dp);
 
-        auto [rec, give] = mp[diff];
-        cnt[rec]++;
-        cnt[give]--;
-    }
-
-    F(i, 0, 39) {
-        if (cnt[i] != 0) {
-            prt("No");
-            return;
+        F(r, 0, H - 1) {
+            F(c, 0, W - 1) {
+                if (dp[r][c] == -INF)
+                    continue;
+                ans = max(ans, dp[r][c] + (K - k) * A[r][c]);
+            }
         }
     }
 
-    prt("Yes");
+    prt(ans);
 }
 
 int main() {

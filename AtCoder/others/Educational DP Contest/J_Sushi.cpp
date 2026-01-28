@@ -144,14 +144,57 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
-void solve() {
-    
-}
+db dp[305][305][305];
 
+void solve() {
+    int n;
+    rd(n);
+    vi a(n);
+    rv(a);
+
+    int c1 = 0, c2 = 0, c3 = 0;
+    for (int x: a) {
+        if (x == 1)
+            c1++;
+        else if (x == 2)
+            c2++;
+        else if (x == 3)
+            c3++;
+    }
+
+    dp[0][0][0] = 0;
+
+    F(k, 0, c3) {
+        F(j, 0, n) {
+            F(i, 0, n) {
+                if (i == 0 && j == 0 && k == 0)
+                    continue;
+                if (i + j + k > n)
+                    continue;
+
+                db val = n;
+
+                if (i > 0)
+                    val += i * dp[k][j][i - 1];
+
+                if (j > 0)
+                    val += j * dp[k][j - 1][i + 1];
+
+                if (k > 0)
+                    val += k * dp[k - 1][j + 1][i];
+
+                dp[k][j][i] = val / (db) (i + j + k);
+            }
+        }
+    }
+
+    cout << fixed << setprecision(16);
+    prt(dp[c3][c2][c1]);
+}
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);

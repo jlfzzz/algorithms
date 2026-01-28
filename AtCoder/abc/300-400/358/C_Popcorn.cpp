@@ -144,64 +144,43 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-map<ll, pii> mp;
-
-void init() {
-    F(i, 0, 35) {
-        F(j, 0, 35) {
-            if (i == j) {
-                continue;
-            }
-
-            ll val = (1LL << i) - (1LL << j);
-            mp[val] = {i, j};
-        }
-    }
-}
+void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vl a(n);
-    rv(a);
-
-    ll sum = 0;
-    F(i, 0, n - 1) sum += a[i];
-
-    if (sum % n != 0) {
-        prt("No");
-        return;
-    }
-
-    ll target = sum / n;
-    vl cnt(40);
-
+    int n, m;
+    rd(n, m);
+    vi a(n);
     F(i, 0, n - 1) {
-        ll diff = target - a[i];
-
-        if (diff == 0)
-            continue;
-
-        if (mp.find(diff) == mp.end()) {
-            prt("No");
-            return;
+        string s;
+        rd(s);
+        int mask = 0;
+        F(j, 0, m - 1) {
+            if (s[j] == 'o') {
+                mask |= (1 << j);
+            }
         }
-
-        auto [rec, give] = mp[diff];
-        cnt[rec]++;
-        cnt[give]--;
+        a[i] = mask;
     }
 
-    F(i, 0, 39) {
-        if (cnt[i] != 0) {
-            prt("No");
-            return;
+    int ans = n;
+    int target = (1 << m) - 1;
+
+    F(mask, 1, (1 << n) - 1) {
+        int cur_flavor = 0;
+        int cnt = 0;
+        F(i, 0, n - 1) {
+            if ((mask >> i) & 1) {
+                cur_flavor |= a[i];
+                cnt++;
+            }
+        }
+        if (cur_flavor == target) {
+            ans = min(ans, cnt);
         }
     }
-
-    prt("Yes");
+    prt(ans);
 }
 
 int main() {

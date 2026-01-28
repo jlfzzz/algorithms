@@ -144,64 +144,34 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-map<ll, pii> mp;
-
-void init() {
-    F(i, 0, 35) {
-        F(j, 0, 35) {
-            if (i == j) {
-                continue;
-            }
-
-            ll val = (1LL << i) - (1LL << j);
-            mp[val] = {i, j};
-        }
-    }
-}
+void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vl a(n);
-    rv(a);
+    int N;
+    rd(N);
 
-    ll sum = 0;
-    F(i, 0, n - 1) sum += a[i];
+    vector<double> dp(N + 1, 0.0);
+    dp[0] = 1.0;
 
-    if (sum % n != 0) {
-        prt("No");
-        return;
-    }
+    F(i, 1, N) {
+        double p;
+        rd(p);
 
-    ll target = sum / n;
-    vl cnt(40);
-
-    F(i, 0, n - 1) {
-        ll diff = target - a[i];
-
-        if (diff == 0)
-            continue;
-
-        if (mp.find(diff) == mp.end()) {
-            prt("No");
-            return;
-        }
-
-        auto [rec, give] = mp[diff];
-        cnt[rec]++;
-        cnt[give]--;
-    }
-
-    F(i, 0, 39) {
-        if (cnt[i] != 0) {
-            prt("No");
-            return;
+        D(j, i, 0) {
+            if (j == 0) {
+                dp[j] = dp[j] * (1.0 - p);
+            } else {
+                dp[j] = dp[j] * (1.0 - p) + dp[j - 1] * p;
+            }
         }
     }
 
-    prt("Yes");
+    double ans = 0;
+    F(j, N / 2 + 1, N) { ans += dp[j]; }
+
+    cout << fixed << setprecision(10) << ans << endl;
 }
 
 int main() {

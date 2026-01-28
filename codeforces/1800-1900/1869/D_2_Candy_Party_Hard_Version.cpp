@@ -12,6 +12,7 @@ using ll = long long;
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
+#define us unsigned
 #define vi vector<int>
 #define vp vector<pii>
 #define vl vector<long long>
@@ -145,93 +146,85 @@ constexpr int N = 1e6 + 5;
 
 int Multitest = 1;
 
-void init() {}
+map<ll, pii> mp;
+
+void init() {
+    F(i, 0, 35) {
+        F(j, 0, 35) {
+            if (i == j) {
+                continue;
+            }
+
+            ll val = (1LL << i) - (1LL << j);
+            mp[val] = {i, j};
+        }
+    }
+}
 
 void solve() {
     int n;
     rd(n);
-
-    vl a(n + 1);
-    rv(a, 1);
+    vl a(n);
+    rv(a);
 
     ll sum = 0;
-    for (int i = 1; i <= n; i++)
-        sum += a[i];
+    F(i, 0, n - 1) sum += a[i];
 
     if (sum % n != 0) {
         prt("No");
         return;
     }
-    ll avg = sum / n;
 
-    vl cnt(65, 0);
-    vl flex_pos(65, 0), flex_neg(65, 0);
+    ll target = sum / n;
+    vl cnt(45, 0);
+    vl other1(45, 0);
+    vl other2(45, 0);
 
-    for (int i = 1; i <= n; i++) {
-        ll diff = a[i] - avg;
+    F(i, 0, n - 1) {
+        ll diff = target - a[i];
         if (diff == 0)
             continue;
 
-        ll abs_v = abs(diff);
-        ll low = abs_v & -abs_v;
-        ll high = abs_v + low;
-
-        if ((high & (high - 1)) != 0) {
+        if (mp.find(diff) == mp.end()) {
             prt("No");
             return;
         }
 
-        int l = __builtin_ctzll(low);
-        int h = __builtin_ctzll(high);
-
-        if (diff > 0) {
-            if ((abs_v & (abs_v - 1)) == 0) {
-                cnt[l]++;
-                flex_neg[l]++;
-            } else {
-                cnt[h]++;
-                cnt[l]--;
-            }
+        auto [rec, g] = mp[diff];
+        if (abs(rec - g) > 1) {
+            cnt[rec]++;
+            cnt[g]--;
         } else {
-            if ((abs_v & (abs_v - 1)) == 0) {
-                cnt[l]--;
-                flex_pos[l]++;
-            } else {
-                cnt[h]--;
-                cnt[l]++;
-            }
+            if (rec > g)
+                other1[g]++;
+            else
+                other2[rec]++;
         }
     }
+    F(i, 0, 39) {
+        cnt[i] += other1[i];
+        cnt[i] -= other2[i];
 
-    for (int i = 0; i < 62; i++) {
         if (cnt[i] == 0)
             continue;
 
-        if (cnt[i] % 2 != 0) {
-            prt("No");
-            return;
-        }
+
 
         if (cnt[i] > 0) {
-            ll need = cnt[i] / 2;
-            if (flex_neg[i] < need) {
+            ll num = cnt[i] / 2;
+            if (num > other1[i]) {
                 prt("No");
                 return;
             }
-            cnt[i + 1] += need;
+            cnt[i + 1] += num;
         } else {
-            ll need = abs(cnt[i]) / 2;
-            if (flex_pos[i] < need) {
+            ll num = abs(cnt[i]) / 2;
+            if (num > other2[i]) {
                 prt("No");
                 return;
             }
-            cnt[i + 1] -= need;
+            cnt[i + 1] -= num;
         }
-    }
-
-    if (cnt[62] != 0) {
-        prt("No");
-        return;
     }
 
     prt("Yes");

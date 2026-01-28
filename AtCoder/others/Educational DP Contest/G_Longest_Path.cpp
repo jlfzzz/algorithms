@@ -144,64 +144,51 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-map<ll, pii> mp;
-
-void init() {
-    F(i, 0, 35) {
-        F(j, 0, 35) {
-            if (i == j) {
-                continue;
-            }
-
-            ll val = (1LL << i) - (1LL << j);
-            mp[val] = {i, j};
-        }
-    }
-}
+void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vl a(n);
-    rv(a);
+    int n, m;
+    rd(n, m);
 
-    ll sum = 0;
-    F(i, 0, n - 1) sum += a[i];
+    vvi adj(n + 1);
+    vi deg(n + 1, 0);
 
-    if (sum % n != 0) {
-        prt("No");
-        return;
+    F(i, 1, m) {
+        int u, v;
+        rd(u, v);
+        adj[u].pb(v);
+        deg[v]++;
     }
 
-    ll target = sum / n;
-    vl cnt(40);
+    queue<int> q;
 
-    F(i, 0, n - 1) {
-        ll diff = target - a[i];
-
-        if (diff == 0)
-            continue;
-
-        if (mp.find(diff) == mp.end()) {
-            prt("No");
-            return;
-        }
-
-        auto [rec, give] = mp[diff];
-        cnt[rec]++;
-        cnt[give]--;
-    }
-
-    F(i, 0, 39) {
-        if (cnt[i] != 0) {
-            prt("No");
-            return;
+    F(i, 1, n) {
+        if (deg[i] == 0) {
+            q.push(i);
         }
     }
 
-    prt("Yes");
+    vi dp(n + 1, 0);
+
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+
+        for (auto v: adj[u]) {
+            dp[v] = max(dp[v], dp[u] + 1);
+
+            deg[v]--;
+            if (deg[v] == 0) {
+                q.push(v);
+            }
+        }
+    }
+
+    int ans = 0;
+    F(i, 1, n) { ans = max(ans, dp[i]); }
+    prt(ans);
 }
 
 int main() {

@@ -144,64 +144,43 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
-map<ll, pii> mp;
-
-void init() {
-    F(i, 0, 35) {
-        F(j, 0, 35) {
-            if (i == j) {
-                continue;
-            }
-
-            ll val = (1LL << i) - (1LL << j);
-            mp[val] = {i, j};
-        }
-    }
-}
+void init() {}
 
 void solve() {
-    int n;
-    rd(n);
-    vl a(n);
-    rv(a);
+    int K;
+    rd(K);
+    vi C(26);
+    rv(C);
 
-    ll sum = 0;
-    F(i, 0, n - 1) sum += a[i];
-
-    if (sum % n != 0) {
-        prt("No");
-        return;
-    }
-
-    ll target = sum / n;
-    vl cnt(40);
-
-    F(i, 0, n - 1) {
-        ll diff = target - a[i];
-
-        if (diff == 0)
-            continue;
-
-        if (mp.find(diff) == mp.end()) {
-            prt("No");
-            return;
-        }
-
-        auto [rec, give] = mp[diff];
-        cnt[rec]++;
-        cnt[give]--;
-    }
-
-    F(i, 0, 39) {
-        if (cnt[i] != 0) {
-            prt("No");
-            return;
+    vvl nCr(K + 1, vl(K + 1));
+    for (int i = 0; i <= K; i++) {
+        nCr[i][0] = 1;
+        for (int j = 1; j <= i; j++) {
+            nCr[i][j] = (nCr[i - 1][j - 1] + nCr[i - 1][j]) % MOD;
         }
     }
 
-    prt("Yes");
+    vl dp(K + 1, 0);
+    dp[0] = 1;
+
+    for (int count: C) {
+        vl next_dp(K + 1, 0);
+        for (int j = 0; j <= K; j++) {
+            for (int k = 0; k <= count && k <= j; k++) {
+                ll ways = (dp[j - k] * nCr[j][k]) % MOD;
+                next_dp[j] = (next_dp[j] + ways) % MOD;
+            }
+        }
+        dp = move(next_dp);
+    }
+
+    ll ans = 0;
+    for (int i = 1; i <= K; i++) {
+        ans = (ans + dp[i]) % MOD;
+    }
+    prt(ans);
 }
 
 int main() {
