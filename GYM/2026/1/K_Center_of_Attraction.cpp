@@ -5,16 +5,20 @@ using ll = long long;
 #define db long double
 #define pb emplace_back
 #define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
 #define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
+#define us unsigned
 #define vi vector<int>
 #define vp vector<pii>
 #define vl vector<long long>
 #define vvi vector<vector<int>>
 #define vvp vector<vector<pii>>
 #define vvl vector<vector<long long>>
-#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 #define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
 #define SZ(a) ((int) (a).size())
 #define prq priority_queue
@@ -24,10 +28,7 @@ constexpr int MOD2 = int(1e9 + 7);
 constexpr int MOD = int(998244353);
 constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
-
-std::mt19937_64 gen(std::random_device{}());
-std::uniform_int_distribution<long long> dist(1, 1e18);
-long long random_num = dist(gen);
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
 namespace utils {
     template<typename A, typename B>
@@ -133,141 +134,15 @@ namespace utils {
     }
 } // namespace utils
 
-#define dbg(...) cerr << "[line: " << __LINE__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#ifdef WOAIHUTAO
+#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
 
-namespace helpers {
-    ostream &operator<<(ostream &os, i128 x) {
-        if (x == 0) {
-            os << '0';
-            return os;
-        }
-        if (x < 0) {
-            os << '-';
-            x = -x;
-        }
-        char buf[64];
-        int pos = 0;
-        while (x > 0) {
-            buf[pos++] = '0' + x % 10;
-            x /= 10;
-        }
-        while (pos--) {
-            os << buf[pos];
-        }
-        return os;
-    }
+using namespace utils;
 
-    // 辅助函数：递归打印树的子节点
-    void printTreeHelper(int u, int parent, const vector<vector<int>> &adj, string prefix, bool isLast) {
-        cout << prefix;
-        cout << (isLast ? "└── " : "├── ");
-        cout << u << endl;
-
-        // 获取子节点
-        vector<int> children;
-        for (int v: adj[u]) {
-            if (v != parent) {
-                children.push_back(v);
-            }
-        }
-
-        // 递归打印子节点
-        for (int i = 0; i < children.size(); i++) {
-            bool last = (i == children.size() - 1);
-            string newPrefix = prefix + (isLast ? "    " : "│   ");
-            printTreeHelper(children[i], u, adj, newPrefix, last);
-        }
-    }
-
-    // 封装的打印树函数
-    // 参数：n - 节点数，edges - 边的列表，root - 根节点（默认为1）
-    void printTree(int n, const vector<pair<int, int>> &edges, int root = 1) {
-        // 构建邻接表
-        vector<vector<int>> adj(n + 1);
-        for (const auto &edge: edges) {
-            int u = edge.first;
-            int v = edge.second;
-            adj[u].push_back(v);
-            adj[v].push_back(u);
-        }
-
-        // 打印树结构
-        cout << "Tree structure (root = " << root << "):" << endl;
-        cout << root << endl;
-
-        // 获取根节点的所有子节点
-        vector<int> children;
-        for (int v: adj[root]) {
-            children.push_back(v);
-        }
-
-        // 打印所有子树
-        for (int i = 0; i < children.size(); i++) {
-            bool last = (i == children.size() - 1);
-            printTreeHelper(children[i], root, adj, "", last);
-        }
-    }
-
-    // 随机数组
-    vector<ll> random_array(int n, int lo, int hi) {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<ll> dist(lo, hi);
-
-        vector<ll> arr(n);
-        for (int i = 0; i < n; i++) {
-            arr[i] = (ll) dist(gen);
-        }
-        return arr;
-    }
-
-    // 打印整数的二进制表示
-    template<typename T>
-    void prt_bin(T x, int width = -1, char fill = '0') {
-        static_assert(is_integral_v<T>, "prt_bin only supports integral types");
-
-        string s;
-        if (x == 0) {
-            s = "0";
-        } else {
-            while (x != 0) {
-                s.push_back((x & 1) ? '1' : '0');
-                x >>= 1;
-            }
-            reverse(s.begin(), s.end());
-        }
-
-        // 如果指定了宽度，则填充
-        if (width > 0 && (int) s.size() < width) {
-            s = string(width - s.size(), fill) + s;
-        }
-
-        cout << s << endl;
-    }
-
-    // 打印向量vector的二进制
-    template<typename T>
-    void prt_vec_bin(const vector<T> &v, int width = -1, char fill = '0') {
-        for (size_t i = 0; i < v.size(); i++) {
-            prt_bin(v[i], width, fill);
-        }
-    }
-
-    // 输入二进制字符串打印整数
-    template<typename T = long long>
-    void prt_int(const string &s) {
-        static_assert(is_integral_v<T>, "prt_int only supports integral types");
-        T x = 0;
-        for (char c: s) {
-            if (c != '0' && c != '1') {
-                throw invalid_argument("Input string must be binary (0/1 only)");
-            }
-            x = (x << 1) | (c - '0');
-        }
-        cout << x << "\n";
-    }
-
-} // namespace helpers
+constexpr int N = 1e6 + 5;
 
 namespace atcoder {
 
@@ -801,13 +676,10 @@ namespace atcoder {
         using is_dynamic_modint_t = std::enable_if_t<is_dynamic_modint<T>::value>;
 
     } // namespace internal
-    template<int m>
-    ostream &operator<<(ostream &os, const static_modint<m> &x) {
-        return os << x.val();
-    }
+
 } // namespace atcoder
 
-using Z = atcoder::static_modint<MOD>;
+using Z = atcoder::static_modint<MOD2>;
 
 Z q_pow(Z base, long long exp) {
     Z result(1);
@@ -820,253 +692,95 @@ Z q_pow(Z base, long long exp) {
     return result;
 }
 
-namespace math {
-    // 组合数
-    struct Comb {
-        int n;
-        std::vector<Z> _fac;
-        std::vector<Z> _invfac;
-        std::vector<Z> _inv;
 
-        Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
-        explicit Comb(int n) : Comb() { init(n); }
+struct Comb {
+    int n;
+    std::vector<Z> _fac;
+    std::vector<Z> _invfac;
+    std::vector<Z> _inv;
 
-        void init(int m) {
-            if (m <= n) {
-                return;
-            }
-            _fac.resize(m + 1);
-            _invfac.resize(m + 1);
-            _inv.resize(m + 1);
+    Comb() : n{0}, _fac{1}, _invfac{1}, _inv{0} {}
+    explicit Comb(int n) : Comb() { init(n); }
 
-            for (int i = n + 1; i <= m; i++) {
-                _fac[i] = _fac[i - 1] * i;
-            }
-            _invfac[m] = _fac[m].inv();
-            for (int i = m; i > n; i--) {
-                _invfac[i - 1] = _invfac[i] * i;
-                _inv[i] = _invfac[i] * _fac[i - 1];
-            }
-            n = m;
+    void init(int m) {
+        if (m <= n) {
+            return;
         }
+        _fac.resize(m + 1);
+        _invfac.resize(m + 1);
+        _inv.resize(m + 1);
 
-        Z fac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _fac[m];
+        for (int i = n + 1; i <= m; i++) {
+            _fac[i] = _fac[i - 1] * i;
         }
-        Z invfac(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _invfac[m];
+        _invfac[m] = _fac[m].inv();
+        for (int i = m; i > n; i--) {
+            _invfac[i - 1] = _invfac[i] * i;
+            _inv[i] = _invfac[i] * _fac[i - 1];
         }
-        Z inv(int m) {
-            if (m > n) {
-                init(2 * m);
-            }
-            return _inv[m];
-        }
-        Z C(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(m) * invfac(n - m);
-        }
-        Z A(int n, int m) {
-            if (n < m || m < 0) {
-                return 0;
-            }
-            return fac(n) * invfac(n - m);
-        }
-    } comb(100'005);
-
-    // 质因数分解
-    vector<int> decompose(int x) {
-        vector<int> primes;
-        for (int i = 2; i * i <= x; i++) {
-            if (x % i == 0) {
-                primes.push_back(i);
-                while (x % i == 0) {
-                    x /= i;
-                }
-            }
-        }
-        if (x > 1) {
-            primes.push_back(x);
-        }
-        return primes;
+        n = m;
     }
 
-    // 二分判断完全平方数
-    bool isPerfectSquare(long long n) {
-        if (n < 0)
-            return false;
-        long long lo = 0, hi = n;
-        while (lo <= hi) {
-            long long mid = lo + (hi - lo) / 2;
-            long long sq = mid * mid;
-            if (sq == n)
-                return true;
-            else if (sq < n)
-                lo = mid + 1;
-            else
-                hi = mid - 1;
+    Z fac(int m) {
+        if (m > n) {
+            init(2 * m);
         }
-        return false;
+        return _fac[m];
     }
-
-    i128 getGcd(i128 a, i128 b) {
-        while (b != 0) {
-            i128 t = a % b;
-            a = b;
-            b = t;
+    Z invfac(int m) {
+        if (m > n) {
+            init(2 * m);
         }
-        return a;
+        return _invfac[m];
     }
-
-    i128 getLcm(i128 x, i128 y) {
-        if (x == 0 || y == 0)
+    Z inv(int m) {
+        if (m > n) {
+            init(2 * m);
+        }
+        return _inv[m];
+    }
+    Z C(int n, int m) {
+        if (n < m || m < 0) {
             return 0;
-        return x / getGcd(x, y) * y;
-    }
-} // namespace math
-
-class BigInt {
-    std::vector<int> digits;
-    static const int BASE = 1000000000; // 10^9
-
-public:
-    BigInt() : digits(1, 0) {}
-
-    BigInt(int x) {
-        if (x == 0)
-            digits = {0};
-        else {
-            while (x > 0) {
-                digits.push_back(x % BASE);
-                x /= BASE;
-            }
         }
+        return fac(n) * invfac(m) * invfac(n - m);
     }
-
-    BigInt &operator=(int x) {
-        digits.clear();
-        if (x == 0)
-            digits = {0};
-        else {
-            while (x > 0) {
-                digits.push_back(x % BASE);
-                x /= BASE;
-            }
+    Z A(int n, int m) {
+        if (n < m || m < 0) {
+            return 0;
         }
-        return *this;
+        return fac(n) * invfac(n - m);
+    }
+} comb(N);
+
+int Multitest = 1;
+
+void init() {}
+
+void solve() {
+    int b, g, x, y;
+    rd(b, g, x, y);
+
+    if (x + y > g) {
+        prt(0);
+        return;
     }
 
-    BigInt &operator*=(int x) {
-        ll carry = 0;
-        for (int i = 0; i < digits.size(); i++) {
-            carry += (ll) digits[i] * x;
-            digits[i] = carry % BASE;
-            carry /= BASE;
-        }
-        while (carry > 0) {
-            digits.push_back(carry % BASE);
-            carry /= BASE;
-        }
-        return *this;
-    }
+    Z tot = comb.C(b + g, g);
+    tot -= comb.C(b + x + y - 1, b);
 
-    BigInt operator*(int x) const {
-        BigInt res = *this;
-        res *= x;
-        return res;
-    }
-
-    // 除法（返回商）
-    BigInt operator/(int x) const {
-        BigInt res;
-        res.digits.resize(digits.size());
-        ll rem = 0;
-        for (int i = digits.size() - 1; i >= 0; i--) {
-            rem = rem * BASE + digits[i];
-            res.digits[i] = rem / x;
-            rem %= x;
-        }
-        // 去除前导零
-        while (res.digits.size() > 1 && res.digits.back() == 0) {
-            res.digits.pop_back();
-        }
-        return res;
-    }
-
-    bool operator>(const BigInt &other) const {
-        if (digits.size() != other.digits.size()) {
-            return digits.size() > other.digits.size();
-        }
-        for (int i = digits.size() - 1; i >= 0; i--) {
-            if (digits[i] != other.digits[i]) {
-                return digits[i] > other.digits[i];
-            }
-        }
-        return false;
-    }
-
-    // 转换为 long long（注意可能溢出）
-    operator long long() const {
-        long long res = 0;
-        for (int i = digits.size() - 1; i >= 0; i--) {
-            res = res * BASE + digits[i];
-        }
-        return res;
-    }
-
-    // 输出
-    friend ostream &operator<<(ostream &os, const BigInt &num) {
-        os << num.digits.back();
-        for (int i = num.digits.size() - 2; i >= 0; i--) {
-            os << setw(9) << setfill('0') << num.digits[i];
-        }
-        return os;
-    }
-};
-
-using namespace utils;
-using namespace helpers;
-using namespace math;
-
-vector<pii> readTree(int n);
-
-#define int ll
-
-void func1() {
-    int n = 100;
-
-    vector<int> arr = {12, 3, 20, 5, 80, 1};
-    auto random_arr1 = random_array(n, 1, 1e5);
-    auto random_arr2 = random_array(n, 1, 1e7);
-
-    ll a, b;
-    rd(a, b);
-
-    prt_bin(a, 30);
-    prt_bin(b, 30);
-
-    ll p, q;
-    rd(p, q);
-
-    cout << "ans is " << abs(a - p) + abs(b - q) << endl;
+    prt(tot.val());
 }
 
-vector<pii> readTree(int n) {
-    vector<pii> edges;
-    F(i, 1, n - 1) {
-        int u, v;
-        rd(u, v);
-        edges.pb(u, v);
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
     }
-    return edges;
+    while (T--) {
+        solve();
+    }
 }
-
-signed main() { func1(); }
