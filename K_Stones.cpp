@@ -144,12 +144,32 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    
+    int N, K;
+    rd(N, K);
+    vi a(N);
+    rv(a);
+
+    vi dp(K + 1, 0);
+
+    F(i, 1, K) {
+        for (int x: a) {
+            if (i >= x && !dp[i - x]) {
+                dp[i] = 1;
+                break; 
+            }
+        }
+    }
+
+    if (dp[K]) {
+        prt("First");
+    } else {
+        prt("Second");
+    }
 }
 
 int main() {

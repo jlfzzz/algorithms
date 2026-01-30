@@ -1,0 +1,324 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+#define i128 __int128_t
+#define db long double
+#define pb emplace_back
+#define pf emplace_front
+#define pob pop_back
+#define ep emplace
+#define ins insert
+#define all(x) (x).begin(), (x).end()
+#define all2(x, i) (x).begin() + (i), (x).end()
+using pii = pair<ll, ll>;
+#define ull unsigned long long
+#define us unsigned
+#define vi vector<int>
+#define vp vector<pii>
+#define vl vector<long long>
+#define vvi vector<vector<int>>
+#define vvp vector<vector<pii>>
+#define vvl vector<vector<long long>>
+#define D(i, j, k) for (int(i) = (j); (i) >= (k); (i)--)
+#define SZ(a) ((int) (a).size())
+#define prq priority_queue
+#define fi first
+#define se second
+constexpr int MOD2 = int(1e9 + 7);
+constexpr int MOD = int(998244353);
+constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
+constexpr int inf = 0x3f3f3f3f;
+#define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
+
+namespace utils {
+    template<typename A, typename B>
+    ostream &operator<<(ostream &os, const pair<A, B> &p) {
+        return os << '(' << p.first << ", " << p.second << ')';
+    }
+
+    template<typename Tuple, size_t... Is>
+    void print_tuple(ostream &os, const Tuple &t, index_sequence<Is...>) {
+        ((os << (Is == 0 ? "" : ", ") << get<Is>(t)), ...);
+    }
+
+    template<typename... Args>
+    ostream &operator<<(ostream &os, const tuple<Args...> &t) {
+        os << '(';
+        print_tuple(os, t, index_sequence_for<Args...>{});
+        return os << ')';
+    }
+
+    template<typename T, typename = decltype(begin(declval<T>())), typename = enable_if_t<!is_same_v<T, string>>>
+    ostream &operator<<(ostream &os, const T &v) {
+        os << '{';
+        bool first = true;
+        for (auto &x: v) {
+            if (!first)
+                os << ", ";
+            first = false;
+            os << x;
+        }
+        return os << '}';
+    }
+
+    void debug_out() { cerr << endl; }
+
+    template<typename Head, typename... Tail>
+    void debug_out(Head H, Tail... T) {
+        cerr << H;
+        if (sizeof...(T))
+            cerr << " ";
+        debug_out(T...);
+    }
+
+    template<typename T>
+    void prt(const T &x) {
+        cout << x << '\n';
+    }
+
+    template<typename T, typename... Args>
+    void prt(const T &first, const Args &...rest) {
+        cout << first;
+        ((cout << ' ' << rest), ...);
+        cout << '\n';
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v) {
+        for (size_t i = 0; i < v.size(); i++) {
+            if (i)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void prv(const vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            if (i > start_index)
+                cout << " ";
+            cout << v[i];
+        }
+        cout << "\n";
+    }
+
+    template<typename T>
+    void rd(T &x) {
+        cin >> x;
+    }
+
+    template<typename T, typename... Args>
+    void rd(T &x, Args &...args) {
+        cin >> x;
+        rd(args...);
+    }
+
+    template<typename A, typename B>
+    void rd(pair<A, B> &p) {
+        cin >> p.first >> p.second;
+    }
+
+    template<typename T>
+    void rv(vector<T> &v) {
+        for (auto &x: v) {
+            rd(x);
+        }
+    }
+
+    template<typename T>
+    void rv(vector<T> &v, int start_index) {
+        for (int i = start_index; i < (int) v.size(); i++) {
+            rd(v[i]);
+        }
+    }
+} // namespace utils
+
+#ifdef WOAIHUTAO
+#define dbg(...) cerr << "[L" << __LINE__ << " " << __func__ << " | " << #__VA_ARGS__ << "]: ", debug_out(__VA_ARGS__)
+#else
+#define dbg(...) ((void) 0)
+#endif
+
+using namespace utils;
+
+constexpr int N = 1e6 + 5;
+
+template<typename T = long long>
+class BIT {
+    vector<T> tree;
+
+public:
+    BIT(int n) : tree(n + 1) {}
+
+    void update(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            tree[i] += val;
+        }
+    }
+
+    // 左闭右闭
+    T rangeSum(int l, int r) const { return this->pre(r) - this->pre(l - 1); }
+
+    T pre(int i) const {
+        T res = 0;
+        for (; i > 0; i &= i - 1) {
+            res += tree[i];
+        }
+        return res;
+    }
+
+    T getVal(int i) { return rangeSum(i, i); }
+
+    void setVal(int i, T val) {
+        T delta = val - getVal(i);
+        update(i, delta);
+    }
+
+    // 点更新取 max
+    void updateMax(int i, T val) {
+        for (; i < (int) tree.size(); i += i & -i) {
+            if (val > tree[i]) {
+                tree[i] = val;
+            }
+        }
+    }
+
+    T preMax(int i) const {
+        T res = numeric_limits<T>::min();
+        for (; i > 0; i &= i - 1) {
+            res = max(res, tree[i]);
+        }
+        return res;
+    }
+};
+
+int Multitest = 1;
+
+void init() {}
+
+void solve() {
+    int n, m;
+    rd(n, m);
+
+    vi vis(n + 1);
+    vvi g1(n + 1), g(n + 1);
+    F(i, 1, m) {
+        int u, v;
+        rd(u, v);
+        g1[v].pb(u);
+    }
+    F(i, 1, n) sort(all(g1[i]));
+
+    auto build = [&](this auto &&dfs, int u) -> void {
+        for (int nxt: g1[u]) {
+            if (!vis[nxt]) {
+                vis[nxt] = 1;
+                g[u].pb(nxt);
+                dfs(nxt);
+            }
+        }
+        if (u - 1 >= 1 && !vis[u - 1]) {
+            g[u].pb(u - 1);
+            vis[u - 1] = 1;
+            dfs(u - 1);
+        }
+    };
+
+    vis[n] = 1;
+    build(n);
+
+    vi tin(n + 1), tout(n + 1), heavy(n + 1), sz(n + 1), depth(n + 1);
+    vi id(n + 2);
+    int ts = 0;
+    ll ans = 0;
+    BIT<ll> bit1(n + 5), bit2(n + 5);
+
+    auto dfs1 = [&](this auto &&dfs, int u) -> void {
+        tin[u] = ++ts;
+        id[ts] = u;
+        sz[u] = 1;
+        int best = -1;
+        heavy[u] = -1;
+        for (int v: g[u]) {
+            depth[v] = depth[u] + 1;
+            dfs(v);
+            sz[u] += sz[v];
+            if (sz[v] > best) {
+                best = sz[v];
+                heavy[u] = v;
+            }
+        }
+        tout[u] = ts;
+    };
+
+    dfs1(n);
+
+    auto query = [&](int d) {
+        int idx = d + 1;
+        return pii{bit1.pre(idx), bit2.pre(idx)};
+    };
+
+    auto add = [&](int u, int delta) {
+        F(i, tin[u], tout[u]) {
+            int v = id[i];
+            bit1.update(depth[v] + 1, delta);
+            bit2.update(depth[v] + 1, 1ll * delta * depth[v]);
+        }
+    };
+
+    auto dfs2 = [&](this auto &&dfs, int u, int keep) -> void {
+        for (int v: g[u]) {
+            if (v == heavy[u])
+                continue;
+            dfs(v, 0);
+        }
+
+        if (heavy[u] != -1) {
+            dfs(heavy[u], 1);
+        }
+
+        auto upd = [&](int root) {
+            F(i, tin[root], tout[root]) {
+                int node = id[i];
+                auto [cnt, sum] = query(depth[node]);
+                ans += sum - cnt * depth[u];
+
+                ll tot = bit1.pre(n + 1);
+                ll ls = bit1.pre(depth[node]);
+                ll c = tot - ls;
+                ans += c * (depth[node] - depth[u]);
+            }
+        };
+
+        for (int v: g[u]) {
+            if (v == heavy[u])
+                continue;
+            upd(v);
+            add(v, 1);
+        }
+
+        bit1.update(depth[u] + 1, 1);
+        bit2.update(depth[u] + 1, depth[u]);
+
+        if (!keep) {
+            add(u, -1);
+        }
+    };
+
+    dfs2(n, 0);
+    prt(ans);
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    init();
+    int T = 1;
+    if (Multitest) {
+        rd(T);
+    }
+    while (T--) {
+        solve();
+    }
+}

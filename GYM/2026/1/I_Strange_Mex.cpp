@@ -146,8 +146,6 @@ constexpr int N = 1e6 + 5;
 
 int Multitest = 0;
 
-void init() {}
-
 namespace atcoder {
     namespace internal {
 
@@ -401,47 +399,61 @@ namespace atcoder {
 } // namespace atcoder
 
 struct S {
-    int mx;
+    ll sum;
+    ll mx;
 };
 
 struct F {
-    int add;
+    ll lazy;
 };
 
-S op(S a, S b) { return {max(a.mx, b.mx)}; }
+S op(S a, S b) { return {a.sum + b.sum, max(a.mx, a.sum + b.mx)}; }
 
-S e() { return {(int) -2e9}; }
+S e() { return {0, -INF}; }
 
-S mapping(F f, S x) { return {x.mx + f.add}; }
+S mapping(F f, S x) { return {x.sum + f.lazy, x.mx + f.lazy}; }
 
-F composition(F f, F g) { return {f.add + g.add}; }
+F composition(F f, F g) { return {f.lazy + g.lazy}; }
 
 F id() { return {0}; }
 
-bool chk(S x) { return x.mx < 0; }
+void init() {}
 
 void solve() {
     int q;
     rd(q);
 
-    vector<S> tree_arr(N);
-    for (int i = 0; i < N; i++) {
-        tree_arr[i] = {-(i + 1)};
-    }
-
+    vector<S> tree_arr(1000005, S{-1, -1});
     atcoder::lazy_segtree<S, op, e, F, mapping, composition, id> seg(tree_arr);
 
     while (q--) {
-        int t, a;
-        cin >> t >> a;
-
+        int t, x;
+        rd(t, x);
         if (t == 1) {
-            seg.apply(a, N, {1});
+            seg.apply(x, F{1});
         } else {
-            seg.apply(a, N, {-1});
+            seg.apply(x, F{-1});
         }
 
-        cout << seg.min_left(N, chk) << "\n";
+        int l = 1, r = 1e6 + 5;
+        int ans = 0;
+
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+
+            ll pre = seg.prod(0, mid - 1).sum;
+
+            ll t = seg.prod(mid - 1, 1000005).mx;
+
+            if (pre + t >= 0) {
+                ans = mid;
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+
+        prt(ans);
     }
 }
 
