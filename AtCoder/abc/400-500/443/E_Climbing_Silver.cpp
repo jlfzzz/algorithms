@@ -149,44 +149,72 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    int n, c;
+    rd(n, c);
+    c--;
 
-    auto calc = [&](string &s) {
-        int n = SZ(s);
-        int ans = 1;
+    vector<string> a(n);
+    rv(a);
 
-        int r = n - 1;
-        while (r >= 0 && s[r] == s[n - 1]) {
-            r--;
-        }
+    vi good(n);
+    F(i, 0, n - 1) { good[i] = (a[n - 1][i] == '.'); }
 
-        if (r < 0) {
-            return 1;
-        }
+    vi dp(n), dp2(n);
 
-        int l = 1;
-        int cur = s[0] - '0';
 
-        while (l <= r && s[l] == s[0]) {
-            l++;
-        }
 
-        F(i, l, r) {
-            int x = s[i] - '0';
-            if (x > cur) {
-                ans++;
-                cur = x;
+    dp[c] = 1;
+    dp2[c] = 1;
+
+    D(i, n - 1, 1) {
+        int nxt = i - 1;
+
+        vi ndp(n, 0), ndp2(n, 0);
+
+        F(j, 0, n - 1) {
+            if (!dp[j])
+                continue;
+
+            F(d, -1, 1) {
+                int nj = j + d;
+                if (nj < 0 || nj >= n)
+                    continue;
+
+                int flag = (d == 0) ? dp2[j] : good[nj];
+
+                bool f1 = false;
+                bool f2 = false;
+
+                if (a[nxt][nj] == '.') {
+                    f1 = true;
+                    f2 = flag;
+                } else {
+                    if (flag) {
+                        f1 = true;
+                        f2 = true;
+                    }
+                }
+
+                if (f1) {
+                    ndp[nj] = 1;
+                    if (f2)
+                        ndp2[nj] = 1;
+                }
             }
         }
 
+        swap(dp, ndp);
+        swap(dp2, ndp2);
 
-        return ans;
-    };
+        F(j, 0, n - 1) {
+            if (a[nxt][j] == '#')
+                good[j] = 0;
+        }
+    }
 
-    int ans = calc(s);
-    ranges::reverse(s);
-    ans = max(ans, calc(s));
+    string ans;
+    F(i, 0, n - 1) { ans += (dp[i] ? '1' : '0'); }
+
     prt(ans);
 }
 

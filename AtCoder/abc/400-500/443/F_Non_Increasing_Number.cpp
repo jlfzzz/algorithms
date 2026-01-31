@@ -144,50 +144,67 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    int n;
+    rd(n);
 
-    auto calc = [&](string &s) {
-        int n = SZ(s);
-        int ans = 1;
+    vector<int> from_rem[10], from_last[10];
+    for (int i = 0; i < 10; i++) {
+        from_rem[i].assign(n, -1);
+        from_last[i].assign(n, -1);
+    }
 
-        int r = n - 1;
-        while (r >= 0 && s[r] == s[n - 1]) {
-            r--;
+    queue<pair<int, int>> q;
+
+    for (int i = 1; i <= 9; i++) {
+        int r = i % n;
+        if (from_rem[i][r] == -1) {
+            from_rem[i][r] = -2;
+            q.push({r, i});
+        }
+    }
+
+    while (!q.empty()) {
+        auto [cur_r, cur_last] = q.front();
+        q.pop();
+
+        if (cur_r == 0) {
+            string ans = "";
+            int r = cur_r;
+            int last = cur_last;
+
+            while (true) {
+                ans += char('0' + last);
+                int prev_r = from_rem[last][r];
+
+                if (prev_r == -2)
+                    break;
+
+                int prev_last = from_last[last][r];
+                r = prev_r;
+                last = prev_last;
+            }
+            reverse(all(ans));
+            prt(ans);
+            return;
         }
 
-        if (r < 0) {
-            return 1;
-        }
+        for (int d = cur_last; d <= 9; d++) {
+            int nxt_r = (cur_r * 10 + d) % n;
 
-        int l = 1;
-        int cur = s[0] - '0';
-
-        while (l <= r && s[l] == s[0]) {
-            l++;
-        }
-
-        F(i, l, r) {
-            int x = s[i] - '0';
-            if (x > cur) {
-                ans++;
-                cur = x;
+            if (from_rem[d][nxt_r] == -1) {
+                from_rem[d][nxt_r] = cur_r;
+                from_last[d][nxt_r] = cur_last;
+                q.push({nxt_r, d});
             }
         }
+    }
 
-
-        return ans;
-    };
-
-    int ans = calc(s);
-    ranges::reverse(s);
-    ans = max(ans, calc(s));
-    prt(ans);
+    prt(-1);
 }
 
 int main() {

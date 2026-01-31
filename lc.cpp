@@ -39,6 +39,51 @@ constexpr long long INF = 0x3f3f3f3f3f3f3f3f;
 constexpr int inf = 0x3f3f3f3f;
 #define F(i, j, k) for (int(i) = (j); (i) <= (k); (i)++)
 
+static ll pref[1005];
+static ll dp[1005][1005];
+
+class Solution {
+public:
+    long long minPartitionScore(vector<int> &nums, int k) {
+        int n = SZ(nums);
+
+        F(t, 0, k) {
+            F(i, 0, n) { dp[t][i] = INF; }
+        }
+
+        pref[0] = 0;
+        F(i, 0, n - 1) { pref[i + 1] = pref[i] + nums[i]; }
+
+        dp[0][0] = 0;
+
+        F(i, 1, n) {
+            ll sum = pref[i];
+            dp[1][i] = sum * (sum + 1) / 2;
+        }
+
+        F(t, 2, k) {
+            auto &pre = dp[t - 1];
+
+            F(i, t, n) {
+                ll mn = INF;
+
+                F(j, t - 1, i - 1) {
+                    ll sum = pref[i] - pref[j];
+                    ll cost = sum * (sum + 1) / 2;
+                    ll total = pre[j] + cost;
+
+                    if (total < mn) {
+                        mn = total;
+                    }
+                }
+                dp[t][i] = mn;
+            }
+        }
+
+        return dp[k][n];
+    }
+};
+
 
 // int main() {
 //     ios::sync_with_stdio(false);

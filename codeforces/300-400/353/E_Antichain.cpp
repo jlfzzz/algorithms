@@ -12,6 +12,7 @@ using ll = long long;
 #define all2(x, i) (x).begin() + (i), (x).end()
 using pii = pair<ll, ll>;
 #define ull unsigned long long
+#define us unsigned
 #define vi vector<int>
 #define vp vector<pii>
 #define vl vector<long long>
@@ -151,50 +152,72 @@ void solve() {
     string s;
     rd(s);
     int n = SZ(s);
-    vector<bool> vis(n, false);
-    int matches = 0;
 
-    vector<int> q;
-
+    // 构建二分图
+    // 左侧点: 0 ~ n-1
+    // 右侧点: n ~ 2n-1
+    // 原始边 i->j 转化为无向边: Left(i) - Right(j)
+    vvi adj(2 * n);
     F(i, 0, n - 1) {
-        if (vis[i])
+        int u, v;
+        if (s[i] == '0') {
+            // 原图: i -> (i+1)%n
+            // 二分图: Left(i) - Right((i+1)%n)
+            u = i;
+            v = n + (i + 1) % n;
+        } else {
+            // 原图: (i+1)%n -> i
+            // 二分图: Left((i+1)%n) - Right(i)
+            u = (i + 1) % n;
+            v = n + i;
+        }
+        adj[u].pb(v);
+        adj[v].pb(u);
+    }
+
+    int match = 0;
+    vi vis(2 * n, 0);
+
+    // 遍历所有连通分量 (只可能是链或环)
+    F(i, 0, 2 * n - 1) {
+        if (vis[i] || adj[i].empty())
             continue;
 
-        q.clear();
+        int nd = 0; // 节点数
+        int ed = 0; // 边数
+
+        // BFS 统计连通分量大小
+        vi q;
         q.pb(i);
-        vis[i] = true;
+        vis[i] = 1;
+        int hd = 0;
 
-        int head = 0;
-        while (head < SZ(q)) {
-            int u = q[head++];
-
-            int r = (u + 1);
-            if (r == n)
-                r = 0;
-
-            if (s[u] != s[r]) {
-                if (!vis[r]) {
-                    vis[r] = true;
-                    q.pb(r);
-                }
-            }
-
-            int l = (u - 1);
-            if (l == -1)
-                l = n - 1;
-
-            if (s[l] != s[u]) {
-                if (!vis[l]) {
-                    vis[l] = true;
-                    q.pb(l);
+        while (hd < SZ(q)) {
+            int u = q[hd++];
+            nd++;
+            for (auto &v: adj[u]) {
+                ed++;
+                if (!vis[v]) {
+                    vis[v] = 1;
+                    q.pb(v);
                 }
             }
         }
 
-        matches += (SZ(q) + 1) / 2;
+        ed /= 2; // 无向边被统计了两次
+
+        // 根据分量类型计算最大匹配贡献
+        if (nd == ed) {
+            // 环 (Cycle): 匹配数为 edges / 2
+            match += ed / 2;
+        } else {
+            // 链 (Path): 匹配数为 ceil(edges / 2) => (edges + 1) / 2
+            match += (ed + 1) / 2;
+        }
     }
 
-    prt(n - matches);
+    // 根据 Dilworth 定理推论: 最大反链 = n - 最大匹配
+    prt(n - match);
 }
 
 int main() {

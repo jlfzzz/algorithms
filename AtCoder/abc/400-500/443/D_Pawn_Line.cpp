@@ -149,44 +149,29 @@ int Multitest = 1;
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    int n;
+    rd(n);
 
-    auto calc = [&](string &s) {
-        int n = SZ(s);
-        int ans = 1;
+    vl r(n);
+    rv(r);
 
-        int r = n - 1;
-        while (r >= 0 && s[r] == s[n - 1]) {
-            r--;
+    auto a = r;
+
+    F(i, 1, n - 1) {
+        if (a[i] > a[i - 1] + 1) {
+            a[i] = a[i - 1] + 1;
         }
+    }
 
-        if (r < 0) {
-            return 1;
+    D(i, n - 2, 0) {
+        if (a[i] > a[i + 1] + 1) {
+            a[i] = a[i + 1] + 1;
         }
+    }
 
-        int l = 1;
-        int cur = s[0] - '0';
+    ll ans = 0;
+    F(i, 0, n - 1) { ans += (r[i] - a[i]); }
 
-        while (l <= r && s[l] == s[0]) {
-            l++;
-        }
-
-        F(i, l, r) {
-            int x = s[i] - '0';
-            if (x > cur) {
-                ans++;
-                cur = x;
-            }
-        }
-
-
-        return ans;
-    };
-
-    int ans = calc(s);
-    ranges::reverse(s);
-    ans = max(ans, calc(s));
     prt(ans);
 }
 

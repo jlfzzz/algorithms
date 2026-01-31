@@ -144,50 +144,29 @@ using namespace utils;
 
 constexpr int N = 1e6 + 5;
 
-int Multitest = 1;
+int Multitest = 0;
 
 void init() {}
 
 void solve() {
-    string s;
-    rd(s);
+    ll n, t;
+    rd(n, t);
 
-    auto calc = [&](string &s) {
-        int n = SZ(s);
-        int ans = 1;
+    ll T = t;
 
-        int r = n - 1;
-        while (r >= 0 && s[r] == s[n - 1]) {
-            r--;
+    vl a(n);
+    rv(a);
+
+    int i = 0;
+    while (i < n) {
+        ll cur = a[i];
+        while (i < n && a[i] <= cur + 100) {
+            i++;
         }
+        t -= min(100ll, T - cur);
+    }
 
-        if (r < 0) {
-            return 1;
-        }
-
-        int l = 1;
-        int cur = s[0] - '0';
-
-        while (l <= r && s[l] == s[0]) {
-            l++;
-        }
-
-        F(i, l, r) {
-            int x = s[i] - '0';
-            if (x > cur) {
-                ans++;
-                cur = x;
-            }
-        }
-
-
-        return ans;
-    };
-
-    int ans = calc(s);
-    ranges::reverse(s);
-    ans = max(ans, calc(s));
-    prt(ans);
+    prt(t);
 }
 
 int main() {
